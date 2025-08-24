@@ -107,3 +107,9 @@ export const InformationCircleIcon: React.FC<IconProps> = ({ className }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
   </svg>
 );
+
+export const ShareIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.195.025.39.042.586.05l1.455.146a2.25 2.25 0 0 1 2.124 2.124l.146 1.455c.008.082.016.164.024.246m-2.19-2.732a2.25 2.25 0 0 0 0-2.186m0 2.186c-.195-.025-.39-.042-.586-.05l-1.455-.146a2.25 2.25 0 0 0-2.124-2.124l-.146-1.455a2.25 2.25 0 0 0-2.46 0l-.146 1.455a2.25 2.25 0 0 0-2.124 2.124l-1.455.146c-.082.008-.164.016-.246.024m2.19 2.732a2.25 2.25 0 0 1 0 2.186m0-2.186c.195.025.39.042.586.05l1.455.146a2.25 2.25 0 0 1 2.124 2.124l.146 1.455c.008.082.016.164.024.246m-2.19-2.732a2.25 2.25 0 0 0 0-2.186" />
+  </svg>
+);

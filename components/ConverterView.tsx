@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { convertCodeToCube } from '../services/geminiService';
 import { CONVERTER_EXAMPLES } from '../constants';
 import type { ConversionMetrics } from '../types';
-import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ArrowDownTrayIcon } from './icons';
+import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ArrowDownTrayIcon, ShareIcon } from './icons';
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) => (
   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
@@ -15,9 +15,9 @@ const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) =
       <p className="text-xs text-gray-400">CUBE Lines</p>
       <p className="text-lg font-bold text-green-400">{metrics.cube_lines}</p>
     </div>
-    <div className="bg-black/20 p-3 rounded-md">
-      <p className="text-xs text-gray-400">Compression</p>
-      <p className="text-lg font-bold text-gray-100">{metrics.compression_ratio}</p>
+     <div className="bg-black/20 p-3 rounded-md">
+      <p className="text-xs text-gray-400">Time Saved (est.)</p>
+      <p className="text-lg font-bold text-gray-100">{metrics.time_saved_minutes} min</p>
     </div>
     <div className="bg-green-900/20 p-3 rounded-md border border-green-800/50">
       <p className="text-xs text-green-300">Code Reduction</p>
@@ -33,6 +33,7 @@ export const ConverterView: React.FC = () => {
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState('');
+  const [shareSuccess, setShareSuccess] = useState('');
   const [selectedExample, setSelectedExample] = useState('');
 
   const handleConvert = async () => {
@@ -65,6 +66,24 @@ export const ConverterView: React.FC = () => {
       setTimeout(() => setCopySuccess(''), 2000);
     });
   };
+  
+  const handleShare = () => {
+    if (!outputCode || !metrics) return;
+
+    const textToShare = `I just compressed ${metrics.original_lines} lines of microscope code to ${metrics.cube_lines} lines (${metrics.savings_percent}% reduction) with CUBE Protocol!
+
+Created by Phil Hills - Seattle Developer.
+
+Check out the CUBE script:
+\`\`\`
+${outputCode}
+\`\`\`
+`;
+    navigator.clipboard.writeText(textToShare).then(() => {
+        setShareSuccess('Copied!');
+        setTimeout(() => setShareSuccess(''), 2000);
+    });
+  };
 
   const handleDownloadCube = () => {
     const element = document.createElement("a");
@@ -95,6 +114,7 @@ ${outputCode}
 # =================
 # Compression Ratio: ${metrics.compression_ratio}
 # Code Savings: ${metrics.savings_percent}%
+# Estimated Time Saved: ${metrics.time_saved_minutes} minutes
 `;
   
     const element = document.createElement("a");
@@ -162,13 +182,13 @@ ${outputCode}
                   <ClipboardIcon className="w-4 h-4 mr-1"/>
                   {copySuccess || 'Copy'}
                 </button>
+                 <button onClick={handleShare} title="Share Conversion" disabled={!outputCode || !metrics} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                  <ShareIcon className="w-4 h-4 mr-1"/>
+                  {shareSuccess || 'Share'}
+                </button>
                 <button onClick={handleDownloadCube} title="Download .cuby file" disabled={!outputCode} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
                   .cuby
-                </button>
-                <button onClick={handleDownloadComparison} title="Download comparison file" disabled={!outputCode || !metrics} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
-                  Compare
                 </button>
             </div>
           </div>

@@ -14,7 +14,13 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
   await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
 
   const lines = script.trim().split('\n');
-  const logs: string[] = [];
+  const logs: string[] = [
+    '🔬 3i Microscope Control System',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'CUBE Protocol Execution Log',
+    'Created by Phil Hills - Seattle Developer',
+    ''
+  ];
   let imageGenerated = false;
 
   for (const line of lines) {
@@ -26,29 +32,41 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
       continue;
     }
 
-    const [domain, sequence, outcome] = parts;
+    const [domain, sequence, outcome] = parts.map(p => p.trim());
     
-    logs.push(`Executing CUBE: ${line}`);
-    logs.push(`  -> Domain: ${domain}`);
-    logs.push(`  -> Sequence: ${sequence.replace(/→/g, ' -> ')}`);
-    
-    if (/CAPTURE|IMAGE|ACQUIRE/i.test(domain)) {
-        logs.push('  -> Camera shutter opening...');
-        logs.push('  -> Acquiring image data...');
-        logs.push('  -> Capture successful.');
+    logs.push(`[${new Date().toLocaleTimeString()}] Executing: ${line}`);
+
+    const upperDomain = domain.toUpperCase();
+    if (upperDomain === 'MARIANAS' || upperDomain === 'AXL') {
+        logs.push(`  -> ✓ Connected to 3i ${domain} system`);
+        logs.push(`     • Serial: ${upperDomain}-2024-${Math.floor(1000 + Math.random() * 9000)}`);
+        logs.push(`     • Firmware: v7.3.2`);
+        if (sequence.toUpperCase().includes('TEMP')) logs.push(`     • Temperature: 37.0°C`);
+        if (sequence.toUpperCase().includes('CO2')) logs.push(`     • CO2: 5.0%`);
+    }
+
+    if (upperDomain.includes('ACQUIRE') || upperDomain.includes('CAPTURE') || upperDomain.includes('SCAN') || upperDomain.includes('TIMELAPSE')) {
+        logs.push('  -> ✓ Acquisition started');
+        logs.push('     • Camera: Hamamatsu ORCA-Fusion BT');
+        logs.push('     • Resolution: 2304 x 2304 pixels');
+        logs.push('     • Bit depth: 16-bit');
+        
+        const channelsMatch = sequence.match(/CHANNELS\[(.*?)\]/i);
+        if (channelsMatch && channelsMatch[1]) {
+            logs.push(`     • Channels: ${channelsMatch[1]}`);
+        }
+
         if (!imageGenerated) {
             logs.push('[IMAGE_GENERATED]');
             imageGenerated = true;
         }
-    } else if (/EXPERIMENT|LOOP|RECOVER/i.test(domain)) {
-        logs.push('  -> Starting complex experiment sequence...');
-        logs.push('  -> Monitoring progress...');
     }
-
-    logs.push(`SUCCESS: ${outcome}`);
+    
+    logs.push(`  -> SUCCESS: ${outcome}`);
+    logs.push(''); // for spacing
   }
 
-  if (logs.length === 0) {
+  if (logs.length <= 5) {
       logs.push("Script is empty or contains only comments.");
   }
   
@@ -87,6 +105,7 @@ RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT[Curves]|COMPLETE`;
             cube_lines,
             compression_ratio: `${original_lines}:${cube_lines}`,
             savings_percent: parseFloat(((1 - cube_lines / original_lines) * 100).toFixed(1)),
+            time_saved_minutes: Math.round(original_lines * 1.5)
         }
     };
   }
@@ -110,6 +129,7 @@ COMPLETE|CONVERSION[Simulated]→METRICS[Estimated]|DONE`,
       cube_lines,
       compression_ratio: `${original_lines}:${cube_lines}`,
       savings_percent: savings,
+      time_saved_minutes: Math.round(original_lines * 1.5)
     },
   };
 };

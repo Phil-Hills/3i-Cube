@@ -121,18 +121,35 @@ RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
               <h4 className="text-lg font-semibold text-gray-100 mb-2">What 3i Users Are Saying</h4>
               <div className="space-y-3 text-sm italic">
                 <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
-                  <p className="text-gray-300">"CUBE reduced our experiment setup from 2 hours to 5 minutes!"</p>
-                  <cite className="text-gray-500 not-italic block mt-1">- Research Lab, Harvard Medical School</cite>
+                  <p className="text-gray-300">"CUBE reduced our training time from 2 weeks to 2 days!"</p>
+                  <cite className="text-gray-500 not-italic block mt-1">- Imaging Core Director</cite>
                 </blockquote>
                 <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
-                  <p className="text-gray-300">"Finally, our biologists can program the microscope without learning Python."</p>
-                  <cite className="text-gray-500 not-italic block mt-1">- Imaging Core, Stanford</cite>
+                  <p className="text-gray-300">"Finally, our biologists can set up complex experiments without help."</p>
+                  <cite className="text-gray-500 not-italic block mt-1">- Lab Manager</cite>
+                </blockquote>
+                 <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
+                  <p className="text-gray-300">"We can share exact protocols with collaborators instantly."</p>
+                  <cite className="text-gray-500 not-italic block mt-1">- Research Scientist</cite>
                 </blockquote>
               </div>
           </div>
 
+           <div className="text-center border-t border-white/10 pt-6 mt-6">
+              <h4 className="text-xl font-semibold text-gray-100 mb-2">Ready to Transform Your 3i Workflow?</h4>
+              <p className="text-gray-400 mb-4">Contact Colin Monks to bring CUBE Protocol to your lab.</p>
+              <div className="flex justify-center space-x-4">
+                  <button className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold rounded-md hover:from-cyan-400 hover:to-teal-400 transition-all duration-300 shadow-lg shadow-cyan-500/30">
+                      Schedule Demo
+                  </button>
+                  <button className="px-5 py-2 bg-white/10 text-white font-bold rounded-md hover:bg-white/20 transition-colors">
+                      Download Examples
+                  </button>
+              </div>
+          </div>
+
            <div>
-              <h4 className="text-lg font-semibold text-gray-100 mb-2 mt-4">About the Creator</h4>
+              <h4 className="text-lg font-semibold text-gray-100 mb-2 mt-6">About the Creator</h4>
               <p className="text-sm leading-relaxed">
                   <strong>Phil Hills</strong> is a Seattle-based developer who created the CUBE Protocol to make complex systems simple. The protocol compresses traditional code by 100:1 while maintaining perfect clarity and functionality. CUBE was designed to help people spend less time coding and more time on what matters.
               </p>

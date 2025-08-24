@@ -26,6 +26,7 @@ export interface ConversionMetrics {
     cube_lines: number;
     compression_ratio: string;
     savings_percent: number;
+    time_saved_minutes: number;
 }
 
 export interface ConverterExample {

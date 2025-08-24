@@ -2,6 +2,72 @@ import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
   {
+    category: "Real 3i Workflows",
+    description: "End-to-end examples of complex experiments on 3i systems.",
+    scripts: [
+      {
+        name: "Marianas Confocal - Live Cell",
+        description: "Track cell division over 24 hours with temperature and CO2 control.",
+        script: `# Live cell imaging with 3i Marianas
+MARIANAS|LIVE_CELL→TEMP[37C]→CO2[5%]→OBJECTIVE[60x_Oil]|READY
+TIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUNNING
+ANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE`
+      },
+      {
+        name: "AXL Lattice Light Sheet",
+        description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution.",
+        script: `# 4D Lattice light sheet with AXL
+AXL|LATTICE→SAMPLE[Zebrafish_Embryo]→GENTLE[Low_Power]|CONFIGURED
+ACQUIRE|4D→VOLUME[500x500x200um]→TIME[6h]→INTERVAL[30s]|CAPTURING
+PROCESS|DECONVOLVE[AI]→PROJECT[MIP]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
+      },
+      {
+        name: "Cleared Tissue Imaging",
+        description: "Image an entire mouse brain section by scanning and stitching large tiles.",
+        script: `# Cleared tissue with 3i AXL
+AXL|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY
+SCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING
+STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
+      }
+    ]
+  },
+  {
+    category: "AXL Extreme Light Microscopy",
+    description: "Cutting-edge techniques for the flagship 3i AXL system.",
+    scripts: [
+      {
+        name: "Lattice Light Sheet",
+        description: "Gentle, high-resolution 4D imaging of live samples over time.",
+        script: `AXL|LATTICE→SAMPLE[Live_Cells]→VOLUME[200x200x50um]→TIME[10min]→GENTLE|4D`
+      },
+      {
+        name: "Cleared Tissue Volume",
+        description: "Deep imaging of large, cleared samples like a mouse brain.",
+        script: `AXL|CLEARED[Mouse_Brain]→DEPTH[5mm]→CHANNELS[Neurons,Vessels]→TILE[10x10]|VOLUME`
+      },
+      {
+        name: "6-Color Live Cell Imaging",
+        description: "Simultaneous long-term imaging of 6 fluorescent channels with minimal photobleaching.",
+        script: `AXL|LIVE→CHANNELS[DAPI,GFP,RFP,iRFP,Cy5,Cy7]→TIMELAPSE[24h]→MINIMAL_BLEACH|MULTICOLOR`
+      },
+      {
+        name: "AI Deconvolution",
+        description: "Acquire raw data and use AI to dramatically enhance resolution and clarity.",
+        script: `AXL|ACQUIRE[Raw]→DECONVOLVE[AI]→ENHANCE[2x_Resolution]→DENOISE|CRYSTAL_CLEAR`
+      },
+      {
+        name: "High-Speed Volumetric",
+        description: "Capture 3D volumes at 100fps to track fast-moving particles.",
+        script: `AXL|VOLUME→SPEED[100fps]→ZSTACK[100_planes]→TRACK[Particles]|FAST_3D`
+      },
+      {
+        name: "Simultaneous FRAP & Imaging",
+        description: "Perform photomanipulation (FRAP) while simultaneously imaging the sample.",
+        script: `AXL|FRAP→BLEACH[ROI]→MONITOR[Recovery]→SIMULTANEOUS[Imaging]|QUANTIFIED`
+      }
+    ]
+  },
+  {
     category: "Core Techniques",
     description: "Fundamental and commonly used 3i imaging protocols.",
     scripts: [
