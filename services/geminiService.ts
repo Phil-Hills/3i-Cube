@@ -1,3 +1,4 @@
+
 import type { ConversionMetrics } from '../types';
 
 /**
@@ -120,7 +121,7 @@ class UniversalCubeConverter {
     let currentOp: any = {
       type: null,
       mainAction: null,
-      steps: [],
+      steps: new Set<string>(),
       startLine: 0,
       endLine: 0
     };
@@ -149,22 +150,27 @@ class UniversalCubeConverter {
   }
 
   private isNewOperation(line: string, currentOp: any): boolean {
-    const majorOperations = [
-      /^(async\s+)?function\s+/,
-      /^class\s+/,
-      /^(const|let|var)\s+\w+\s*=\s*(async\s*)?\(/,
-      /^(export|import)\s+/,
-      /^(if|for|while|switch)\s*\(/,
-      /^try\s*{/,
-      /\.(get|post|put|delete|patch)\s*\(/,
-      /fetch\s*\(/,
-      /^return\s+/
+    // If we are not in an operation, any valid line of code starts one.
+    if (!currentOp.mainAction) {
+      return true;
+    }
+  
+    // These patterns define the start of a new, distinct logical block.
+    // They are typically top-level declarations.
+    const newOperationStarters = [
+      /^(async\s+)?function\s+/, // function foo()
+      /^class\s+/, // class Bar
+      /^def\s+/, // def baz(): (Python)
+      // `const myFunc = () =>` is also a new operation starter
+      /^(export\s+)?(const|let|var)\s+\w+\s*=\s*(async)?\s*\(.*\)\s*=>/,
+      /^(export|import)\s+/, // import/export
     ];
-    // If the current operation is empty, any code is a new operation
-    if (!currentOp.mainAction) return true;
-    // Check if the line matches a major operation pattern
-    return majorOperations.some(pattern => pattern.test(line));
+  
+    // A new operation starts if the line matches one of the starters.
+    // We avoid splitting blocks by not including things like `if`, `for`, or `return`.
+    return newOperationStarters.some(pattern => pattern.test(line));
   }
+  
 
   private startNewOperation(line: string, lineNumber: number): any {
     const op = {
