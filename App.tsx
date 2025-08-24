@@ -8,6 +8,10 @@ import { StatusBar } from './components/StatusBar';
 import { interpretCubeScript } from './services/geminiService';
 import type { LogEntry, MicroscopeStatus } from './types';
 import { EXAMPLE_SCRIPTS } from './constants';
+import { AboutModal } from './components/AboutModal';
+import { ViewSwitcher } from './components/ViewSwitcher';
+import { ConverterView } from './components/ConverterView';
+
 
 const App: React.FC = () => {
   const [cubeScript, setCubeScript] = useState<string>(EXAMPLE_SCRIPTS[0].script);
@@ -15,6 +19,9 @@ const App: React.FC = () => {
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
   const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(null);
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [view, setView] = useState<'executor' | 'converter'>('executor');
+
 
   const handleExecute = useCallback(async () => {
     if (isExecuting || !cubeScript.trim()) return;
@@ -70,24 +77,34 @@ const App: React.FC = () => {
   
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
-      <Header />
-      <main className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-4 p-4 overflow-hidden">
-        <div className="md:col-span-3 flex flex-col gap-4 overflow-y-auto">
-           <CommandPalette onSelectScript={selectScript} />
-        </div>
-        <div className="md:col-span-5 flex flex-col gap-4 overflow-hidden">
-           <Editor
-            script={cubeScript}
-            onScriptChange={setCubeScript}
-            onExecute={handleExecute}
-            isExecuting={isExecuting}
-          />
-        </div>
-        <div className="md:col-span-4 flex flex-col gap-4 overflow-hidden">
-          <OutputLog logEntries={logEntries} imageUrl={simulatedImageUrl} />
-        </div>
+      <Header onAboutClick={() => setIsAboutModalOpen(true)} />
+      
+      <main className="flex-grow flex flex-col p-4 overflow-hidden">
+        <ViewSwitcher currentView={view} onViewChange={setView} />
+        {view === 'executor' ? (
+           <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-4 pt-4 overflow-hidden">
+            <div className="md:col-span-3 flex flex-col gap-4 overflow-y-auto">
+              <CommandPalette onSelectScript={selectScript} />
+            </div>
+            <div className="md:col-span-5 flex flex-col gap-4 overflow-hidden">
+              <Editor
+                script={cubeScript}
+                onScriptChange={setCubeScript}
+                onExecute={handleExecute}
+                isExecuting={isExecuting}
+              />
+            </div>
+            <div className="md:col-span-4 flex flex-col gap-4 overflow-hidden">
+              <OutputLog logEntries={logEntries} imageUrl={simulatedImageUrl} />
+            </div>
+          </div>
+        ) : (
+          <ConverterView />
+        )}
       </main>
+      
       <StatusBar status={microscopeStatus} />
+      {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
     </div>
   );
 };

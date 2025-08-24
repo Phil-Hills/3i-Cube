@@ -31,8 +31,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
         <span className="text-gray-300">Microscope Status:</span>
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
-      <div className="text-gray-500">
-        3i CUBE Protocol v1.0
+      <div className="text-gray-500 text-right">
+        <div>3i CUBE Protocol v1.0</div>
+        <div className="text-xs">Created by Phil Hills</div>
       </div>
     </footer>
   );

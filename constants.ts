@@ -29,6 +29,51 @@ EXPERIMENT|CANCER_CELLS→
     name: "Time-Lapse Study",
     description: "Monitor cell division over a 12-hour period.",
     script: `CONNECT|MICROSCOPE[DeepSIM]→INITIALIZE|READY
-EXPERIMENT|TIMELAPSE[Cell_Division]→INTERVAL[10min]→DURATION[12h]→CHANNELS[GFP,RFP]|RUNNING`
+EXPERIMENT|TIMELIMELAPSE[Cell_Division]→INTERVAL[10min]→DURATION[12h]→CHANNELS[GFP,RFP]|RUNNING`
   }
 ];
+
+export const EXAMPLE_PYTHON_CODE = `# Example 3i Microscope Code
+import numpy as np
+from pycromanager import Core
+import tifffile
+import time
+
+# Initialize microscope
+core = Core()
+core.loadSystemConfiguration("3i_marianas_config.cfg")
+
+# Set up imaging parameters
+exposure_time = 100
+core.setExposure(exposure_time)
+
+# Configure channels
+channels = ['DAPI', 'GFP', 'RFP']
+for channel in channels:
+    core.setConfig('Channel', channel)
+    core.waitForConfig('Channel', channel)
+    
+    # Capture image
+    core.snapImage()
+    image = core.getImage()
+    
+    # Save image
+    filename = f"cell_{channel}.tif"
+    tifffile.imwrite(filename, image)
+    
+    time.sleep(0.5)
+
+# Run time-lapse
+num_timepoints = 20
+interval = 300  # 5 minutes
+
+for t in range(num_timepoints):
+    for channel in channels:
+        core.setConfig('Channel', channel)
+        core.snapImage()
+        image = core.getImage()
+        tifffile.imwrite(f"timelapse_{channel}_t{t:03d}.tif", image)
+    
+    if t < num_timepoints - 1:
+        time.sleep(interval)
+`;
