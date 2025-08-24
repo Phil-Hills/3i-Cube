@@ -1,0 +1,104 @@
+
+import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { BookOpenIcon, XMarkIcon } from './icons';
+
+const renderers = {
+  h1: ({...props}) => <h1 className="text-3xl font-bold text-white mb-4 border-b border-blue-900/50 pb-2" {...props} />,
+  h2: ({...props}) => <h2 className="text-2xl font-semibold text-gray-100 mt-8 mb-4 border-b border-gray-700 pb-2" {...props} />,
+  h3: ({...props}) => <h3 className="text-xl font-semibold text-blue-300 mt-6 mb-3" {...props} />,
+  h4: ({...props}) => <h4 className="text-lg font-semibold text-gray-200 mt-4 mb-2" {...props} />,
+  p: ({...props}) => <p className="text-gray-300 mb-4 leading-relaxed" {...props} />,
+  ul: ({...props}) => <ul className="list-disc list-inside space-y-2 mb-4 pl-4" {...props} />,
+  ol: ({...props}) => <ol className="list-decimal list-inside space-y-2 mb-4 pl-4" {...props} />,
+  li: ({...props}) => <li className="text-gray-300" {...props} />,
+  code: ({node, inline, className, children, ...props}: any) => {
+    const match = /language-(\w+)/.exec(className || '');
+    const lang = match ? match[1] : 'text';
+    if (!inline) {
+        return (
+            <div className="relative my-4">
+                <pre className="bg-gray-900/70 p-4 rounded-md overflow-x-auto border border-gray-700 text-sm" {...props}>
+                    <code>{children}</code>
+                </pre>
+                 <span className="absolute top-2 right-2 text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">{lang}</span>
+            </div>
+        )
+    }
+    return <code className="bg-gray-700 text-cyan-300 px-1.5 py-1 rounded-md font-mono text-sm" {...props}>{children}</code>;
+  },
+  blockquote: ({...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 py-2 my-4 bg-gray-900/50 text-gray-400 italic" {...props} />,
+  table: ({...props}) => <div className="overflow-x-auto my-4"><table className="w-full text-left border-collapse" {...props} /></div>,
+  thead: ({...props}) => <thead className="bg-gray-800/50" {...props} />,
+  th: ({...props}) => <th className="border border-gray-700 p-3 font-semibold text-gray-100" {...props} />,
+  td: ({...props}) => <td className="border border-gray-700 p-3 text-gray-300" {...props} />,
+  a: ({...props}) => <a className="text-blue-400 hover:underline" {...props} />,
+  hr: ({...props}) => <hr className="border-gray-700 my-8" {...props} />,
+};
+
+export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [markdown, setMarkdown] = useState('');
+
+  useEffect(() => {
+    fetch('/README.md')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Network response was not ok');
+          }
+          return response.text();
+      })
+      .then(text => setMarkdown(text))
+      .catch(err => {
+          console.error('Failed to load README.md:', err);
+          setMarkdown('# Error\n\nCould not load the documentation file.');
+      });
+  }, []);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
+  
+  return (
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div className="bg-gray-800 border border-blue-900/50 rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="flex items-center justify-between p-4 border-b border-gray-700/50 flex-shrink-0">
+          <div className="flex items-center">
+            <BookOpenIcon className="w-7 h-7 text-blue-400 mr-3" />
+            <div>
+              <h2 className="text-xl font-bold text-white">3i CUBE Protocol Documentation</h2>
+               <p className="text-sm text-gray-400">README</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-gray-700/50 transition-colors" aria-label="Close modal">
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 md:p-8 overflow-y-auto text-gray-300">
+           {markdown ? (
+             <ReactMarkdown
+                children={markdown}
+                remarkPlugins={[remarkGfm]}
+                components={renderers}
+              />
+           ) : (
+             <p>Loading documentation...</p>
+           )}
+        </div>
+      </div>
+    </div>
+  );
+};

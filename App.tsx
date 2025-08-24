@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { Header } from './components/Header';
 import { CommandPalette } from './components/CommandPalette';
@@ -8,6 +9,7 @@ import { interpretCubeScript } from './services/geminiService';
 import type { LogEntry, MicroscopeStatus } from './types';
 import { METHOD_SCRIPTS } from './constants';
 import { AboutModal } from './components/AboutModal';
+import { DocsModal } from './components/DocsModal';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { ConverterView } from './components/ConverterView';
 import { MicroscopyImageGenerator } from './services/imageGenerator';
@@ -43,6 +45,7 @@ const App: React.FC = () => {
     }
   });
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [view, setView] = useState<'executor' | 'converter'>('executor');
 
 
@@ -108,7 +111,10 @@ const App: React.FC = () => {
   
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
-      <Header onAboutClick={() => setIsAboutModalOpen(true)} />
+      <Header 
+        onAboutClick={() => setIsAboutModalOpen(true)}
+        onDocsClick={() => setIsDocsModalOpen(true)}
+      />
       
       <main className="flex-grow flex flex-col p-4 overflow-hidden">
         <ViewSwitcher currentView={view} onViewChange={setView} />
@@ -136,6 +142,7 @@ const App: React.FC = () => {
       
       <StatusBar status={microscopeStatus} />
       {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
+      {isDocsModalOpen && <DocsModal onClose={() => setIsDocsModalOpen(false)} />}
     </div>
   );
 };
