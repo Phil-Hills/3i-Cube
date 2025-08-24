@@ -18,21 +18,21 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
         return { color: 'bg-red-500', text: 'Error' };
       case 'DISCONNECTED':
       default:
-        return { color: 'bg-gray-500', text: 'Simulated: Disconnected' };
+        return { color: 'bg-slate-500', text: 'Simulated: Disconnected' };
     }
   };
 
   const { color, text } = getStatusIndicator();
 
   return (
-    <footer className="flex items-center justify-between p-2 px-4 bg-gray-950/40 backdrop-blur-2xl border-t border-cyan-400/20 text-sm">
+    <footer className="flex items-center justify-between p-2 px-4 bg-slate-900 border-t-2 border-[var(--cube-blue)] text-sm">
       <div className="flex items-center">
         <div className={`w-3 h-3 rounded-full mr-2 ${color}`}></div>
-        <span className="text-gray-300">Microscope Status:</span>
+        <span className="text-slate-300">Microscope Status:</span>
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
-      <div className="text-gray-500 text-right">
-        <div>3i CUBE Protocol v1.0</div>
+      <div className="text-slate-500 text-right">
+        <div>3i CUBE Protocol v2.0</div>
         <div className="text-xs">Created by Phil Hills</div>
       </div>
     </footer>

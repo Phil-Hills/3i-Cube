@@ -119,3 +119,28 @@ export const NvidiaIcon: React.FC<IconProps> = ({ className }) => (
         <path d="M448 128h-32v-80c0-26.5-21.5-48-48-48h-128c-26.5 0-48 21.5-48 48v80h-32c-26.5 0-48 21.5-48 48v128c0 26.5 21.5 48 48 48h32v80c0 26.5 21.5 48 48 48h128c26.5 0 48-21.5 48-48v-80h32c26.5 0 48-21.5 48-48v-128c0-26.5-21.5-48-48-48zM249.4 104.8c-1.4-1.3-3.5-1.3-4.9 0l-48 48c-1.4 1.3-1.4 3.5 0 4.9l16.8 16.8-21.1 21.1-16.8-16.8c-1.4-1.3-3.5-1.3-4.9 0l-48 48c-1.4 1.3-1.4 3.5 0 4.9l104.8 104.8c1.4 1.3 3.5 1.3 4.9 0l48-48c1.4-1.3 1.4-3.5 0-4.9l-16.8-16.8 21.1-21.1 16.8 16.8c1.4 1.3 3.5 1.3 4.9 0l48-48c1.4-1.3 1.4-3.5 0-4.9l-104.8-104.8zM368 336h-48v48h-48v-48h-48v-48h48v-48h48v48h48v48z" />
     </svg>
 );
+
+export const BookmarkSquareIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" />
+  </svg>
+);
+
+export const TrashIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+  </svg>
+);
+
+export const TagIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
+  </svg>
+);
+
+export const CalendarIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0h18" />
+  </svg>
+);

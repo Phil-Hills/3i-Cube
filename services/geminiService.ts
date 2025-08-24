@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ConversionMetrics } from '../types';
 
@@ -77,11 +78,10 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
  * @param code The source code or text to convert.
  * @returns A promise that resolves to the converted CUBE code and calculated metrics.
  */
-export const convertCodeToCube = async (code: string): Promise<{ cube_code: string; metrics: ConversionMetrics }> => {
+export const convertCodeToCube = async (code: string): Promise<{ cube_code: string; metrics: ConversionMetrics; }> => {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    // Client-side line counting for accuracy
     const countMeaningfulLines = (text: string) => {
       return text.split('\n').filter(line => {
         const trimmed = line.trim();
@@ -91,31 +91,29 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
 
     const original_lines = countMeaningfulLines(code);
     
-    const systemInstruction = `You are an expert at converting code to the CUBE Protocol, created by Phil Hills.
-Your highest priority is INTELLIGENT GROUPING. Group related lines of code (like a whole function, class, or API call) into a single, semantic CUBE command in the format: DOMAIN|SEQUENCE|OUTCOME.
-Do not convert line-by-line. Capture the overall purpose of a code block.`;
+    const systemInstruction = `You are an expert at converting code to the CUBE Protocol, created by Phil Hills. Your highest priority is INTELLIGENT GROUPING. Group related lines of code (like a whole function, class, or API call) into a single, semantic CUBE command in the format: DOMAIN|SEQUENCE|OUTCOME. Do not convert line-by-line. Capture the overall purpose of a code block.`;
 
     const responseSchema = {
       type: Type.OBJECT,
       properties: {
         cube_script: {
           type: Type.STRING,
-          description: "The fully converted CUBE Protocol script. Each logical operation from the original code should be a single line in this script. Must follow DOMAIN|SEQUENCE|OUTCOME format."
+          description: "The fully converted CUBE Protocol script. Each logical operation should be a single line. Must follow DOMAIN|SEQUENCE|OUTCOME format."
         },
         analysis: {
           type: Type.STRING,
-          description: "A brief, one-sentence analysis of the original code's purpose, e.g., 'This script performs a multi-channel Z-stack acquisition.'"
+          description: "A brief, one-sentence analysis of the original code's purpose."
         }
       },
       required: ["cube_script", "analysis"],
     };
 
     const prompt = `
-      **CRITICAL TASK: Convert the user's code into a CUBE Protocol script based on the system instruction.**
+      **CRITICAL TASK: Convert the user's code into a CUBE Protocol script and provide a brief analysis.**
 
       **High-Quality Grouping Examples:**
 
-      *Example 1: Complex MATLAB Procedure (many lines)*
+      *Example 1: Complex MATLAB Procedure*
       \`\`\`matlab
       % ... 200+ lines for adaptive optics ...
       [nZern, Z2C, dm] = Init_ALPAO_DM();
@@ -125,32 +123,18 @@ Do not convert line-by-line. Capture the overall purpose of a code block.`;
       end
       dm.Send(zernikeVector * Z2C);
       \`\`\`
-      *Correct CUBE (ONE command for the whole script):*
-      \`\`\`json
-      {
-        "cube_script": "OPTIMIZE|ADAPTIVE_OPTICS→ZERNIKE[1:7]→APPLY[BestPattern]|CORRECTED",
-        "analysis": "This MATLAB script performs a complete adaptive optics optimization."
-      }
-      \`\`\`
-
-      *Example 2: Python Function*
+      *Correct CUBE:* "OPTIMIZE|ADAPTIVE_OPTICS→ZERNIKE[1:7]→APPLY[BestPattern]|CORRECTED"
+      
+      *Example 2: Python API Call*
       \`\`\`python
-      def capture_z_stack(core, channels, z_start):
-          for channel in channels:
-              core.setConfig('Channel', channel)
-              for z in z_positions:
-                  core.setPosition(z)
-                  core.snapImage()
+      def get_user_data(user_id):
+          headers = {"Authorization": "Bearer ..."}
+          response = requests.get(f"https://api.service.com/users/{user_id}", headers=headers)
+          return response.json()
       \`\`\`
-      *Correct CUBE (ONE command for the function):*
-      \`\`\`json
-      {
-        "cube_script": "ACQUIRE|Z_STACK→CHANNELS[Multi]→ITERATE[Z-Planes]|COMPLETE",
-        "analysis": "This Python function acquires a multi-channel Z-stack."
-      }
-      \`\`\`
+      *Correct CUBE:* "API|REQUEST[users]→AUTH[Bearer]→METHOD[GET]→RESPONSE[JSON]|COMPLETE"
 
-      Now, apply this grouping logic to the user's code.
+      Now, apply this logic to the user's code.
 
       **User's Code to Convert:**
       \`\`\`

@@ -1,157 +1,102 @@
 
 import React, { useEffect } from 'react';
-import { CubeIcon, XMarkIcon, NvidiaIcon } from './icons';
+import { CubeIcon, XMarkIcon } from './icons';
 
-const AXLFeatureShowcase: React.FC = () => (
-    <div className="bg-black/20 border border-[#76B900]/50 rounded-lg p-4 my-6">
-        <div className="flex items-center justify-center text-center mb-4">
-            <NvidiaIcon className="w-16 h-16 text-[#76B900] mr-4"/>
-            <div>
-                <h2 className="text-xl font-bold text-gray-100">🚀 3i AXL with NVIDIA CUDA Acceleration</h2>
-                <p className="text-sm text-gray-400">Real-time processing for the most demanding applications.</p>
-            </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-            <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
-                <h3 className="font-semibold text-cyan-300">Real-time Deconvolution</h3>
-                <p className="text-xs text-gray-400 mt-1">Process 4K images at 120fps with GPU acceleration</p>
-                <div className="text-lg font-bold text-[#76B900] mt-2">8ms Latency</div>
-            </div>
-            <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
-                <h3 className="font-semibold text-cyan-300">AI Segmentation</h3>
-                <p className="text-xs text-gray-400 mt-1">Deep learning models run directly on the GPU</p>
-                <div className="text-lg font-bold text-[#76B900] mt-2">50ms / Frame</div>
-            </div>
-            <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
-                <h3 className="font-semibold text-cyan-300">Massive Volumes</h3>
-                <p className="text-xs text-gray-400 mt-1">Interact with TB-scale datasets smoothly</p>
-                <div className="text-lg font-bold text-[#76B900] mt-2">60fps Navigation</div>
-            </div>
-             <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
-                <h3 className="font-semibold text-cyan-300">Live Processing</h3>
-                <p className="text-xs text-gray-400 mt-1">Zero-lag pipeline from acquisition to display</p>
-                <div className="text-lg font-bold text-[#76B900] mt-2">&lt;50ms Total</div>
-            </div>
-        </div>
-    </div>
-);
+const AdaptiveOpticsShowcase: React.FC = () => (
+  <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4 my-6">
+      <h4 className="text-lg font-semibold text-slate-100 mb-3 text-center">Killer Example: Adaptive Optics</h4>
+      <p className="text-sm text-center text-slate-400 mb-4">A real 200+ line 3i MATLAB script is converted into just 6 lines of CUBE.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+              <h5 className="font-semibold text-red-300 mb-2">Before (MATLAB - Excerpt)</h5>
+              <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-red-200/80 h-full overflow-auto"><code>{`
+% This script performs indirect, image-based adaptive optics
+% ... (150+ lines of nested loops, calibration, and plotting)
 
+[nZern, Z2C, dm] = Init_ALPAO_DM();
+dm.Reset();
 
-export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [onClose]);
-  
-  return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      aria-modal="true"
-      role="dialog"
-    >
-      <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl shadow-black/20">
-        <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
-          <div className="flex items-center">
-            <CubeIcon className="w-7 h-7 text-cyan-400 mr-3" />
-            <div>
-              <h2 className="text-xl font-bold text-white">CUBE Protocol for 3i Microscopes</h2>
-              <p className="text-sm text-gray-400">Created by Phil Hills - Seattle Developer</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">
-            <XMarkIcon className="w-6 h-6" />
-          </button>
-        </div>
+p = polyfit(Spherical_calibration, Defocus_corection, 1);
 
-        <div className="p-6 overflow-y-auto text-gray-300 space-y-6">
-          <h3 className="text-lg font-semibold text-center text-gray-100 mb-2">Transform Complex Microscopy into Simple Commands</h3>
-
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4">
-              <h4 className="text-lg font-bold text-red-300 mb-2">❌ Old Way (Current)</h4>
-              <ul className="list-disc list-inside space-y-1 text-red-200/90">
-                <li>200+ lines of complex code</li>
-                <li>Hours or days of setup time</li>
-                <li>Requires programming expertise</li>
-                <li>Difficult to share or reproduce</li>
-              </ul>
-            </div>
-            <div className="bg-green-900/20 border border-green-800/50 rounded-lg p-4">
-              <h4 className="text-lg font-bold text-green-300 mb-2">✅ CUBE Way (New)</h4>
-              <ul className="list-disc list-inside space-y-1 text-green-200/90">
-                <li>~10 lines of simple commands</li>
-                <li>5 minutes setup time</li>
-                <li>Anyone can read and modify</li>
-                <li>Share as simple text files</li>
-              </ul>
-            </div>
-          </div>
-          
-          <AXLFeatureShowcase />
-
-          <div className="bg-black/20 border border-white/10 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-gray-100 mb-3 text-center">Killer Example: Adaptive Optics</h4>
-              <p className="text-sm text-center text-gray-400 mb-4">A real 200+ line 3i MATLAB script is converted into just 6 lines of CUBE.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                      <h5 className="font-semibold text-red-300 mb-2">Before (MATLAB - Excerpt)</h5>
-                      <pre className="bg-gray-800 p-2 rounded text-xs font-mono text-red-200/80"><code>{`for i = Zernike_index
+for i = Zernike_index
   for j = 1:length(ZernikeAmplitude) 
-    [zernikeVector] = set_zernike_ALPAO_DM(...);
-    pause(0.01);
+    [zernikeVector] = set_zernike_ALPAO_DM(dm, nZern, Z2C, ...);      
+    
     isRequestingFrame = 1;
     while (isFrameReady == 0)
       pause(0.1);
     end
-    Current_Image = AOI;
-    [Total_Intensity(i,j), ...] = Calc_Merits(...);
-  end 
-  [Max_Amp(i)] = Find_maximal_zernike_amplitude(...);
-end`}</code></pre>
-                  </div>
-                   <div>
-                      <h5 className="font-semibold text-green-300 mb-2">After (CUBE Protocol)</h5>
-                      <pre className="bg-gray-800 p-2 rounded text-xs font-mono text-green-200/80 h-full"><code>{`# 3i Adaptive Optics - By Phil Hills
-CONNECT|MICROSCOPE[3i]→DM[ALPAO]→CAMERA|READY
-CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[...]|FITTED
-OPTIMIZE|ZERNIKE[1:7]→AMPLITUDE[-2:0.5:2]|RUNNING
-ACQUIRE|LOOP[Modes]→TEST[Amplitudes]→MEASURE|OPTIMIZING
-APPLY|BEST[Pattern]→DM[Send]→LOCK|CORRECTED
-RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
-                  </div>
-              </div>
-          </div>
-          
-          <div>
-              <h4 className="text-lg font-semibold text-gray-100 mb-2">What 3i Users Are Saying</h4>
-              <div className="space-y-3 text-sm italic">
-                <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
-                  <p className="text-gray-300">"CUBE reduced our training time from 2 weeks to 2 days!"</p>
-                  <cite className="text-gray-500 not-italic block mt-1">- Imaging Core Director</cite>
-                </blockquote>
-                <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
-                  <p className="text-gray-300">"Finally, our biologists can set up complex experiments without help."</p>
-                  <cite className="text-gray-500 not-italic block mt-1">- Lab Manager</cite>
-                </blockquote>
-                 <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
-                  <p className="text-gray-300">"We can share exact protocols with collaborators instantly."</p>
-                  <cite className="text-gray-500 not-italic block mt-1">- Research Scientist</cite>
-                </blockquote>
-              </div>
-          </div>
+    
+    [Total_Intensity(i,j)] = Calc_Merits(...);
+  end
+  
+  [Max_amp_fit(i)] = Find_maximal_zernike(...);
+end
 
+% Apply optimal pattern
+dm.Send(zernikeVector * Z2C);
+`}</code></pre>
+          </div>
+           <div>
+              <h5 className="font-semibold text-green-300 mb-2">After (CUBE Protocol)</h5>
+              <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-green-200/80 h-full overflow-auto"><code>{`
+# 3i Adaptive Optics - By Phil Hills
+CONNECT|MICROSCOPE[3i]→DM[ALPAO]|READY
+
+CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[...]|FITTED
+
+OPTIMIZE|ZERNIKE[1:7]→AMPLITUDE[-2:0.5:2]|RUNNING
+
+ACQUIRE|LOOP[Modes]→TEST[Amplitudes]→MEASURE|OPTIMIZING
+
+APPLY|BEST[Pattern]→DM[Send]→LOCK|CORRECTED
+
+RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]|COMPLETE
+`}</code></pre>
+          </div>
+      </div>
+  </div>
+);
+
+export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+  
+  return (
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl shadow-black/50">
+        <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
+          <div className="flex items-center">
+            <CubeIcon className="w-7 h-7 text-cyan-400 mr-3" />
+            <div>
+              <h2 className="text-xl font-bold text-white">About CUBE Protocol</h2>
+              <p className="text-sm text-slate-400">Created by Phil Hills - Seattle Developer</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-full text-slate-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto text-slate-300 space-y-6">
+          <p className="text-lg text-center text-slate-100 mb-2">Transform Complex Microscopy into Simple, Universal Commands</p>
+
+          <AdaptiveOpticsShowcase />
+          
            <div className="text-center border-t border-white/10 pt-6 mt-6">
-              <h4 className="text-xl font-semibold text-gray-100 mb-2">Ready to Transform Your 3i Workflow?</h4>
-              <p className="text-gray-400 mb-4">Contact Colin Monks to bring CUBE Protocol to your lab.</p>
+              <h4 className="text-xl font-semibold text-slate-100 mb-2">Ready to Transform Your 3i Workflow?</h4>
+              <p className="text-slate-400 mb-4">Contact Colin Monks to bring CUBE Protocol to your lab.</p>
               <div className="flex justify-center space-x-4">
-                  <button className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold rounded-md hover:from-cyan-400 hover:to-teal-400 transition-all duration-300 shadow-lg shadow-cyan-500/30">
+                  <button className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-md hover:brightness-110 transition-all duration-300 shadow-lg shadow-purple-500/30">
                       Schedule Demo
                   </button>
                   <button className="px-5 py-2 bg-white/10 text-white font-bold rounded-md hover:bg-white/20 transition-colors">

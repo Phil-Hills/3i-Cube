@@ -34,3 +34,16 @@ export interface ConverterExample {
     description: string;
     code: string;
 }
+
+export interface GalleryImage {
+  id: number; // timestamp
+  imageUrl: string;
+  cubeScript: string;
+  createdAt: Date;
+  tags: {
+    system: string;
+    technique: string;
+  };
+}
+
+export type View = 'executor' | 'converter' | 'gallery';

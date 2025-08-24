@@ -1,12 +1,12 @@
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { CommandPalette } from './components/CommandPalette';
 import { Editor } from './components/Editor';
 import { OutputLog } from './components/OutputLog';
 import { StatusBar } from './components/StatusBar';
 import { interpretCubeScript } from './services/geminiService';
-import type { LogEntry, MicroscopeStatus } from './types';
+import type { LogEntry, MicroscopeStatus, View, GalleryImage } from './types';
 import { METHOD_SCRIPTS } from './constants';
 import { AboutModal } from './components/AboutModal';
 import { DocsModal } from './components/DocsModal';
@@ -14,6 +14,9 @@ import { ViewSwitcher } from './components/ViewSwitcher';
 import { ConverterView } from './components/ConverterView';
 import { MicroscopyImageGenerator } from './services/imageGenerator';
 import { ImagePreview } from './components/ImagePreview';
+import { ImageModal } from './components/ImageModal';
+import { GalleryView } from './components/GalleryView';
+import * as galleryService from './services/galleryService';
 
 const getInitialScript = (): string => {
   if (
@@ -27,12 +30,6 @@ const getInitialScript = (): string => {
   return '';
 };
 
-const isGpuScript = (script: string): boolean => {
-    const upperScript = script.toUpperCase();
-    const gpuKeywords = ['GPU', 'CUDA', 'AXL', 'LATTICE', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS'];
-    return gpuKeywords.some(keyword => upperScript.includes(keyword));
-};
-
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
 
@@ -41,7 +38,6 @@ const App: React.FC = () => {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
-  const [isGpuActive, setIsGpuActive] = useState<boolean>(() => isGpuScript(initialScript));
   const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(() => {
     if (!initialScript) return null;
     try {
@@ -53,8 +49,19 @@ const App: React.FC = () => {
   });
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
-  const [view, setView] = useState<'executor' | 'converter'>('executor');
+  const [view, setView] = useState<View>('converter');
 
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{imageUrl: string; cubeScript: string; id?: number} | null>(null);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  
+  useEffect(() => {
+    const loadImages = async () => {
+      const images = await galleryService.getImages();
+      setGalleryImages(images);
+    };
+    loadImages();
+  }, []);
 
   const handleExecute = useCallback(async () => {
     if (isExecuting || !cubeScript.trim()) return;
@@ -62,8 +69,7 @@ const App: React.FC = () => {
     setIsExecuting(true);
     setMicroscopeStatus('EXECUTING');
     setLogEntries([]);
-    // Keep the existing preview image during execution for better UX
-
+    
     try {
       const generatedLogs = await interpretCubeScript(cubeScript);
       
@@ -91,7 +97,6 @@ const App: React.FC = () => {
         }
       }
       
-      // Fallback if simulator misses the token
       if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS/i.test(cubeScript)) {
           const newImageUrl = imageGenerator.generateFromCube(cubeScript);
           setSimulatedImageUrl(newImageUrl);
@@ -112,23 +117,35 @@ const App: React.FC = () => {
   const selectScript = (script: string) => {
     setCubeScript(script);
     setLogEntries([]);
-    setIsGpuActive(isGpuScript(script));
     const imageUrl = imageGenerator.generateFromCube(script);
     setSimulatedImageUrl(imageUrl);
   };
+
+  const handleOpenImageModal = (image: {imageUrl: string; cubeScript: string; id?: number}) => {
+    setSelectedImage(image);
+    setIsImageModalOpen(true);
+  };
+
+  const handleSaveToGallery = async () => {
+    if (simulatedImageUrl) {
+        await galleryService.saveImage(simulatedImageUrl, cubeScript);
+        const images = await galleryService.getImages();
+        setGalleryImages(images);
+    }
+  };
   
-  return (
-    <div className="flex flex-col h-screen bg-transparent text-gray-200 font-sans">
-      <Header 
-        onAboutClick={() => setIsAboutModalOpen(true)}
-        onDocsClick={() => setIsDocsModalOpen(true)}
-        isGpuActive={isGpuActive}
-        isProcessing={isExecuting}
-      />
-      
-      <main className="flex-grow flex flex-col p-6 overflow-hidden">
-        <ViewSwitcher currentView={view} onViewChange={setView} />
-        {view === 'executor' ? (
+  const handleDeleteFromGallery = async (id: number) => {
+    await galleryService.deleteImage(id);
+    const images = await galleryService.getImages();
+    setGalleryImages(images);
+    setIsImageModalOpen(false);
+    setSelectedImage(null);
+  };
+  
+  const renderView = () => {
+    switch(view) {
+      case 'executor':
+        return (
            <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6 overflow-hidden">
             <div className="md:col-span-3 flex flex-col gap-6 overflow-y-auto">
               <CommandPalette onSelectScript={selectScript} />
@@ -136,31 +153,56 @@ const App: React.FC = () => {
             <div className="md:col-span-5 flex flex-col gap-6 overflow-hidden">
               <Editor
                 script={cubeScript}
-                onScriptChange={(newScript) => {
-                    setCubeScript(newScript);
-                    setIsGpuActive(isGpuScript(newScript));
-                }}
+                onScriptChange={setCubeScript}
                 onExecute={handleExecute}
                 isExecuting={isExecuting}
               />
             </div>
             <div className="md:col-span-4 grid grid-rows-2 gap-6 overflow-hidden">
               <div className="row-span-1 overflow-hidden">
-                <ImagePreview imageUrl={simulatedImageUrl} />
+                <ImagePreview 
+                  imageUrl={simulatedImageUrl} 
+                  onImageClick={() => simulatedImageUrl && handleOpenImageModal({imageUrl: simulatedImageUrl, cubeScript})}
+                  onSaveClick={handleSaveToGallery}
+                />
               </div>
               <div className="row-span-1 overflow-hidden">
                 <OutputLog logEntries={logEntries} />
               </div>
             </div>
           </div>
-        ) : (
-          <ConverterView />
-        )}
+        );
+      case 'converter':
+        return <ConverterView />;
+      case 'gallery':
+        return <GalleryView images={galleryImages} onImageSelect={handleOpenImageModal} />;
+      default:
+        return null;
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-transparent text-slate-200 font-sans">
+      <Header 
+        onAboutClick={() => setIsAboutModalOpen(true)}
+        onDocsClick={() => setIsDocsModalOpen(true)}
+      />
+      
+      <main className="flex-grow flex flex-col p-4 sm:p-6 overflow-hidden">
+        <ViewSwitcher currentView={view} onViewChange={setView} />
+        {renderView()}
       </main>
       
       <StatusBar status={microscopeStatus} />
       {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
       {isDocsModalOpen && <DocsModal onClose={() => setIsDocsModalOpen(false)} />}
+      {isImageModalOpen && selectedImage && (
+        <ImageModal 
+          image={selectedImage} 
+          onClose={() => setIsImageModalOpen(false)}
+          onDelete={handleDeleteFromGallery}
+        />
+      )}
     </div>
   );
 };

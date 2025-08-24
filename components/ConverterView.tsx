@@ -3,23 +3,23 @@ import React, { useState } from 'react';
 import { convertCodeToCube } from '../services/geminiService';
 import { CONVERTER_EXAMPLES } from '../constants';
 import type { ConversionMetrics } from '../types';
-import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ArrowDownTrayIcon, ShareIcon } from './icons';
+import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ShareIcon } from './icons';
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) => (
-  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-    <div className="bg-black/20 p-3 rounded-md">
-      <p className="text-xs text-gray-400">Original Lines</p>
-      <p className="text-lg font-bold text-cyan-300">{metrics.original_lines}</p>
+  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center animate-fade-in">
+    <div className="bg-slate-800/50 p-3 rounded-lg">
+      <p className="text-xs text-slate-400">Original Lines</p>
+      <p className="text-lg font-bold text-[var(--cube-blue)]">{metrics.original_lines}</p>
     </div>
-    <div className="bg-black/20 p-3 rounded-md">
-      <p className="text-xs text-gray-400">CUBE Lines</p>
+    <div className="bg-slate-800/50 p-3 rounded-lg">
+      <p className="text-xs text-slate-400">CUBE Lines</p>
       <p className="text-lg font-bold text-green-400">{metrics.cube_lines}</p>
     </div>
-     <div className="bg-black/20 p-3 rounded-md">
-      <p className="text-xs text-gray-400">Time Saved (est.)</p>
-      <p className="text-lg font-bold text-gray-100">{metrics.time_saved_minutes} min</p>
+     <div className="bg-slate-800/50 p-3 rounded-lg">
+      <p className="text-xs text-slate-400">Time Saved (est.)</p>
+      <p className="text-lg font-bold text-slate-100">{metrics.time_saved_minutes} min</p>
     </div>
-    <div className="bg-green-900/20 p-3 rounded-md border border-green-800/50">
+    <div className="bg-green-900/20 p-3 rounded-lg border border-green-800/50">
       <p className="text-xs text-green-300">Code Reduction</p>
       <p className="text-lg font-bold text-green-400">{metrics.savings_percent}%</p>
     </div>
@@ -61,163 +61,90 @@ export const ConverterView: React.FC = () => {
     navigator.clipboard.writeText(outputCode).then(() => {
       setCopySuccess('Copied!');
       setTimeout(() => setCopySuccess(''), 2000);
-    }, () => {
-      setCopySuccess('Failed');
-      setTimeout(() => setCopySuccess(''), 2000);
     });
   };
   
   const handleShare = () => {
     if (!outputCode || !metrics) return;
-
-    const textToShare = `I just compressed ${metrics.original_lines} lines of microscope code to ${metrics.cube_lines} lines (${metrics.savings_percent}% reduction) with CUBE Protocol!
-
-Created by Phil Hills - Seattle Developer.
-
-Check out the CUBE script:
-\`\`\`
-${outputCode}
-\`\`\`
-`;
+    const textToShare = `I compressed ${metrics.original_lines} lines of code to ${metrics.cube_lines} lines with CUBE Protocol!\n\n${outputCode}`;
     navigator.clipboard.writeText(textToShare).then(() => {
-        setShareSuccess('Copied!');
+        setShareSuccess('Shared!');
         setTimeout(() => setShareSuccess(''), 2000);
     });
   };
 
-  const handleDownloadCube = () => {
-    const element = document.createElement("a");
-    const file = new Blob([outputCode], {type: 'text/plain;charset=utf-8'});
-    element.href = URL.createObjectURL(file);
-    element.download = "experiment.cuby";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
-
-  const handleDownloadComparison = () => {
-    if (!metrics) return;
-    const comparison = `
-# ===============================================
-# Original Code (${metrics.original_lines} lines)
-# ===============================================
-${inputCode}
-
-# ==================================================
-# CUBE Protocol Version (${metrics.cube_lines} lines)
-# Converted by Phil Hills - Seattle Developer
-# ==================================================
-${outputCode}
-
-# =================
-# Metrics
-# =================
-# Compression Ratio: ${metrics.compression_ratio}
-# Code Savings: ${metrics.savings_percent}%
-# Estimated Time Saved: ${metrics.time_saved_minutes} minutes
-`;
-  
-    const element = document.createElement("a");
-    const file = new Blob([comparison.trim()], {type: 'text/plain;charset=utf-8'});
-    element.href = URL.createObjectURL(file);
-    element.download = "code_comparison.txt";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
-
   return (
     <div className="flex flex-col flex-grow pt-6 overflow-hidden gap-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow overflow-hidden">
         {/* Input Panel */}
-        <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 flex flex-col h-full">
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col h-full">
           <div className="flex items-center mb-4">
             <CodeBracketIcon className="w-6 h-6 text-cyan-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-100">Your 3i Microscope Code</h2>
+            <h2 className="text-lg font-semibold text-slate-100">Input</h2>
           </div>
-          <textarea
-            value={inputCode}
-            onChange={(e) => setInputCode(e.target.value)}
-            className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none border border-white/10 text-sm"
-            placeholder="Paste your Python or MATLAB microscope code here..."
-          />
-           <div className="mt-2 flex flex-col sm:flex-row gap-2">
-             <select
+           <select
                 value={selectedExample}
                 onChange={(e) => {
                   const selectedName = e.target.value;
                   setSelectedExample(selectedName);
                   const example = CONVERTER_EXAMPLES.find(ex => ex.name === selectedName);
-                  if (example) {
-                    setInputCode(example.code);
-                    setOutputCode('');
-                    setMetrics(null);
-                    setError(null);
-                  }
+                  if (example) setInputCode(example.code);
                 }}
-                className="bg-gray-900/70 text-sm text-gray-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:flex-grow"
+                className="mb-2 bg-slate-800/50 text-sm text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full"
               >
-                <option value="" disabled>Load Example Snippet...</option>
+                <option value="" disabled>Load an Example...</option>
                 {CONVERTER_EXAMPLES.map(example => (
                   <option key={example.name} value={example.name}>{example.name}</option>
                 ))}
               </select>
-            </div>
-            {selectedExample && (
-                <p className="text-xs text-gray-400 mt-2 p-2 bg-black/20 rounded-md">
-                    <strong>Description:</strong> {CONVERTER_EXAMPLES.find(ex => ex.name === selectedExample)?.description}
-                </p>
-            )}
+          <textarea
+            value={inputCode}
+            onChange={(e) => setInputCode(e.target.value)}
+            className="flex-grow w-full bg-slate-900 text-slate-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none border border-white/10 text-sm"
+            placeholder="Place code or text here..."
+          />
         </div>
         
         {/* Output Panel */}
-        <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 flex flex-col h-full">
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col h-full">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <CubeIcon className="w-6 h-6 text-cyan-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-100">CUBE Protocol Output</h2>
+              <h2 className="text-lg font-semibold text-slate-100">CUBE Protocol</h2>
             </div>
-            <div className="flex items-center space-x-1">
-                <button onClick={handleCopy} title="Copy to Clipboard" disabled={!outputCode} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+             <div className="flex items-center space-x-1">
+                <button onClick={handleCopy} title="Copy" disabled={!outputCode} className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-50 transition-colors text-sm flex items-center">
                   <ClipboardIcon className="w-4 h-4 mr-1"/>
-                  {copySuccess || 'Copy'}
+                  {copySuccess || ''}
                 </button>
-                 <button onClick={handleShare} title="Share Conversion" disabled={!outputCode || !metrics} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                 <button onClick={handleShare} title="Share" disabled={!outputCode || !metrics} className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-50 transition-colors text-sm flex items-center">
                   <ShareIcon className="w-4 h-4 mr-1"/>
-                  {shareSuccess || 'Share'}
-                </button>
-                <button onClick={handleDownloadCube} title="Download .cuby file" disabled={!outputCode} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
-                  .cuby
+                   {shareSuccess || ''}
                 </button>
             </div>
           </div>
-          <textarea
-            value={outputCode}
-            readOnly
-            className="flex-grow w-full bg-gray-900/70 text-cyan-300 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none border border-white/10 text-sm"
-            placeholder="Converted CUBE script will appear here..."
-          />
+          <div className="flex-grow w-full bg-black/50 text-cyan-300 font-mono p-3 rounded-md border-2 border-cyan-500/50 shadow-inner shadow-black/50 overflow-auto">
+             <pre><code className="text-sm">{outputCode}</code></pre>
+          </div>
            {metrics && <MetricsDisplay metrics={metrics} />}
         </div>
       </div>
       
-      {/* Action Bar */}
-      <div className="flex-shrink-0">
-         {error && <div className="text-center text-red-400 mb-2 text-sm">{error}</div>}
+      <div className="flex-shrink-0 mt-4">
+         {error && <div className="text-center text-red-400 mb-2 text-sm p-2 bg-red-900/20 rounded-md border border-red-500/30">{error}</div>}
          <button
           onClick={handleConvert}
           disabled={isConverting || !inputCode.trim()}
-          className="w-full flex items-center justify-center p-3 bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold rounded-md hover:from-cyan-400 hover:to-teal-400 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-950 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-400/50 transform hover:-translate-y-0.5"
+          className="w-full flex items-center justify-center p-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-lg hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-500/50 shadow-2xl shadow-purple-500/20 transform hover:-translate-y-1"
         >
           {isConverting ? (
             <>
-              <LoaderIcon className="animate-spin w-5 h-5 mr-2" />
-              Converting...
+              <LoaderIcon className="animate-spin w-6 h-6 mr-3" />
+              Analyzing & Converting...
             </>
           ) : (
             <>
-              <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
+              <SwitchHorizontalIcon className="w-6 h-6 mr-3" />
               Convert to CUBE
             </>
           )}

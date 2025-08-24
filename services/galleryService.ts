@@ -1,0 +1,99 @@
+
+import type { GalleryImage } from '../types';
+
+const DB_NAME = 'CubeGalleryDB';
+const STORE_NAME = 'images';
+const DB_VERSION = 1;
+
+let db: IDBDatabase;
+
+const initDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    if (db) return resolve(db);
+
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => reject('Error opening IndexedDB');
+    
+    request.onsuccess = (event) => {
+      db = (event.target as IDBOpenDBRequest).result;
+      resolve(db);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const dbInstance = (event.target as IDBOpenDBRequest).result;
+      if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
+        dbInstance.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    };
+  });
+};
+
+const parseCubeScriptForTags = (script: string): { system: string, technique: string } => {
+    const upperScript = script.toUpperCase();
+    
+    // Systems
+    const systems = ['AXL', 'MARIANAS', 'SLIDEBOOK'];
+    const foundSystem = systems.find(s => upperScript.includes(s)) || 'Generic';
+    
+    // Techniques
+    const techniques: { [key: string]: string } = {
+        'LATTICE': 'Lattice', 'CLEARED': 'Cleared Tissue', 'LIVE_CELL': 'Live Cell', 
+        'DECONVOLVE': 'Deconvolution', 'AI_SEGMENT': 'AI Segmentation', 'REALTIME_DECONV': 'Deconvolution',
+        'CONFOCAL': 'Confocal', 'SORA': 'Super-Resolution', 'FRAP': 'FRAP',
+        'MULTIVIEW_FUSION': 'Multiview Fusion', 'MASSIVE_VOLUME': 'Volume Imaging', 'LIVE_PROCESS': 'Live Processing'
+    };
+    const foundTechnique = Object.keys(techniques).find(t => upperScript.includes(t)) || 'Standard';
+
+    return {
+        system: foundSystem,
+        technique: techniques[foundTechnique] || foundTechnique
+    };
+};
+
+export const saveImage = async (imageUrl: string, cubeScript: string): Promise<void> => {
+    const db = await initDB();
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    
+    const image: GalleryImage = {
+        id: Date.now(),
+        imageUrl,
+        cubeScript,
+        createdAt: new Date(),
+        tags: parseCubeScriptForTags(cubeScript)
+    };
+
+    return new Promise((resolve, reject) => {
+        const request = store.add(image);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject('Error saving image');
+    });
+};
+
+export const getImages = async (): Promise<GalleryImage[]> => {
+    const db = await initDB();
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+
+    return new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = () => {
+            const sorted = request.result.sort((a, b) => b.id - a.id);
+            resolve(sorted);
+        };
+        request.onerror = () => reject('Error fetching images');
+    });
+};
+
+export const deleteImage = async (id: number): Promise<void> => {
+    const db = await initDB();
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+
+    return new Promise((resolve, reject) => {
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject('Error deleting image');
+    });
+};

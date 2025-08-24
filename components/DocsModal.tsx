@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -37,23 +36,39 @@ const renderers = {
   hr: ({...props}) => <hr className="border-gray-700 my-8" {...props} />,
 };
 
+type DocFile = 'README.md' | 'SLIDEBOOK.md';
+
+const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
+    'README.md': {
+        title: 'Why CUBE is Revolutionary',
+        subtitle: 'The core philosophy and paradigm shifts behind the CUBE Protocol.'
+    },
+    'SLIDEBOOK.md': {
+        title: 'SlideBook Integration',
+        subtitle: 'Mapping complex SlideBook/3i microscopy operations to simple CUBE commands.'
+    }
+};
+
+
 export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [markdown, setMarkdown] = useState('');
+  const [activeDoc, setActiveDoc] = useState<DocFile>('README.md');
 
   useEffect(() => {
-    fetch('/README.md')
+    setMarkdown('');
+    fetch(`/${activeDoc}`)
       .then(response => {
           if (!response.ok) {
-              throw new Error('Network response was not ok');
+              throw new Error(`Network response was not ok for ${activeDoc}`);
           }
           return response.text();
       })
       .then(text => setMarkdown(text))
       .catch(err => {
-          console.error('Failed to load README.md:', err);
+          console.error(`Failed to load ${activeDoc}:`, err);
           setMarkdown('# Error\n\nCould not load the documentation file.');
       });
-  }, []);
+  }, [activeDoc]);
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -67,6 +82,22 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     };
   }, [onClose]);
   
+  const TabButton: React.FC<{ doc: DocFile }> = ({ doc }) => {
+      const isActive = activeDoc === doc;
+      const baseClasses = "whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors";
+      const activeClasses = "border-cyan-400 text-cyan-300";
+      const inactiveClasses = "border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500";
+      
+      return (
+        <button
+          onClick={() => setActiveDoc(doc)}
+          className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
+        >
+          {docMeta[doc].title}
+        </button>
+      );
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -79,12 +110,19 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <BookOpenIcon className="w-7 h-7 text-cyan-400 mr-3" />
             <div>
               <h2 className="text-xl font-bold text-white">3i CUBE Protocol Documentation</h2>
-               <p className="text-sm text-gray-400">README</p>
+               <p className="text-sm text-gray-400">{docMeta[activeDoc].subtitle}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">
             <XMarkIcon className="w-6 h-6" />
           </button>
+        </div>
+        
+        <div className="px-6 border-b border-white/10 flex-shrink-0">
+            <nav className="-mb-px flex space-x-6">
+                <TabButton doc="README.md" />
+                <TabButton doc="SLIDEBOOK.md" />
+            </nav>
         </div>
 
         <div className="p-6 md:p-8 overflow-y-auto text-gray-300">
@@ -95,7 +133,9 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 components={renderers}
               />
            ) : (
-             <p>Loading documentation...</p>
+             <div className="flex items-center justify-center h-full">
+                <p className="text-gray-400">Loading documentation...</p>
+             </div>
            )}
         </div>
       </div>

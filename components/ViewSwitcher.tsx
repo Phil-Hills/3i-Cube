@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { PlayIcon, SwitchHorizontalIcon } from './icons';
+import { PlayIcon, SwitchHorizontalIcon, PhotoIcon } from './icons';
+import type { View } from '../types';
 
 interface ViewSwitcherProps {
-  currentView: 'executor' | 'converter';
-  onViewChange: (view: 'executor' | 'converter') => void;
+  currentView: View;
+  onViewChange: (view: View) => void;
 }
 
 export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewChange }) => {
@@ -28,6 +29,13 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
         >
           <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
           Code to CUBE Converter
+        </button>
+        <button
+          onClick={() => onViewChange('gallery')}
+          className={`${baseClasses} ${currentView === 'gallery' ? activeClasses : inactiveClasses}`}
+        >
+          <PhotoIcon className="w-5 h-5 mr-2" />
+          Image Gallery
         </button>
       </div>
     </div>
