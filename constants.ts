@@ -1,37 +1,96 @@
 
-import type { ExampleScript } from './types';
+import type { ExampleScriptCategory } from './types';
 
-export const EXAMPLE_SCRIPTS: ExampleScript[] = [
+export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
   {
-    name: "Multi-Channel Capture",
-    description: "Capture a single frame with three different fluorescent channels.",
-    script: `CONNECT|MICROSCOPE[Marianas_SDC]→INITIALIZE|READY
-CAPTURE|MULTI[DAPI,GFP,RFP]→EXPOSURE[50ms,100ms,200ms]→MERGE[RGB]→SAVE[merged.tif]|COMPLETE`
+    category: "Live Cell Imaging",
+    description: "Long-term imaging of living cells with minimal photodamage.",
+    scripts: [
+      {
+        name: "Live Cell Time-lapse",
+        description: "48-hour time-lapse with autofocus and environmental control.",
+        script: `SETUP|ENVIRONMENT[37C,5%CO2]→OBJECTIVE[60x-Water]→PERFUSION[On]|READY
+MINIMIZE|PHOTODAMAGE→LASER[2%]→EXPOSURE[50ms]→INTERVAL[5min]|GENTLE
+EXPERIMENT|LIVE_CELLS→DURATION[48h]→CHANNELS[GFP:Minimal]→AUTOFOCUS[Every-3rd]|RUNNING
+ANALYZE|TRACK[Cells]→MEASURE[Division,Migration]→PLOT[Growth]|REALTIME`
+      },
+      {
+        name: "Calcium Imaging",
+        description: "High-speed capture of calcium transients upon stimulation.",
+        script: `PREPARE|CELLS[Load-Fluo4]→WASH[3x]→EQUILIBRATE[10min]|READY
+CAPTURE|CALCIUM→RATE[10Hz]→DURATION[5min]→TRIGGER[Stimulation]|FAST
+ANALYZE|PEAKS[Detect]→AMPLITUDE[Measure]→FREQUENCY[Calculate]|QUANTIFIED`
+      }
+    ]
   },
   {
-    name: "3D Z-Stack Imaging",
-    description: "Acquire a 3D volume by imaging at different focal planes.",
-    script: `CONNECT|MICROSCOPE[Marianas_SDC]→INITIALIZE|READY
-CALIBRATE|FOCUS[AUTOFOCUS]→TARGET[CELL_CENTER]|LOCKED
-CAPTURE|ZSTACK[Start:-10um,End:10um,Step:0.5um]→CHANNEL[GFP]→SAVE[volume_3d.tif]|COMPLETE`
+    category: "Super-Resolution",
+    description: "Break the diffraction limit with advanced techniques.",
+    scripts: [
+      {
+        name: "STORM Imaging",
+        description: "Stochastic Optical Reconstruction Microscopy for single-molecule localization.",
+        script: `PREPARE|SAMPLE[Fix]→LABEL[Alexa647-Antibody]→BUFFER[STORM]|READY
+CALIBRATE|DRIFT[Fiducials]→PSF[Measure]→BACKGROUND[Subtract]|OPTIMIZED
+ACQUIRE|STORM→FRAMES[50000]→LASER[647nm:100%]→ACTIVATE[405nm:Ramp]|LOCALIZING
+RECONSTRUCT|LOCALIZE[ThunderSTORM]→FILTER[Precision<20nm]→RENDER[10nm-Pixels]|SUPER_RES`
+      },
+      {
+        name: "SIM Imaging",
+        description: "Structured Illumination Microscopy for 2x resolution improvement.",
+        script: `SETUP|SIM[3D]→GRATING[Rotate]→PHASE[5-Steps]→ORIENTATIONS[3]|CONFIGURED
+ACQUIRE|MULTI_ANGLE→Z_STACK[-2um:2um:0.125um]→CHANNELS[488,561,647]|STRUCTURED
+RECONSTRUCT|SIM[Wiener-Filter]→RESOLUTION[2x-Improvement]→OUTPUT[16bit]|ENHANCED`
+      }
+    ]
   },
   {
-    name: "Full Experiment",
-    description: "A complex experiment involving calibration, imaging, and analysis.",
-    script: `CONNECT|MICROSCOPE[Marianas_SDC]→INITIALIZE|READY
-EXPERIMENT|CANCER_CELLS→
-  STAIN[Nuclear:DAPI,Membrane:GFP]→
-  CAPTURE[MultiChannel_ZStack]→
-  ANALYZE[Count_Cells]→
-  REPORT[PDF]|COMPLETE`
+    category: "FRAP/FRET Analysis",
+    description: "Analyze protein dynamics and interactions.",
+    scripts: [
+        {
+            name: "FRAP Experiment",
+            description: "Measure protein mobility using Fluorescence Recovery After Photobleaching.",
+            script: `DEFINE|ROI[Circle-5um]→REFERENCE[Background]→CONTROL[Unbleached]|REGIONS
+PREBLEACH|CAPTURE[10-Frames]→BASELINE[Establish]→READY|INITIALIZED
+BLEACH|ROI→LASER[488nm:100%]→DURATION[500ms]→VERIFY[Bleached]|EXECUTED
+RECOVER|MONITOR→INTERVAL[1s]→DURATION[5min]→FIT[Exponential]|ANALYZING
+CALCULATE|MOBILE_FRACTION→HALF_TIME→DIFFUSION[Coefficient]|QUANTIFIED`
+        },
+        {
+            name: "FRET Biosensor",
+            description: "Use a biosensor to measure Förster Resonance Energy Transfer.",
+            script: `SETUP|FRET_PAIR[CFP-YFP]→EXCITATION[440nm]→DETECTION[CFP:480nm,FRET:535nm]|CONFIGURED
+CALIBRATE|DONOR_ONLY→ACCEPTOR_ONLY→BLEEDTHROUGH[Calculate]|CORRECTED
+ACQUIRE|RATIO_IMAGING→CHANNELS[Simultaneous]→TREATMENT[Add-Stimulus]|MONITORING
+ANALYZE|RATIO[FRET/CFP]→NORMALIZE→PLOT[Time-Course]→STATISTICS|PROCESSED`
+        }
+    ]
   },
   {
-    name: "Time-Lapse Study",
-    description: "Monitor cell division over a 12-hour period.",
-    script: `CONNECT|MICROSCOPE[DeepSIM]→INITIALIZE|READY
-EXPERIMENT|TIMELIMELAPSE[Cell_Division]→INTERVAL[10min]→DURATION[12h]→CHANNELS[GFP,RFP]|RUNNING`
+    category: "Neuroscience",
+    description: "Applications for brain slice and in vivo imaging.",
+    scripts: [
+        {
+            name: "Brain Slice Electrophysiology",
+            description: "Combine two-photon imaging with whole-cell patch clamp recording.",
+            script: `PREPARE|SLICE[300um]→PERFUSE[ACSF]→TEMPERATURE[32C]→OXYGENATE[95/5]|VIABLE
+PATCH|NEURON[Layer5-Pyramidal]→SEAL[GigaOhm]→BREAK[Whole-Cell]|RECORDING
+IMAGE|TWO_PHOTON→EXCITATION[920nm]→Z_STACK[Dendrites]→LINE_SCAN[Spines]|STRUCTURAL
+STIMULATE|UNCAGE[MNI-Glutamate]→LOCATION[Spine]→MONITOR[Calcium]|FUNCTIONAL`
+        },
+        {
+            name: "In Vivo Two-Photon Imaging",
+            description: "Image neuronal activity in a live, head-fixed mouse.",
+            script: `SETUP|MOUSE[Head-Fixed]→WINDOW[Cranial]→ANESTHESIA[Isoflurane-1%]|PREPARED
+ALIGN|TWO_PHOTON→FIND[Surface-Vessels]→NAVIGATE[Cortex-Layer2/3]|POSITIONED
+IMAGE|NEURONS[GCaMP6]→DEPTH[150um]→RATE[30Hz]→DURATION[Trial]|RECORDING
+STIMULUS|PRESENT[Visual-Grating]→REPEAT[20x]→RANDOMIZE[Orientation]|EXPERIMENTAL`
+        }
+    ]
   }
 ];
+
 
 export const EXAMPLE_PYTHON_CODE = `# Example 3i Microscope Code
 import numpy as np

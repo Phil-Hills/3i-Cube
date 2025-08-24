@@ -7,14 +7,14 @@ import { OutputLog } from './components/OutputLog';
 import { StatusBar } from './components/StatusBar';
 import { interpretCubeScript } from './services/geminiService';
 import type { LogEntry, MicroscopeStatus } from './types';
-import { EXAMPLE_SCRIPTS } from './constants';
+import { METHOD_SCRIPTS } from './constants';
 import { AboutModal } from './components/AboutModal';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { ConverterView } from './components/ConverterView';
 
 
 const App: React.FC = () => {
-  const [cubeScript, setCubeScript] = useState<string>(EXAMPLE_SCRIPTS[0].script);
+  const [cubeScript, setCubeScript] = useState<string>(METHOD_SCRIPTS[0].scripts[0].script);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');

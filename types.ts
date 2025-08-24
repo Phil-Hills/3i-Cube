@@ -15,6 +15,12 @@ export interface ExampleScript {
     script: string;
 }
 
+export interface ExampleScriptCategory {
+    category: string;
+    description: string;
+    scripts: ExampleScript[];
+}
+
 export interface ConversionMetrics {
     original_lines: number;
     cube_lines: number;
