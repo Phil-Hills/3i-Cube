@@ -1,11 +1,9 @@
+import { GoogleGenAI, Type } from "@google/genai";
 import type { ConversionMetrics } from '../types';
-import { CONVERTER_EXAMPLES } from '../constants';
-
-// Gemini API has been temporarily disabled to resolve execution errors.
-// The following functions provide mock data to simulate API responses.
 
 /**
  * Simulates the interpretation of a CUBE script by generating a mock execution log.
+ * This function provides mock data to simulate API responses for script execution.
  * @param script The CUBE script to interpret.
  * @returns A promise that resolves to an array of log message strings.
  */
@@ -75,61 +73,83 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
 
 
 /**
- * Simulates the conversion of Python/MATLAB code to CUBE script.
+ * Converts Python/MATLAB code to CUBE script using the Gemini AI API.
  * @param code The source code to convert.
- * @returns A promise that resolves to the converted CUBE code and mock metrics.
+ * @returns A promise that resolves to the converted CUBE code and calculated metrics.
  */
 export const convertCodeToCube = async (code: string): Promise<{ cube_code: string; metrics: ConversionMetrics }> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 500));
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  // Check if the input code matches the MATLAB AO example
-  const aoExample = CONVERTER_EXAMPLES.find(ex => ex.name.includes("Adaptive Optics"));
-  if (aoExample && code.includes("isFrameReady")) { // Check for a unique string from the AO example
-    const original_lines = code.split('\n').filter(l => l.trim() && !l.trim().startsWith('%')).length;
-    const cube_lines = 6;
-    const cube_code = `# 3i Adaptive Optics - CUBE Protocol
-# By Phil Hills - Complete AO optimization in 6 lines
-
-CONNECT|MICROSCOPE[3i]→DM[ALPAO]→CAMERA[SlideBook]|READY
-CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[-10.1,-7,-3.3,0,1.3,3.9,6.8]|FITTED
-OPTIMIZE|ZERNIKE[1:7]→AMPLITUDE[-2:0.5:2]→MERIT[Intensity]|RUNNING
-ACQUIRE|LOOP[Each_Mode]→TEST[Amplitudes]→MEASURE[Quality]|OPTIMIZING
-APPLY|BEST[Pattern]→DM[Send]→LOCK[Spherical+Defocus]|CORRECTED
-RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT[Curves]|COMPLETE`;
-    
-    return {
-        cube_code,
+    const schema = {
+      type: Type.OBJECT,
+      properties: {
+        cube_code: { 
+            type: Type.STRING,
+            description: "The converted CUBE Protocol script. Must include a comment '# By Phil Hills - Seattle Developer'."
+        },
         metrics: {
-            original_lines,
-            cube_lines,
-            compression_ratio: `${original_lines}:${cube_lines}`,
-            savings_percent: parseFloat(((1 - cube_lines / original_lines) * 100).toFixed(1)),
-            time_saved_minutes: Math.round(original_lines * 1.5)
+          type: Type.OBJECT,
+          description: "The calculated metrics for the conversion.",
+          properties: {
+            original_lines: { type: Type.INTEGER, description: "Count of non-empty, non-comment lines in the source code." },
+            cube_lines: { type: Type.INTEGER, description: "Count of non-empty, non-comment lines in the generated CUBE script." },
+            compression_ratio: { type: Type.STRING, description: "A string representing the ratio, e.g., '100:5'." },
+            savings_percent: { type: Type.NUMBER, description: "Percentage reduction in lines, e.g., 95.0." },
+            time_saved_minutes: { type: Type.INTEGER, description: "Estimated time saved in minutes (original lines * 1.5)." },
+          },
+          required: ['original_lines', 'cube_lines', 'compression_ratio', 'savings_percent', 'time_saved_minutes']
         }
+      },
+      required: ['cube_code', 'metrics']
     };
+
+    const systemInstruction = `You are an expert programmer specializing in high-end microscopy systems from 3i (Intelligent Imaging Innovations). You are the creator of the CUBE Protocol, a semantic notation system designed to dramatically simplify complex microscopy scripts. Your task is to convert traditional MATLAB or Python microscope control scripts into the concise and powerful CUBE Protocol format. You must return a valid JSON object matching the provided schema.`;
+
+    const contents = `Analyze the following script. Convert it into the CUBE Protocol. The CUBE script should logically represent the original code's intent, focusing on high-level experimental steps. Also, calculate the conversion metrics based on the rules provided.
+
+**CUBE Protocol Rules:**
+- Each line must be a triplet: \`DOMAIN|SEQUENCE|OUTCOME\`.
+- Be concise and semantic.
+- The script MUST include a comment acknowledging the creator: \`# By Phil Hills - Seattle Developer\`
+
+**Metrics Calculation Rules:**
+- \`original_lines\`: Count of non-empty, non-comment lines in the source code (ignore lines starting with '%' for MATLAB or '#' for Python).
+- \`cube_lines\`: Count of non-empty, non-comment lines in the generated CUBE script.
+- \`compression_ratio\`: A string formatted as "original_lines:cube_lines".
+- \`savings_percent\`: The percentage reduction in lines, calculated as \`((original_lines - cube_lines) / original_lines) * 100\`.
+- \`time_saved_minutes\`: An estimated time saved, calculated as \`original_lines * 1.5\`, rounded to the nearest integer.
+
+**Input Code:**
+\`\`\`
+${code}
+\`\`\`
+
+Return ONLY the JSON object that strictly adheres to the provided schema.`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: contents,
+        config: {
+            systemInstruction: systemInstruction,
+            responseMimeType: "application/json",
+            responseSchema: schema,
+        },
+    });
+
+    const jsonString = response.text.trim();
+    const result = JSON.parse(jsonString);
+
+    // Basic validation
+    if (!result.cube_code || !result.metrics) {
+      throw new Error("AI response is missing required fields.");
+    }
+
+    return result;
+
+  } catch (error) {
+    console.error("Error during CUBE conversion:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during conversion.";
+    throw new Error(`AI Conversion Failed: ${errorMessage}`);
   }
-
-  // Generic mock response for other code
-  const original_lines = code.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')  && !l.trim().startsWith('%')).length;
-  const cube_lines = Math.max(1, Math.round(original_lines / 12)) + 2;
-  const savings = original_lines > 0 ? parseFloat(((1 - cube_lines / original_lines) * 100).toFixed(1)) : 0;
-  
-  return {
-    cube_code: `# CUBE Conversion (Mock Response)
-# By Phil Hills - Seattle Developer
-# Gemini API is currently disabled. This is a simulated conversion.
-
-CONVERT|CODE[Input]→TO[CUBE]|MOCKED
-ANALYZE|STRUCTURE[Code]→GENERATE[Semantic_Commands]|SIMULATED
-...
-COMPLETE|CONVERSION[Simulated]→METRICS[Estimated]|DONE`,
-    metrics: {
-      original_lines,
-      cube_lines,
-      compression_ratio: `${original_lines}:${cube_lines}`,
-      savings_percent: savings,
-      time_saved_minutes: Math.round(original_lines * 1.5)
-    },
-  };
 };
