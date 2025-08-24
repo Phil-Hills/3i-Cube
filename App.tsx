@@ -111,20 +111,20 @@ const App: React.FC = () => {
   };
   
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
+    <div className="flex flex-col h-screen bg-transparent text-gray-200 font-sans">
       <Header 
         onAboutClick={() => setIsAboutModalOpen(true)}
         onDocsClick={() => setIsDocsModalOpen(true)}
       />
       
-      <main className="flex-grow flex flex-col p-4 overflow-hidden">
+      <main className="flex-grow flex flex-col p-6 overflow-hidden">
         <ViewSwitcher currentView={view} onViewChange={setView} />
         {view === 'executor' ? (
-           <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-4 pt-4 overflow-hidden">
-            <div className="md:col-span-3 flex flex-col gap-4 overflow-y-auto">
+           <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6 overflow-hidden">
+            <div className="md:col-span-3 flex flex-col gap-6 overflow-y-auto">
               <CommandPalette onSelectScript={selectScript} />
             </div>
-            <div className="md:col-span-5 flex flex-col gap-4 overflow-hidden">
+            <div className="md:col-span-5 flex flex-col gap-6 overflow-hidden">
               <Editor
                 script={cubeScript}
                 onScriptChange={setCubeScript}
@@ -132,7 +132,7 @@ const App: React.FC = () => {
                 isExecuting={isExecuting}
               />
             </div>
-            <div className="md:col-span-4 grid grid-rows-2 gap-4 overflow-hidden">
+            <div className="md:col-span-4 grid grid-rows-2 gap-6 overflow-hidden">
               <div className="row-span-1 overflow-hidden">
                 <ImagePreview imageUrl={simulatedImageUrl} />
               </div>

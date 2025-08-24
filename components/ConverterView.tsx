@@ -6,22 +6,22 @@ import type { ConversionMetrics } from '../types';
 import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ArrowDownTrayIcon } from './icons';
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) => (
-  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-    <div className="bg-gray-900/50 p-2 rounded-md">
+  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+    <div className="bg-black/20 p-2 rounded-md">
       <p className="text-xs text-gray-400">Original Lines</p>
-      <p className="text-lg font-bold text-blue-300">{metrics.original_lines}</p>
+      <p className="text-lg font-bold text-cyan-300">{metrics.original_lines}</p>
     </div>
-    <div className="bg-gray-900/50 p-2 rounded-md">
+    <div className="bg-black/20 p-2 rounded-md">
       <p className="text-xs text-gray-400">CUBE Lines</p>
-      <p className="text-lg font-bold text-green-300">{metrics.cube_lines}</p>
+      <p className="text-lg font-bold text-green-400">{metrics.cube_lines}</p>
     </div>
-    <div className="bg-gray-900/50 p-2 rounded-md">
+    <div className="bg-black/20 p-2 rounded-md">
       <p className="text-xs text-gray-400">Compression</p>
       <p className="text-lg font-bold text-gray-100">{metrics.compression_ratio}</p>
     </div>
     <div className="bg-green-900/20 p-2 rounded-md border border-green-800/50">
       <p className="text-xs text-green-300">Code Reduction</p>
-      <p className="text-lg font-bold text-green-300">{metrics.savings_percent}%</p>
+      <p className="text-lg font-bold text-green-400">{metrics.savings_percent}%</p>
     </div>
   </div>
 );
@@ -107,18 +107,18 @@ ${outputCode}
   };
 
   return (
-    <div className="flex flex-col flex-grow pt-4 overflow-hidden gap-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-hidden">
+    <div className="flex flex-col flex-grow pt-6 overflow-hidden gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow overflow-hidden">
         {/* Input Panel */}
-        <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
+        <div className="bg-black/20 backdrop-blur-lg rounded-lg p-4 flex flex-col h-full border border-white/10">
           <div className="flex items-center mb-4">
-            <CodeBracketIcon className="w-6 h-6 text-blue-400 mr-2" />
+            <CodeBracketIcon className="w-6 h-6 text-cyan-400 mr-2" />
             <h2 className="text-lg font-semibold text-gray-100">Your 3i Microscope Code</h2>
           </div>
           <textarea
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
-            className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
+            className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none border border-white/10 text-sm"
             placeholder="Paste your Python or MATLAB microscope code here..."
           />
            <div className="mt-2 flex flex-col sm:flex-row gap-2">
@@ -135,7 +135,7 @@ ${outputCode}
                     setError(null);
                   }
                 }}
-                className="bg-gray-700 text-sm text-gray-200 rounded-md p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:flex-grow"
+                className="bg-gray-700 text-sm text-gray-200 rounded-md p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:flex-grow"
               >
                 <option value="" disabled>Load Example Snippet...</option>
                 {CONVERTER_EXAMPLES.map(example => (
@@ -144,29 +144,29 @@ ${outputCode}
               </select>
             </div>
             {selectedExample && (
-                <p className="text-xs text-gray-400 mt-2 p-2 bg-gray-900/50 rounded-md">
+                <p className="text-xs text-gray-400 mt-2 p-2 bg-black/20 rounded-md">
                     <strong>Description:</strong> {CONVERTER_EXAMPLES.find(ex => ex.name === selectedExample)?.description}
                 </p>
             )}
         </div>
         
         {/* Output Panel */}
-        <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
+        <div className="bg-black/20 backdrop-blur-lg rounded-lg p-4 flex flex-col h-full border border-white/10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <CubeIcon className="w-6 h-6 text-blue-400 mr-2" />
+              <CubeIcon className="w-6 h-6 text-cyan-400 mr-2" />
               <h2 className="text-lg font-semibold text-gray-100">CUBE Protocol Output</h2>
             </div>
-            <div className="flex items-center space-x-3">
-                <button onClick={handleCopy} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+            <div className="flex items-center space-x-1">
+                <button onClick={handleCopy} title="Copy to Clipboard" disabled={!outputCode} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ClipboardIcon className="w-4 h-4 mr-1"/>
                   {copySuccess || 'Copy'}
                 </button>
-                <button onClick={handleDownloadCube} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                <button onClick={handleDownloadCube} title="Download .cuby file" disabled={!outputCode} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
                   .cuby
                 </button>
-                <button onClick={handleDownloadComparison} disabled={!outputCode || !metrics} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                <button onClick={handleDownloadComparison} title="Download comparison file" disabled={!outputCode || !metrics} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
                   Compare
                 </button>
@@ -175,7 +175,7 @@ ${outputCode}
           <textarea
             value={outputCode}
             readOnly
-            className="flex-grow w-full bg-gray-900/70 text-cyan-300 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
+            className="flex-grow w-full bg-gray-900/70 text-cyan-300 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none border border-white/10 text-sm"
             placeholder="Converted CUBE script will appear here..."
           />
            {metrics && <MetricsDisplay metrics={metrics} />}
@@ -188,7 +188,7 @@ ${outputCode}
          <button
           onClick={handleConvert}
           disabled={isConverting || !inputCode.trim()}
-          className="w-full flex items-center justify-center p-3 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+          className="w-full flex items-center justify-center p-3 bg-cyan-600 text-gray-900 font-bold rounded-md hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-lg shadow-cyan-600/20 hover:shadow-cyan-500/40"
         >
           {isConverting ? (
             <>

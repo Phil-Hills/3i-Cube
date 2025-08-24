@@ -8,13 +8,13 @@ interface ViewSwitcherProps {
 }
 
 export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewChange }) => {
-  const baseClasses = "px-4 py-2 text-sm font-medium rounded-md flex items-center transition-colors";
-  const activeClasses = "bg-blue-600 text-white";
-  const inactiveClasses = "bg-gray-700/50 text-gray-300 hover:bg-gray-600/80";
+  const baseClasses = "px-4 py-2 text-sm font-medium rounded-md flex items-center transition-colors duration-200";
+  const activeClasses = "bg-cyan-600 text-white shadow-lg shadow-cyan-600/20";
+  const inactiveClasses = "text-gray-300 hover:bg-white/10";
 
   return (
     <div className="flex justify-center mb-0">
-      <div className="flex space-x-2 bg-gray-800/80 p-1 rounded-lg border border-gray-700/50">
+      <div className="flex space-x-2 bg-black/20 p-1 rounded-lg border border-white/10 backdrop-blur-lg">
         <button
           onClick={() => onViewChange('executor')}
           className={`${baseClasses} ${currentView === 'executor' ? activeClasses : inactiveClasses}`}

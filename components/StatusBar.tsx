@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { MicroscopeStatus } from '../types';
 
@@ -24,7 +25,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
   const { color, text } = getStatusIndicator();
 
   return (
-    <footer className="flex items-center justify-between p-2 px-4 bg-gray-900/80 border-t border-blue-900/50 text-sm">
+    <footer className="flex items-center justify-between p-2 px-4 bg-black/10 border-t border-cyan-400/10 text-sm backdrop-blur-sm">
       <div className="flex items-center">
         <div className={`w-3 h-3 rounded-full mr-2 ${color}`}></div>
         <span className="text-gray-300">Microscope Status:</span>

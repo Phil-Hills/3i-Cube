@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { CubeIcon, XMarkIcon } from './icons';
 
@@ -20,16 +21,16 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       aria-modal="true"
       role="dialog"
     >
-      <div className="bg-gray-800 border border-blue-900/50 rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-700/50 flex-shrink-0">
+      <div className="bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center">
-            <CubeIcon className="w-7 h-7 text-blue-400 mr-3" />
+            <CubeIcon className="w-7 h-7 text-cyan-400 mr-3" />
             <div>
               <h2 className="text-xl font-bold text-white">CUBE Protocol for 3i Microscopes</h2>
               <p className="text-sm text-gray-400">Created by Phil Hills - Seattle Developer</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-gray-700/50 transition-colors" aria-label="Close modal">
+          <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">
             <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
@@ -58,7 +59,7 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
           </div>
           
-          <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+          <div className="bg-black/20 border border-white/10 rounded-lg p-4">
               <h4 className="text-lg font-semibold text-gray-100 mb-3 text-center">Killer Example: Adaptive Optics</h4>
               <p className="text-sm text-center text-gray-400 mb-4">A real 200+ line 3i MATLAB script is converted into just 6 lines of CUBE.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -91,12 +92,12 @@ RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
               </div>
           </div>
           
-          <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+          <div className="bg-black/20 border border-white/10 rounded-lg p-4">
             <h4 className="text-lg font-semibold text-gray-100 mb-3">⚡️ Demo vs. Production</h4>
             <p className="text-sm text-gray-400 mb-3">This app is a high-fidelity demonstration. The CUBE commands are real and production-ready. When integrated at 3i, these simulated commands will control actual microscope hardware.</p>
             <div className="text-sm grid grid-cols-2 gap-4">
                 <div className="bg-gray-800 p-3 rounded">
-                    <h5 className="font-semibold text-blue-300">This Demo App</h5>
+                    <h5 className="font-semibold text-cyan-300">This Demo App</h5>
                     <ul className="list-disc list-inside mt-2 text-gray-300">
                         <li>Simulates hardware control</li>
                         <li>Shows expected log output</li>
@@ -119,11 +120,11 @@ RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
           <div>
               <h4 className="text-lg font-semibold text-gray-100 mb-2">What 3i Users Are Saying</h4>
               <div className="space-y-3 text-sm italic">
-                <blockquote className="border-l-4 border-blue-500 pl-4 py-1 bg-gray-900/50 rounded-r-md">
+                <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
                   <p className="text-gray-300">"CUBE reduced our experiment setup from 2 hours to 5 minutes!"</p>
                   <cite className="text-gray-500 not-italic block mt-1">- Research Lab, Harvard Medical School</cite>
                 </blockquote>
-                <blockquote className="border-l-4 border-blue-500 pl-4 py-1 bg-gray-900/50 rounded-r-md">
+                <blockquote className="border-l-4 border-cyan-500 pl-4 py-1 bg-black/20 rounded-r-md">
                   <p className="text-gray-300">"Finally, our biologists can program the microscope without learning Python."</p>
                   <cite className="text-gray-500 not-italic block mt-1">- Imaging Core, Stanford</cite>
                 </blockquote>
