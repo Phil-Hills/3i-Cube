@@ -70,141 +70,301 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
   return logs;
 };
 
-/**
- * An improved, pattern-based CUBE converter.
- * By Phil Hills - Seattle Developer
- */
-class ImprovedCubeConverter {
+// productionCubeConverter.js - The Ultimate CUBE Converter
+// By Phil Hills - Seattle Developer
+// THIS IS THE MOST IMPORTANT COMPONENT
+class ProductionCubeConverter {
   private author: string;
-  private patterns: Record<string, string>;
+  private conversionCache: Map<string, string>;
+  private patterns: any;
 
   constructor() {
     this.author = "Phil Hills - Seattle Developer";
-    this.patterns = this.loadImprovedPatterns();
+    this.conversionCache = new Map();
+    this.initializePatterns();
   }
 
-  private loadImprovedPatterns(): Record<string, string> {
-    return {
-      'fetch(': 'API|REQUEST[{url}]',
-      'axios.': 'API|HTTP[{method}]',
-      '.post(': '→POST[{endpoint}]',
-      '.get(': '→GET[{endpoint}]',
-      'headers:': '→HEADERS[{auth}]',
-      'Authorization:': '→AUTH[{token}]',
-      'response': '→RESPONSE[{data}]',
-      'authenticate': 'AUTH|LOGIN[{method}]',
-      'token': '→TOKEN[{type}]',
-      'Bearer': '→BEARER[Token]',
-      'apiKey': '→API_KEY[{key}]',
-      'JSON.stringify': '→SERIALIZE[JSON]',
-      'JSON.parse': '→PARSE[JSON]',
-      '.json()': '→EXTRACT[JSON]',
-      'payload': '→PAYLOAD[{data}]',
-      'async': 'ASYNC|FUNCTION[{name}]',
-      'await': '→AWAIT[{operation}]',
-      '.then(': '→THEN[{callback}]',
-      '.catch(': '→CATCH[Error]',
-      'try {': 'TRY|ATTEMPT[Operation]',
-      'catch': '→CATCH[Error]',
-      'throw': '→THROW[Exception]',
-      'console.error': '→LOG[Error]',
-      'return': '→RETURN[{value}]',
-      'if (': 'CHECK|CONDITION[{test}]',
-      'for (': 'LOOP|ITERATE[{items}]',
-      'map(': '→MAP[Transform]',
-      'filter(': '→FILTER[Condition]',
+  private initializePatterns() {
+    this.patterns = {
+      // MICROSCOPY PATTERNS (Critical for 3i) - Most specific first
+      microscopy: {
+        'core.': { domain: 'MICROSCOPE', action: 'CONTROL' },
+        'snapImage': { domain: 'CAPTURE', action: 'IMAGE' },
+        'setExposure': { domain: 'CONFIGURE', action: 'EXPOSURE' },
+        'setChannel': { domain: 'CONFIGURE', action: 'CHANNEL' },
+        'setPosition': { domain: 'STAGE', action: 'MOVE' },
+        'startSequence': { domain: 'ACQUIRE', action: 'SEQUENCE' },
+        'dm.': { domain: 'ADAPTIVE_OPTICS', action: 'DM' },
+        'zernike': { domain: 'OPTIMIZE', action: 'ZERNIKE' },
+        'deconvolve': { domain: 'PROCESS', action: 'DECONVOLVE' },
+        'stitch': { domain: 'MONTAGE', action: 'STITCH' }
+      },
+      // API PATTERNS
+      api: {
+        'fetch(': { domain: 'API', action: 'REQUEST' },
+        'axios': { domain: 'API', action: 'HTTP' },
+        'requests.': { domain: 'API', action: 'REQUEST' },
+        'http.': { domain: 'API', action: 'HTTP' },
+        'XMLHttpRequest': { domain: 'API', action: 'AJAX' },
+        '.get(': { domain: 'API', action: 'GET' },
+        '.post(': { domain: 'API', action: 'POST' },
+        '.put(': { domain: 'API', action: 'PUT' },
+        '.delete(': { domain: 'API', action: 'DELETE' }
+      },
+      // AUTHENTICATION
+      auth: {
+        'Bearer': { domain: 'AUTH', action: 'BEARER' },
+        'API-Key': { domain: 'AUTH', action: 'API_KEY' },
+        'OAuth': { domain: 'AUTH', action: 'OAUTH' },
+        'login': { domain: 'AUTH', action: 'LOGIN' },
+        'authenticate': { domain: 'AUTH', action: 'VERIFY' },
+        'token': { domain: 'AUTH', action: 'TOKEN' }
+      },
+      // DATA OPERATIONS
+      data: {
+        'SELECT': { domain: 'QUERY', action: 'SELECT' },
+        'INSERT': { domain: 'STORE', action: 'INSERT' },
+        'UPDATE': { domain: 'MODIFY', action: 'UPDATE' },
+        'DELETE': { domain: 'REMOVE', action: 'DELETE' },
+        'CREATE TABLE': { domain: 'BUILD', action: 'TABLE' },
+        'json': { domain: 'FORMAT', action: 'JSON' },
+        'parse': { domain: 'PROCESS', action: 'PARSE' },
+        'stringify': { domain: 'PROCESS', action: 'SERIALIZE' }
+      },
+      // CONTROL FLOW
+      flow: {
+        'if ': { domain: 'CHECK', action: 'CONDITION' },
+        'else': { domain: 'ALTERNATE', action: 'PATH' },
+        'for ': { domain: 'LOOP', action: 'ITERATE' },
+        'while': { domain: 'LOOP', action: 'WHILE' },
+        'try': { domain: 'ATTEMPT', action: 'EXECUTE' },
+        'catch': { domain: 'HANDLE', action: 'ERROR' },
+        'async': { domain: 'ASYNC', action: 'FUNCTION' },
+        'await': { domain: 'WAIT', action: 'PROMISE' }
+      },
+      // LANGUAGE DETECTION - Least specific last
+      languages: {
+        'import ': 'LANG[Python]',
+        'const ': 'LANG[JavaScript]',
+        'function ': 'LANG[JavaScript]',
+        'def ': 'LANG[Python]',
+        'class ': 'LANG[OOP]',
+        'public ': 'LANG[Java/C#]',
+        '#include': 'LANG[C/C++]',
+        'library(': 'LANG[R]',
+        '%': 'LANG[MATLAB]'
+      },
     };
   }
 
   public convertCodeToCube(code: string): string {
-    const lines = code.split('\n').filter(line => line.trim());
-    const cubeCommands: string[] = [];
-    let currentOperation: string | null = null;
-    let operationSteps: string[] = [];
+    const cacheKey = this.hashCode(code);
+    if (this.conversionCache.has(cacheKey)) {
+      return this.conversionCache.get(cacheKey)!;
+    }
 
-    cubeCommands.push(`# Converted to CUBE Protocol`);
-    cubeCommands.push(`# By Phil Hills - Seattle Developer\n`);
+    try {
+      const language = this.detectLanguage(code);
+      const blocks = this.parseIntoBlocks(code);
+      const cubeCommands: string[] = [];
+      
+      cubeCommands.push(`# Converted to CUBE Protocol`);
+      cubeCommands.push(`# By Phil Hills - Seattle Developer`);
+      const originalLines = code.split('\n').length;
+      cubeCommands.push(`# Original: ${language} (${originalLines} lines)\n`);
+
+      blocks.forEach(block => {
+        const cubeCommand = this.blockToCube(block);
+        if (cubeCommand) {
+          cubeCommands.push(cubeCommand);
+        }
+      });
+      
+      const cubeLines = cubeCommands.filter(l => l.trim() && !l.startsWith('#')).length;
+      if (cubeLines > 0) {
+        cubeCommands.push(`\n# Compression: ${originalLines}:${cubeLines} lines`);
+      }
+
+      const result = cubeCommands.join('\n');
+      this.conversionCache.set(cacheKey, result);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      return `# Error converting code\n# ${message}\n# By Phil Hills - Seattle Developer`;
+    }
+  }
+
+  private detectLanguage(code: string): string {
+    for (const [pattern, lang] of Object.entries(this.patterns.languages)) {
+      if (code.includes(pattern)) {
+        return lang as string;
+      }
+    }
+    return 'LANG[Unknown]';
+  }
+
+  private parseIntoBlocks(code: string): { type: string; lines: string[]; indent: number }[] {
+    const blocks: { type: string; lines: string[]; indent: number }[] = [];
+    const lines = code.split('\n');
+    let currentBlock: { type: string; lines: string[]; indent: number } = {
+      type: 'GENERAL',
+      lines: [],
+      indent: 0
+    };
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('%') || trimmed.startsWith('#')) continue;
+      const indent = line.search(/\S|$/);
+
+      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('%')) {
+        continue;
+      }
       
-      if (this.isMainOperation(trimmed)) {
-        if (currentOperation && operationSteps.length > 0) {
-          cubeCommands.push(this.formatCubeCommand(currentOperation, operationSteps));
+      // A simple but effective block strategy: group by function/class/try block or major operation.
+      const isNewMajorBlock = /^(async\s+)?(function|def|class|try|for|while|if|core\.|dm\.|fetch|axios|requests\.)/.test(trimmed);
+
+      if (isNewMajorBlock && currentBlock.lines.length > 0) {
+        blocks.push(currentBlock);
+        currentBlock = {
+          type: this.detectBlockType(trimmed),
+          lines: [trimmed],
+          indent: indent
+        };
+      } else {
+        if(currentBlock.lines.length === 0) {
+           currentBlock.type = this.detectBlockType(trimmed);
+           currentBlock.indent = indent;
         }
-        currentOperation = this.detectOperation(trimmed);
-        operationSteps = [];
-      }
-      
-      const steps = this.extractSteps(trimmed);
-      if (steps.length > 0) {
-        operationSteps.push(...steps);
+        currentBlock.lines.push(trimmed);
       }
     }
-    
-    if (currentOperation && operationSteps.length > 0) {
-      cubeCommands.push(this.formatCubeCommand(currentOperation, operationSteps));
+    if (currentBlock.lines.length > 0) {
+      blocks.push(currentBlock);
     }
+    return blocks;
+  }
+  
+  private detectBlockType(line: string): string {
+    // Check each pattern category
+    for (const [category, patterns] of Object.entries(this.patterns)) {
+        for (const pattern of Object.keys(patterns as object)) {
+            if (line.includes(pattern)) {
+                return category.toUpperCase();
+            }
+        }
+    }
+    return 'GENERAL';
+  }
+  
+  private blockToCube(block: { type: string; lines: string[] }): string | null {
+    const { type, lines } = block;
+    const mainOp = this.extractMainOperation(lines[0], type);
+    const steps = this.extractStepsFromBlock(lines);
+    const outcome = this.determineOutcome(type, steps, lines);
     
-    return cubeCommands.join('\n');
+    if (steps.length === 0) return null;
+    
+    return `${mainOp}|${steps.join('→')}|${outcome}`;
   }
 
-  private isMainOperation(line: string): boolean {
-    const mainOps = ['fetch', 'axios', 'async function', 'const', 'let', 'class', 'try'];
-    return mainOps.some(op => line.includes(op));
+  private extractMainOperation(firstLine: string, blockType: string): string {
+    const apiMatch = firstLine.match(/fetch|axios|requests\./);
+    if(apiMatch) return 'API';
+
+    const microMatch = firstLine.match(/core\.|snapImage|setExposure|setChannel|dm\./);
+    if(microMatch) return 'MICROSCOPE';
+
+    const funcMatch = firstLine.match(/^(async\s+)?function\s+(\w+)/);
+    if(funcMatch) return `FUNCTION[${funcMatch[2]}]`;
+
+    const defMatch = firstLine.match(/^def\s+(\w+)/);
+    if(defMatch) return `FUNCTION[${defMatch[1]}]`;
+
+    const classMatch = firstLine.match(/class\s+(\w+)/);
+    if(classMatch) return `BUILD[${classMatch[1]}]`;
+    
+    const dbMatch = firstLine.match(/SELECT|INSERT|UPDATE|DELETE/i);
+    if(dbMatch) return `DATABASE[${dbMatch[0]}]`;
+
+    return blockType;
   }
 
-  private detectOperation(line: string): string {
-    if (line.includes('fetch') || line.includes('axios')) return 'API';
-    if (line.includes('authenticate') || line.includes('auth')) return 'AUTH';
-    if (line.includes('async function')) return 'FUNCTION';
-    if (line.includes('try')) return 'PROCESS';
-    if (line.includes('class')) return 'BUILD';
-    return 'EXECUTE';
-  }
-
-  private extractSteps(line: string): string[] {
+  private extractStepsFromBlock(lines: string[]): string[] {
     const steps: string[] = [];
-    
-    const urlMatch = line.match(/fetch\(['"`]([^'"`]+)['"`]/);
-    if (urlMatch) steps.push(`REQUEST[${this.shortenUrl(urlMatch[1])}]`);
+    for (const line of lines) {
+      const urlMatch = line.match(/['"`](https?:\/\/[^'"`]+)['"`]/);
+      if (urlMatch) steps.push(`REQUEST[${this.shortenUrl(urlMatch[1])}]`);
 
-    const methodMatch = line.match(/method:\s*['"`](\w+)['"`]/);
-    if (methodMatch) steps.push(`METHOD[${methodMatch[1].toUpperCase()}]`);
+      const methodMatch = line.match(/method:\s*['"`](\w+)['"`]/);
+      if (methodMatch) steps.push(`METHOD[${methodMatch[1].toUpperCase()}]`);
 
-    if (line.includes('Authorization')) steps.push('AUTH[Bearer_Token]');
-    if (line.includes('.json()')) steps.push('PARSE[JSON]');
-    if (line.includes('const data =') || line.includes('return data')) steps.push('RESPONSE[Received]');
-    
-    const functionNameMatch = line.match(/async function\s+(\w+)/);
-    if (functionNameMatch) steps.push(`${functionNameMatch[1]}→ASYNC`);
+      if (line.includes('Authorization') || line.includes('Bearer')) steps.push('AUTH[Token]');
+      if (line.includes('snapImage')) steps.push('CAPTURE[Image]');
+      
+      const expMatch = line.match(/setExposure\((\d+(\.\d+)?)\)/);
+      if (expMatch) steps.push(`EXPOSURE[${expMatch[1]}ms]`);
 
-    return steps;
+      const chMatch = line.match(/setChannel\(['"`]([^'"`]+)['"`]\)/);
+      if (chMatch) steps.push(`CHANNEL[${chMatch[1]}]`);
+      
+      if (line.includes('.json()')) steps.push('PARSE[JSON]');
+      if (line.includes('JSON.stringify')) steps.push('SERIALIZE[JSON]');
+      
+      const responseVarMatch = line.match(/(\w+)\s*=\s*await\s+response.json/);
+      if(responseVarMatch) steps.push('RESPONSE[DATA]');
+
+      const returnMatch = line.match(/return\s+([^;]+)/);
+      if (returnMatch && !returnMatch[1].includes('{')) {
+        steps.push(`RETURN[${this.cleanValue(returnMatch[1])}]`);
+      }
+    }
+    return [...new Set(steps)];
   }
 
+  private determineOutcome(type: string, steps: string[], lines: string[]): string {
+    if (lines.some(l => l.includes('error') || l.includes('catch'))) return 'FAILED';
+    if (steps.some(s => s.includes('RETURN'))) return 'RETURNED';
+    if (steps.some(s => s.includes('RESPONSE'))) return 'COMPLETE';
+
+    switch (type) {
+      case 'API': return 'RECEIVED';
+      case 'AUTH': return 'AUTHENTICATED';
+      case 'MICROSCOPE': return 'EXECUTED';
+      case 'MICROSCOPY': return 'ACQUIRED';
+      case 'DATABASE': return 'EXECUTED';
+      case 'FUNCTION': return 'DEFINED';
+      case 'BUILD': return 'CREATED';
+      default: return 'PROCESSED';
+    }
+  }
+  
   private shortenUrl(url: string): string {
     if (url.includes('anthropic')) return 'Anthropic_Claude';
     if (url.includes('openai')) return 'OpenAI_GPT';
-    if (url.includes('google')) return 'Google_API';
-    const parts = url.split('/');
-    return parts[parts.length - 1] || 'API';
+    if (url.includes('google')) return 'Google_AI';
+    if (url.includes('gemini')) return 'Gemini';
+    try {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/').filter(p => p);
+        if (pathParts.length > 0) return pathParts.slice(-2).join('/');
+        return urlObj.hostname.replace('www.','');
+    } catch(e) {
+        return 'API_Endpoint';
+    }
   }
 
-  private formatCubeCommand(operation: string, steps: string[]): string {
-    const outcome = this.determineOutcome(operation, steps);
-    const stepsStr = steps.join('→');
-    return `${operation}|${stepsStr}|${outcome}`;
+  private cleanValue(value: string): string {
+    return value.trim().replace(/[;,]$/, '').substring(0, 20);
   }
 
-  private determineOutcome(operation: string, steps: string[]): string {
-    if (steps.some(s => s.includes('RESPONSE'))) return 'COMPLETE';
-    if (steps.some(s => s.includes('ERROR'))) return 'FAILED';
-    if (operation === 'AUTH') return 'AUTHENTICATED';
-    if (operation === 'API') return 'RECEIVED';
-    if (operation === 'BUILD') return 'CREATED';
-    if (operation === 'FUNCTION') return 'DEFINED';
-    return 'DONE';
+  private hashCode(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash.toString();
   }
 }
 
@@ -218,7 +378,7 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
   await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 300));
 
   try {
-    const converter = new ImprovedCubeConverter();
+    const converter = new ProductionCubeConverter();
     const cube_code = converter.convertCodeToCube(code);
 
     const original_lines = code.split('\n').filter(line => {
@@ -236,12 +396,12 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
     const metrics: ConversionMetrics = {
         original_lines,
         cube_lines,
-        compression_ratio: `${original_lines}:${cube_lines}`,
+        compression_ratio: cube_lines > 0 ? `${(original_lines / cube_lines).toFixed(1)}:1` : `${original_lines}:0`,
         savings_percent: savings_percent < 0 ? 0 : savings_percent,
         time_saved_minutes: Math.round(original_lines * 1.5)
     };
     
-    if (cube_lines <= 2) { // Only headers were generated
+    if (cube_lines === 0) {
       throw new Error("Could not find any convertible operations in the provided code.");
     }
     
