@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import type { LogEntry } from '../types';
 import { TerminalIcon, PhotoIcon } from './icons';
@@ -55,6 +54,9 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries, imageUrl }) =>
         {logEntries.length === 0 && !imageUrl && (
             <div className="text-gray-500">Awaiting execution...</div>
         )}
+         {logEntries.length === 0 && imageUrl && (
+            <div className="text-gray-500">Ready to execute. AI preview generated below.</div>
+        )}
         {logEntries.map((entry, index) => (
           <LogMessage key={index} entry={entry} />
         ))}
@@ -63,13 +65,18 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries, imageUrl }) =>
         <div className="p-4 border-t border-gray-700/50 bg-gray-900/50">
           <div className="flex items-center mb-2">
             <PhotoIcon className="w-5 h-5 text-blue-400 mr-2" />
-            <h3 className="text-md font-semibold text-gray-200">Simulated Image Capture</h3>
+            <h3 className="text-md font-semibold text-gray-200">AI-Generated Preview</h3>
           </div>
-          <img 
-            src={imageUrl} 
-            alt="Simulated microscope output" 
-            className="rounded-md w-full object-cover border-2 border-blue-800/50"
-          />
+          <div className="relative">
+            <img 
+              src={imageUrl} 
+              alt="AI-generated microscopy preview" 
+              className="rounded-md w-full object-cover border-2 border-blue-800/50"
+            />
+            <p className="absolute bottom-2 right-2 text-xs text-white/80 bg-black/60 px-1.5 py-0.5 rounded">
+                AI visualization by Phil Hills
+             </p>
+          </div>
         </div>
       )}
     </div>

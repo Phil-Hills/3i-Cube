@@ -1,4 +1,3 @@
-
 import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
@@ -92,9 +91,48 @@ STIMULUS|PRESENT[Visual-Grating]→REPEAT[20x]→RANDOMIZE[Orientation]|EXPERIME
 ];
 
 
-export const CONVERTER_EXAMPLES: ConverterExample[] = [
+export const CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
   {
-    name: "Basic Image Capture",
+    name: "3i Adaptive Optics (MATLAB)",
+    description: "Convert a real, 200+ line AO script from MATLAB to CUBE.",
+    code: `%% This script performs indirect, image-based adaptive optics
+% ... (200+ lines of MATLAB code)
+% Complex initialization
+[nZern, Z2C, dm] = Init_ALPAO_DM();
+dm.Reset();
+
+% Calibration
+Spherical_calibration = [-3:1:3];
+Defocus_corection = [-10.1, -7, -3.3, 0, 1.3, 3.9, 6.8];
+p = polyfit(Spherical_calibration, Defocus_corection, 1);
+
+% Main optimization loop
+for i = Zernike_index
+  for j = 1:length(ZernikeAmplitude)
+    % Set DM pattern
+    [zernikeVector] = set_zernike_ALPAO_DM(...);
+    
+    % Acquire image
+    isRequestingFrame = 1;
+    while (isFrameReady == 0)
+      pause(0.1);
+    end
+    
+    % Calculate merit
+    [Total_Intensity(i,j), High_f_content(i,j)] = Calc_Merits(...);
+  end
+  
+  % Find optimal amplitude
+  [Maximal_zernike_Amp_fit_HF(i)] = Find_maximal_zernike(...);
+end
+
+% Apply optimal pattern
+dm.Send(zernikeVector * Z2C);
+% ... (more code for results and plotting)`
+  },
+  {
+    name: "Basic Image Capture (Python)",
+    description: "A simple Python script for capturing and saving a single image.",
     code: `from pycromanager import Core
 import tifffile
 
@@ -105,7 +143,8 @@ image = core.getImage()
 tifffile.imwrite("output.tif", image)`
   },
   {
-    name: "Multi-Channel Z-Stack",
+    name: "Multi-Channel Z-Stack (Python)",
+    description: "Acquire a 3D stack across multiple fluorescent channels.",
     code: `# 3i Multi-channel Z-stack
 import numpy
 from pycromanager import Core
@@ -124,7 +163,8 @@ for channel in channels:
     tifffile.imwrite(f'{channel}_stack.tif', numpy.array(images))`
   },
   {
-    name: "Time-lapse Experiment",
+    name: "Time-lapse Experiment (Python)",
+    description: "Run a long-term time-lapse acquisition over 24 hours.",
     code: `# 3i Time-lapse
 import time
 from pycromanager import Core

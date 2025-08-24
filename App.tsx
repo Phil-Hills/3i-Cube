@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Header } from './components/Header';
 import { CommandPalette } from './components/CommandPalette';
 import { Editor } from './components/Editor';
@@ -11,14 +10,38 @@ import { METHOD_SCRIPTS } from './constants';
 import { AboutModal } from './components/AboutModal';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { ConverterView } from './components/ConverterView';
+import { MicroscopyImageGenerator } from './services/imageGenerator';
+
+const getInitialScript = (): string => {
+  if (
+    METHOD_SCRIPTS &&
+    METHOD_SCRIPTS.length > 0 &&
+    METHOD_SCRIPTS[0].scripts &&
+    METHOD_SCRIPTS[0].scripts.length > 0
+  ) {
+    return METHOD_SCRIPTS[0].scripts[0].script;
+  }
+  return '';
+};
 
 
 const App: React.FC = () => {
-  const [cubeScript, setCubeScript] = useState<string>(METHOD_SCRIPTS[0].scripts[0].script);
+  const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
+
+  const initialScript = getInitialScript();
+  const [cubeScript, setCubeScript] = useState<string>(initialScript);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
-  const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(null);
+  const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(() => {
+    if (!initialScript) return null;
+    try {
+      return imageGenerator.generateFromCube(initialScript);
+    } catch (e) {
+      console.error("Failed to generate initial image:", e);
+      return null;
+    }
+  });
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [view, setView] = useState<'executor' | 'converter'>('executor');
 
@@ -29,25 +52,26 @@ const App: React.FC = () => {
     setIsExecuting(true);
     setMicroscopeStatus('EXECUTING');
     setLogEntries([]);
-    setSimulatedImageUrl(null);
+    // Keep the existing preview image during execution for better UX
 
     try {
       const generatedLogs = await interpretCubeScript(cubeScript);
       
       let status: MicroscopeStatus = 'IDLE';
       if (cubeScript.includes('CONNECT|')) status = 'CONNECTED';
+      let imageGeneratedInLog = false;
 
-      for (let i = 0; i < generatedLogs.length; i++) {
-        const log = generatedLogs[i];
-        
+      for (const log of generatedLogs) {
         await new Promise(resolve => setTimeout(resolve, 75));
 
         if (log.includes('[IMAGE_GENERATED]')) {
+            imageGeneratedInLog = true;
+            const newImageUrl = imageGenerator.generateFromCube(cubeScript);
+            setSimulatedImageUrl(newImageUrl);
             const cleanLog = log.replace('[IMAGE_GENERATED]', '').trim();
              if(cleanLog) {
                 setLogEntries(prev => [...prev, { type: 'INFO', message: cleanLog, timestamp: new Date() }]);
              }
-            setSimulatedImageUrl(`https://picsum.photos/512/512?random=${Date.now()}`);
         } else if (log.toLowerCase().includes('success') || log.toLowerCase().includes('complete')) {
             setLogEntries(prev => [...prev, { type: 'SUCCESS', message: log, timestamp: new Date() }]);
         } else if (log.toLowerCase().includes('error') || log.toLowerCase().includes('fail')) {
@@ -55,6 +79,12 @@ const App: React.FC = () => {
         } else {
             setLogEntries(prev => [...prev, { type: 'INFO', message: log, timestamp: new Date() }]);
         }
+      }
+      
+      // Fallback if Gemini misses the token
+      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE/i.test(cubeScript)) {
+          const newImageUrl = imageGenerator.generateFromCube(cubeScript);
+          setSimulatedImageUrl(newImageUrl);
       }
 
       setMicroscopeStatus(status);
@@ -67,12 +97,13 @@ const App: React.FC = () => {
     } finally {
       setIsExecuting(false);
     }
-  }, [cubeScript, isExecuting]);
+  }, [cubeScript, isExecuting, imageGenerator]);
 
   const selectScript = (script: string) => {
     setCubeScript(script);
     setLogEntries([]);
-    setSimulatedImageUrl(null);
+    const imageUrl = imageGenerator.generateFromCube(script);
+    setSimulatedImageUrl(imageUrl);
   };
   
   return (

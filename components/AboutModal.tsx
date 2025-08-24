@@ -21,7 +21,7 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       aria-modal="true"
       role="dialog"
     >
-      <div className="bg-gray-800 border border-blue-900/50 rounded-lg max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+      <div className="bg-gray-800 border border-blue-900/50 rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl">
         <div className="flex items-center justify-between p-4 border-b border-gray-700/50 flex-shrink-0">
           <div className="flex items-center">
             <CubeIcon className="w-7 h-7 text-blue-400 mr-3" />
@@ -42,37 +42,54 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4">
               <h4 className="text-lg font-bold text-red-300 mb-2">❌ Old Way (Current)</h4>
               <ul className="list-disc list-inside space-y-1 text-red-200/90">
-                <li>500+ lines of code per experiment</li>
-                <li>2-3 days setup time</li>
+                <li>200+ lines of complex code</li>
+                <li>Hours or days of setup time</li>
                 <li>Requires programming expertise</li>
                 <li>Difficult to share or reproduce</li>
-                <li>Expensive on-site support</li>
               </ul>
             </div>
             <div className="bg-green-900/20 border border-green-800/50 rounded-lg p-4">
               <h4 className="text-lg font-bold text-green-300 mb-2">✅ CUBE Way (New)</h4>
               <ul className="list-disc list-inside space-y-1 text-green-200/90">
-                <li>1-5 lines per experiment</li>
+                <li>~10 lines of simple commands</li>
                 <li>5 minutes setup time</li>
-                <li>Anyone can use</li>
+                <li>Anyone can read and modify</li>
                 <li>Share as simple text files</li>
-                <li>Remote support possible</li>
               </ul>
             </div>
           </div>
           
-          <div>
-             <h4 className="text-lg font-semibold text-gray-100 mb-3">Real Examples</h4>
-             <div className="space-y-3 text-sm">
-                <div>
-                    <p className="font-semibold text-blue-300">Capture Multi-Channel Image:</p>
-                    <pre className="bg-gray-900/80 p-2 mt-1 rounded-md text-cyan-300 font-mono text-xs"><code>CAPTURE|MULTI[DAPI,GFP,RFP]→EXPOSURE[100ms]→MERGE→SAVE[cells.tif]|DONE</code></pre>
-                </div>
-                <div>
-                    <p className="font-semibold text-blue-300">Run Time-Lapse Experiment:</p>
-                    <pre className="bg-gray-900/80 p-2 mt-1 rounded-md text-cyan-300 font-mono text-xs"><code>EXPERIMENT|TIMELAPSE→INTERVAL[5min]→DURATION[24h]→TRACK[cells]|RUNNING</code></pre>
-                </div>
-             </div>
+          <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+              <h4 className="text-lg font-semibold text-gray-100 mb-3 text-center">Killer Example: Adaptive Optics</h4>
+              <p className="text-sm text-center text-gray-400 mb-4">A real 200+ line 3i MATLAB script is converted into just 6 lines of CUBE.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                      <h5 className="font-semibold text-red-300 mb-2">Before (MATLAB - Excerpt)</h5>
+                      <pre className="bg-gray-800 p-2 rounded text-xs font-mono text-red-200/80"><code>{`for i = Zernike_index
+  for j = 1:length(ZernikeAmplitude) 
+    [zernikeVector] = set_zernike_ALPAO_DM(...);
+    pause(0.01);
+    isRequestingFrame = 1;
+    while (isFrameReady == 0)
+      pause(0.1);
+    end
+    Current_Image = AOI;
+    [Total_Intensity(i,j), ...] = Calc_Merits(...);
+  end 
+  [Max_Amp(i)] = Find_maximal_zernike_amplitude(...);
+end`}</code></pre>
+                  </div>
+                   <div>
+                      <h5 className="font-semibold text-green-300 mb-2">After (CUBE Protocol)</h5>
+                      <pre className="bg-gray-800 p-2 rounded text-xs font-mono text-green-200/80 h-full"><code>{`# 3i Adaptive Optics - By Phil Hills
+CONNECT|MICROSCOPE[3i]→DM[ALPAO]→CAMERA|READY
+CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[...]|FITTED
+OPTIMIZE|ZERNIKE[1:7]→AMPLITUDE[-2:0.5:2]|RUNNING
+ACQUIRE|LOOP[Modes]→TEST[Amplitudes]→MEASURE|OPTIMIZING
+APPLY|BEST[Pattern]→DM[Send]→LOCK|CORRECTED
+RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
+                  </div>
+              </div>
           </div>
 
           <div>

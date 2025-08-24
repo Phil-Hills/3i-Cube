@@ -33,6 +33,7 @@ export const ConverterView: React.FC = () => {
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState('');
+  const [selectedExample, setSelectedExample] = useState('');
 
   const handleConvert = async () => {
     if (!inputCode.trim() || isConverting) return;
@@ -112,18 +113,20 @@ ${outputCode}
         <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
           <div className="flex items-center mb-4">
             <CodeBracketIcon className="w-6 h-6 text-blue-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-100">Your 3i Python Code</h2>
+            <h2 className="text-lg font-semibold text-gray-100">Your 3i Microscope Code</h2>
           </div>
           <textarea
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
             className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
-            placeholder="Paste your Python microscope code here..."
+            placeholder="Paste your Python or MATLAB microscope code here..."
           />
-           <div className="mt-2">
+           <div className="mt-2 flex flex-col sm:flex-row gap-2">
              <select
+                value={selectedExample}
                 onChange={(e) => {
                   const selectedName = e.target.value;
+                  setSelectedExample(selectedName);
                   const example = CONVERTER_EXAMPLES.find(ex => ex.name === selectedName);
                   if (example) {
                     setInputCode(example.code);
@@ -132,8 +135,7 @@ ${outputCode}
                     setError(null);
                   }
                 }}
-                className="bg-gray-700 text-sm text-gray-200 rounded-md p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto"
-                defaultValue=""
+                className="bg-gray-700 text-sm text-gray-200 rounded-md p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:flex-grow"
               >
                 <option value="" disabled>Load Example Snippet...</option>
                 {CONVERTER_EXAMPLES.map(example => (
@@ -141,6 +143,11 @@ ${outputCode}
                 ))}
               </select>
             </div>
+            {selectedExample && (
+                <p className="text-xs text-gray-400 mt-2 p-2 bg-gray-900/50 rounded-md">
+                    <strong>Description:</strong> {CONVERTER_EXAMPLES.find(ex => ex.name === selectedExample)?.description}
+                </p>
+            )}
         </div>
         
         {/* Output Panel */}

@@ -30,5 +30,6 @@ export interface ConversionMetrics {
 
 export interface ConverterExample {
     name: string;
+    description: string;
     code: string;
 }
