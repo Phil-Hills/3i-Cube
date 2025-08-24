@@ -70,325 +70,294 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
   return logs;
 };
 
-// productionCubeConverter.js - The Ultimate CUBE Converter
+// fixedUniversalConverter.js - Properly groups related code
 // By Phil Hills - Seattle Developer
-// THIS IS THE MOST IMPORTANT COMPONENT
-class ProductionCubeConverter {
+class UniversalCubeConverter {
   private author: string;
-  private conversionCache: Map<string, string>;
-  private patterns: any;
 
   constructor() {
     this.author = "Phil Hills - Seattle Developer";
-    this.conversionCache = new Map();
-    this.initializePatterns();
   }
 
-  private initializePatterns() {
-    this.patterns = {
-      // MICROSCOPY PATTERNS (Critical for 3i) - Most specific first
-      microscopy: {
-        'core.': { domain: 'MICROSCOPE', action: 'CONTROL' },
-        'snapImage': { domain: 'CAPTURE', action: 'IMAGE' },
-        'setExposure': { domain: 'CONFIGURE', action: 'EXPOSURE' },
-        'setChannel': { domain: 'CONFIGURE', action: 'CHANNEL' },
-        'setPosition': { domain: 'STAGE', action: 'MOVE' },
-        'startSequence': { domain: 'ACQUIRE', action: 'SEQUENCE' },
-        'dm.': { domain: 'ADAPTIVE_OPTICS', action: 'DM' },
-        'zernike': { domain: 'OPTIMIZE', action: 'ZERNIKE' },
-        'deconvolve': { domain: 'PROCESS', action: 'DECONVOLVE' },
-        'stitch': { domain: 'MONTAGE', action: 'STITCH' }
-      },
-      // API PATTERNS
-      api: {
-        'fetch(': { domain: 'API', action: 'REQUEST' },
-        'axios': { domain: 'API', action: 'HTTP' },
-        'requests.': { domain: 'API', action: 'REQUEST' },
-        'http.': { domain: 'API', action: 'HTTP' },
-        'XMLHttpRequest': { domain: 'API', action: 'AJAX' },
-        '.get(': { domain: 'API', action: 'GET' },
-        '.post(': { domain: 'API', action: 'POST' },
-        '.put(': { domain: 'API', action: 'PUT' },
-        '.delete(': { domain: 'API', action: 'DELETE' }
-      },
-      // AUTHENTICATION
-      auth: {
-        'Bearer': { domain: 'AUTH', action: 'BEARER' },
-        'API-Key': { domain: 'AUTH', action: 'API_KEY' },
-        'OAuth': { domain: 'AUTH', action: 'OAUTH' },
-        'login': { domain: 'AUTH', action: 'LOGIN' },
-        'authenticate': { domain: 'AUTH', action: 'VERIFY' },
-        'token': { domain: 'AUTH', action: 'TOKEN' }
-      },
-      // DATA OPERATIONS
-      data: {
-        'SELECT': { domain: 'QUERY', action: 'SELECT' },
-        'INSERT': { domain: 'STORE', action: 'INSERT' },
-        'UPDATE': { domain: 'MODIFY', action: 'UPDATE' },
-        'DELETE': { domain: 'REMOVE', action: 'DELETE' },
-        'CREATE TABLE': { domain: 'BUILD', action: 'TABLE' },
-        'json': { domain: 'FORMAT', action: 'JSON' },
-        'parse': { domain: 'PROCESS', action: 'PARSE' },
-        'stringify': { domain: 'PROCESS', action: 'SERIALIZE' }
-      },
-      // CONTROL FLOW
-      flow: {
-        'if ': { domain: 'CHECK', action: 'CONDITION' },
-        'else': { domain: 'ALTERNATE', action: 'PATH' },
-        'for ': { domain: 'LOOP', action: 'ITERATE' },
-        'while': { domain: 'LOOP', action: 'WHILE' },
-        'try': { domain: 'ATTEMPT', action: 'EXECUTE' },
-        'catch': { domain: 'HANDLE', action: 'ERROR' },
-        'async': { domain: 'ASYNC', action: 'FUNCTION' },
-        'await': { domain: 'WAIT', action: 'PROMISE' }
-      },
-      // LANGUAGE DETECTION - Least specific last
-      languages: {
-        'import ': 'LANG[Python]',
-        'const ': 'LANG[JavaScript]',
-        'function ': 'LANG[JavaScript]',
-        'def ': 'LANG[Python]',
-        'class ': 'LANG[OOP]',
-        'public ': 'LANG[Java/C#]',
-        '#include': 'LANG[C/C++]',
-        'library(': 'LANG[R]',
-        '%': 'LANG[MATLAB]'
-      },
-    };
-  }
+  public convertToCube(input: string): string {
+    const inputType = this.detectInputType(input);
+    const operations = this.parseIntoOperations(input, inputType);
+    const cubeCommands: string[] = [];
 
-  public convertCodeToCube(code: string): string {
-    const cacheKey = this.hashCode(code);
-    if (this.conversionCache.has(cacheKey)) {
-      return this.conversionCache.get(cacheKey)!;
-    }
+    cubeCommands.push(`# Converted to CUBE Protocol`);
+    cubeCommands.push(`# By Phil Hills - Seattle Developer`);
+    cubeCommands.push(`# Original: ${inputType} (${input.split('\n').length} lines)\n`);
 
-    try {
-      const language = this.detectLanguage(code);
-      const blocks = this.parseIntoBlocks(code);
-      const cubeCommands: string[] = [];
-      
-      cubeCommands.push(`# Converted to CUBE Protocol`);
-      cubeCommands.push(`# By Phil Hills - Seattle Developer`);
-      const originalLines = code.split('\n').length;
-      cubeCommands.push(`# Original: ${language} (${originalLines} lines)\n`);
+    operations.forEach(op => {
+      const cube = this.operationToCube(op);
+      if (cube) {
+        cubeCommands.push(cube);
+      }
+    });
 
-      blocks.forEach(block => {
-        const cubeCommand = this.blockToCube(block);
-        if (cubeCommand) {
-          cubeCommands.push(cubeCommand);
-        }
-      });
-      
-      const cubeLines = cubeCommands.filter(l => l.trim() && !l.startsWith('#')).length;
-      if (cubeLines > 0) {
+    const originalLines = input.split('\n').filter(l => l.trim()).length;
+    const cubeLines = operations.length;
+    if (cubeLines > 0) {
         cubeCommands.push(`\n# Compression: ${originalLines}:${cubeLines} lines`);
-      }
+    }
+    
+    return cubeCommands.join('\n');
+  }
 
-      const result = cubeCommands.join('\n');
-      this.conversionCache.set(cacheKey, result);
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      return `# Error converting code\n# ${message}\n# By Phil Hills - Seattle Developer`;
+  private parseIntoOperations(input: string, inputType: string): any[] {
+    if (inputType.includes('CODE')) {
+      return this.parseCodeOperations(input);
+    } else if (inputType.includes('NATURAL')) {
+      return this.parseNaturalLanguageOperations(input);
+    } else {
+      return this.parseGenericOperations(input);
     }
   }
 
-  private detectLanguage(code: string): string {
-    for (const [pattern, lang] of Object.entries(this.patterns.languages)) {
-      if (code.includes(pattern)) {
-        return lang as string;
-      }
-    }
-    return 'LANG[Unknown]';
-  }
-
-  private parseIntoBlocks(code: string): { type: string; lines: string[]; indent: number }[] {
-    const blocks: { type: string; lines: string[]; indent: number }[] = [];
+  private parseCodeOperations(code: string): any[] {
+    const operations: any[] = [];
     const lines = code.split('\n');
-    let currentBlock: { type: string; lines: string[]; indent: number } = {
-      type: 'GENERAL',
-      lines: [],
-      indent: 0
+    let currentOp: any = {
+      type: null,
+      mainAction: null,
+      steps: [],
+      startLine: 0,
+      endLine: 0
     };
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      const indent = line.search(/\S|$/);
-
-      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('%')) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line || line.startsWith('//') || line.startsWith('#') || line.startsWith('%')) {
         continue;
       }
-      
-      // A simple but effective block strategy: group by function/class/try block or major operation.
-      const isNewMajorBlock = /^(async\s+)?(function|def|class|try|for|while|if|core\.|dm\.|fetch|axios|requests\.)/.test(trimmed);
 
-      if (isNewMajorBlock && currentBlock.lines.length > 0) {
-        blocks.push(currentBlock);
-        currentBlock = {
-          type: this.detectBlockType(trimmed),
-          lines: [trimmed],
-          indent: indent
-        };
+      if (this.isNewOperation(line, currentOp)) {
+        if (currentOp.mainAction) {
+          operations.push(this.finalizeOperation(currentOp));
+        }
+        currentOp = this.startNewOperation(line, i);
       } else {
-        if(currentBlock.lines.length === 0) {
-           currentBlock.type = this.detectBlockType(trimmed);
-           currentBlock.indent = indent;
-        }
-        currentBlock.lines.push(trimmed);
+        this.addToOperation(currentOp, line);
       }
     }
-    if (currentBlock.lines.length > 0) {
-      blocks.push(currentBlock);
+
+    if (currentOp.mainAction) {
+      operations.push(this.finalizeOperation(currentOp));
     }
-    return blocks;
+
+    return operations;
+  }
+
+  private isNewOperation(line: string, currentOp: any): boolean {
+    const majorOperations = [
+      /^(async\s+)?function\s+/,
+      /^class\s+/,
+      /^(const|let|var)\s+\w+\s*=\s*(async\s*)?\(/,
+      /^(export|import)\s+/,
+      /^(if|for|while|switch)\s*\(/,
+      /^try\s*{/,
+      /\.(get|post|put|delete|patch)\s*\(/,
+      /fetch\s*\(/,
+      /^return\s+/
+    ];
+    // If the current operation is empty, any code is a new operation
+    if (!currentOp.mainAction) return true;
+    // Check if the line matches a major operation pattern
+    return majorOperations.some(pattern => pattern.test(line));
+  }
+
+  private startNewOperation(line: string, lineNumber: number): any {
+    const op = {
+      type: this.detectOperationType(line),
+      mainAction: this.extractMainAction(line),
+      steps: new Set<string>(), // Use a Set to avoid duplicates
+      startLine: lineNumber,
+      endLine: lineNumber
+    };
+    const initialStep = this.extractStep(line);
+    if (initialStep) {
+      op.steps.add(initialStep);
+    }
+    return op;
   }
   
-  private detectBlockType(line: string): string {
-    // Check each pattern category
-    for (const [category, patterns] of Object.entries(this.patterns)) {
-        for (const pattern of Object.keys(patterns as object)) {
-            if (line.includes(pattern)) {
-                return category.toUpperCase();
-            }
-        }
+  private addToOperation(operation: any, line: string) {
+    const step = this.extractStep(line);
+    if (step) {
+      operation.steps.add(step);
     }
-    return 'GENERAL';
-  }
-  
-  private blockToCube(block: { type: string; lines: string[] }): string | null {
-    const { type, lines } = block;
-    const mainOp = this.extractMainOperation(lines[0], type);
-    const steps = this.extractStepsFromBlock(lines);
-    const outcome = this.determineOutcome(type, steps, lines);
-    
-    if (steps.length === 0) return null;
-    
-    return `${mainOp}|${steps.join('→')}|${outcome}`;
+    operation.endLine++;
   }
 
-  private extractMainOperation(firstLine: string, blockType: string): string {
-    const apiMatch = firstLine.match(/fetch|axios|requests\./);
-    if(apiMatch) return 'API';
-
-    const microMatch = firstLine.match(/core\.|snapImage|setExposure|setChannel|dm\./);
-    if(microMatch) return 'MICROSCOPE';
-
-    const funcMatch = firstLine.match(/^(async\s+)?function\s+(\w+)/);
-    if(funcMatch) return `FUNCTION[${funcMatch[2]}]`;
-
-    const defMatch = firstLine.match(/^def\s+(\w+)/);
-    if(defMatch) return `FUNCTION[${defMatch[1]}]`;
-
-    const classMatch = firstLine.match(/class\s+(\w+)/);
-    if(classMatch) return `BUILD[${classMatch[1]}]`;
-    
-    const dbMatch = firstLine.match(/SELECT|INSERT|UPDATE|DELETE/i);
-    if(dbMatch) return `DATABASE[${dbMatch[0]}]`;
-
-    return blockType;
+  private finalizeOperation(op: any): any {
+    return {
+      type: op.type,
+      mainAction: op.mainAction,
+      steps: Array.from(op.steps).slice(0, 5), // Convert Set to Array and limit steps
+      lineCount: op.endLine - op.startLine + 1
+    };
   }
 
-  private extractStepsFromBlock(lines: string[]): string[] {
-    const steps: string[] = [];
-    for (const line of lines) {
-      const urlMatch = line.match(/['"`](https?:\/\/[^'"`]+)['"`]/);
-      if (urlMatch) steps.push(`REQUEST[${this.shortenUrl(urlMatch[1])}]`);
-
-      const methodMatch = line.match(/method:\s*['"`](\w+)['"`]/);
-      if (methodMatch) steps.push(`METHOD[${methodMatch[1].toUpperCase()}]`);
-
-      if (line.includes('Authorization') || line.includes('Bearer')) steps.push('AUTH[Token]');
-      if (line.includes('snapImage')) steps.push('CAPTURE[Image]');
-      
-      const expMatch = line.match(/setExposure\((\d+(\.\d+)?)\)/);
-      if (expMatch) steps.push(`EXPOSURE[${expMatch[1]}ms]`);
-
-      const chMatch = line.match(/setChannel\(['"`]([^'"`]+)['"`]\)/);
-      if (chMatch) steps.push(`CHANNEL[${chMatch[1]}]`);
-      
-      if (line.includes('.json()')) steps.push('PARSE[JSON]');
-      if (line.includes('JSON.stringify')) steps.push('SERIALIZE[JSON]');
-      
-      const responseVarMatch = line.match(/(\w+)\s*=\s*await\s+response.json/);
-      if(responseVarMatch) steps.push('RESPONSE[DATA]');
-
-      const returnMatch = line.match(/return\s+([^;]+)/);
-      if (returnMatch && !returnMatch[1].includes('{')) {
-        steps.push(`RETURN[${this.cleanValue(returnMatch[1])}]`);
-      }
-    }
-    return [...new Set(steps)];
+  private detectOperationType(line: string): string {
+    if (/function|=>\s*{/.test(line)) return 'FUNCTION';
+    if (/class\s+/.test(line)) return 'CLASS';
+    if (/fetch|axios|http|request/.test(line)) return 'API';
+    if (/SELECT|INSERT|UPDATE|DELETE/i.test(line)) return 'DATABASE';
+    if (/if\s*\(|switch\s*\(/.test(line)) return 'CONDITION';
+    if (/for\s*\(|while\s*\(|\.map|\.forEach/.test(line)) return 'LOOP';
+    if (/try\s*{/.test(line)) return 'ERROR_HANDLING';
+    if (/import|require/.test(line)) return 'IMPORT';
+    if (/export/.test(line)) return 'EXPORT';
+    return 'PROCESS';
   }
 
-  private determineOutcome(type: string, steps: string[], lines: string[]): string {
-    if (lines.some(l => l.includes('error') || l.includes('catch'))) return 'FAILED';
-    if (steps.some(s => s.includes('RETURN'))) return 'RETURNED';
-    if (steps.some(s => s.includes('RESPONSE'))) return 'COMPLETE';
-
-    switch (type) {
-      case 'API': return 'RECEIVED';
-      case 'AUTH': return 'AUTHENTICATED';
-      case 'MICROSCOPE': return 'EXECUTED';
-      case 'MICROSCOPY': return 'ACQUIRED';
-      case 'DATABASE': return 'EXECUTED';
-      case 'FUNCTION': return 'DEFINED';
-      case 'BUILD': return 'CREATED';
-      default: return 'PROCESSED';
-    }
+  private extractMainAction(line: string): string {
+    let match;
+    match = line.match(/function\s+(\w+)/);
+    if (match) return match[1];
+    match = line.match(/(?:const|let|var)\s+(\w+)/);
+    if (match) return match[1];
+    match = line.match(/class\s+(\w+)/);
+    if (match) return match[1];
+    match = line.match(/['"](\/[\w\/\-]+)['"]/);
+    if (match) return this.shortenUrl(match[1]);
+    match = line.match(/\.(\w+)\s*\(/);
+    if (match) return match[1].toUpperCase();
+    return 'PROCESS';
   }
-  
+
+  private extractStep(line: string): string | null {
+    let match;
+    match = line.match(/['"]((?:https?:\/\/|\/api\/|www\.)[^'"]+)['"]/);
+    if (match) return `REQUEST[${this.shortenUrl(match[1])}]`;
+    match = line.match(/method:\s*['"](\w+)['"]/);
+    if (match) return `METHOD[${match[1]}]`;
+    if (/Authorization|Bearer|token/i.test(line)) return 'AUTH[Token]';
+    if (/JSON\.stringify/.test(line)) return 'SERIALIZE[JSON]';
+    if (/JSON\.parse|\.json\(\)/.test(line)) return 'PARSE[JSON]';
+    if (/response|res\.|result/.test(line) && /return|await/.test(line)) return 'RESPONSE[Received]';
+    if (/SELECT/i.test(line)) return 'QUERY[Select]';
+    if (/INSERT/i.test(line)) return 'INSERT[Data]';
+    if (/UPDATE/i.test(line)) return 'UPDATE[Record]';
+    if (/DELETE/i.test(line)) return 'DELETE[Record]';
+    match = line.match(/setExposure\((\d+)/);
+    if (match) return `EXPOSURE[${match[1]}ms]`;
+    match = line.match(/setChannel\(['"](\w+)['"]/);
+    if (match) return `CHANNEL[${match[1]}]`;
+    if (/snapImage|capture/.test(line)) return 'CAPTURE[Image]';
+    match = line.match(/return\s+([^;{]+)/);
+    if (match && match[1].length < 30) return `RETURN[${this.cleanValue(match[1])}]`;
+    return null;
+  }
+
+  private operationToCube(operation: any): string | null {
+    const { type, mainAction, steps } = operation;
+    if (!mainAction && steps.length === 0) return null;
+    const domain = this.mapTypeToDomain(type);
+    const sequence = steps.length > 0 ? steps.join('→') : mainAction;
+    const outcome = this.determineOutcome(type, steps);
+    return `${domain}|${sequence}|${outcome}`;
+  }
+
+  private mapTypeToDomain(type: string): string {
+    const mapping: { [key: string]: string } = {
+      'FUNCTION': 'FUNCTION', 'CLASS': 'BUILD', 'API': 'API', 'DATABASE': 'DATABASE',
+      'CONDITION': 'CHECK', 'LOOP': 'ITERATE', 'ERROR_HANDLING': 'HANDLE',
+      'IMPORT': 'IMPORT', 'EXPORT': 'EXPORT', 'PROCESS': 'PROCESS'
+    };
+    return mapping[type] || 'EXECUTE';
+  }
+
+  private determineOutcome(type: string, steps: string[]): string {
+    if (steps.some(s => s.includes('ERROR') || s.includes('CATCH'))) return 'HANDLED';
+    if (steps.some(s => s.includes('RESPONSE') || s.includes('RETURN'))) return 'COMPLETE';
+    const outcomes: { [key: string]: string } = {
+      'FUNCTION': 'DEFINED', 'CLASS': 'CREATED', 'API': 'RECEIVED', 'DATABASE': 'EXECUTED',
+      'CONDITION': 'EVALUATED', 'LOOP': 'PROCESSED', 'ERROR_HANDLING': 'HANDLED',
+      'IMPORT': 'LOADED', 'EXPORT': 'EXPORTED'
+    };
+    return outcomes[type] || 'COMPLETE';
+  }
+
   private shortenUrl(url: string): string {
+    url = url.replace(/^https?:\/\//, '').replace(/^www\./, '');
     if (url.includes('anthropic')) return 'Anthropic_Claude';
     if (url.includes('openai')) return 'OpenAI_GPT';
-    if (url.includes('google')) return 'Google_AI';
-    if (url.includes('gemini')) return 'Gemini';
-    try {
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split('/').filter(p => p);
-        if (pathParts.length > 0) return pathParts.slice(-2).join('/');
-        return urlObj.hostname.replace('www.','');
-    } catch(e) {
-        return 'API_Endpoint';
-    }
+    if (url.includes('cube-builder')) return 'Cube_Builder';
+    if (url.includes('cube-protocol')) return 'Cube_Protocol';
+    const parts = url.split('/').filter(p => p && p.length > 2);
+    return parts[parts.length - 1] || url.substring(0, 20);
   }
 
   private cleanValue(value: string): string {
-    return value.trim().replace(/[;,]$/, '').substring(0, 20);
+    return value.trim().replace(/[;,]$/, '').replace(/['"`]/g, '').substring(0, 20);
   }
 
-  private hashCode(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+  private detectInputType(input: string): string {
+    const codeIndicators = /[{}();]|function|class|const|let|var|import|export/;
+    if (codeIndicators.test(input)) {
+      if (/def\s+\w+:|import\s+\w+\s*$|print\s*\(/m.test(input)) return 'CODE_PYTHON';
+      if (/function|const|let|var|=>/m.test(input)) return 'CODE_JAVASCRIPT';
+      if (/public\s+class|System\.out/m.test(input)) return 'CODE_JAVA';
+      return 'CODE_UNKNOWN';
     }
-    return hash.toString();
+    return 'NATURAL_LANGUAGE';
+  }
+
+  private parseNaturalLanguageOperations(text: string): any[] {
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+    return sentences.map(sentence => ({
+      type: 'NATURAL',
+      mainAction: this.extractNaturalAction(sentence),
+      steps: this.extractNaturalSteps(sentence),
+      lineCount: 1
+    }));
+  }
+
+  private extractNaturalAction(sentence: string): string {
+    const verbs = sentence.match(/\b(create|read|update|delete|get|post|send|receive|process|analyze)\b/i);
+    return verbs ? verbs[0].toUpperCase() : 'PROCESS';
+  }
+
+  private extractNaturalSteps(sentence: string): string[] {
+    const steps: string[] = [];
+    const quotes = sentence.match(/["']([^"']+)["']/g);
+    if (quotes) {
+      quotes.forEach(q => steps.push(`TARGET[${q.replace(/["']/g, '')}]`));
+    }
+    return steps;
+  }
+
+  private parseGenericOperations(input: string): any[] {
+    return [{
+      type: 'GENERIC',
+      mainAction: 'PROCESS',
+      steps: ['INPUT', 'ANALYZE', 'OUTPUT'],
+      lineCount: input.split('\n').length
+    }];
   }
 }
 
+
 /**
- * Converts Python/MATLAB code to CUBE script using a client-side pattern matching engine.
- * @param code The source code to convert.
+ * Converts any code or natural language to CUBE script using the universal client-side engine.
+ * @param code The source code or text to convert.
  * @returns A promise that resolves to the converted CUBE code and calculated metrics.
  */
 export const convertCodeToCube = async (code: string): Promise<{ cube_code: string; metrics: ConversionMetrics }> => {
-  // Simulate processing time
   await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 300));
-
   try {
-    const converter = new ProductionCubeConverter();
-    const cube_code = converter.convertCodeToCube(code);
-
+    const converter = new UniversalCubeConverter();
+    const cube_code = converter.convertToCube(code);
+    
     const original_lines = code.split('\n').filter(line => {
       const trimmed = line.trim();
       return trimmed !== '' && !trimmed.startsWith('//') && !trimmed.startsWith('%') && !trimmed.startsWith('#');
     }).length;
-
+    
     const cube_lines = cube_code.split('\n').filter(line => {
-        const trimmed = line.trim();
-        return trimmed !== '' && !trimmed.startsWith('#');
+      const trimmed = line.trim();
+      return trimmed !== '' && !trimmed.startsWith('#');
     }).length;
 
     const savings_percent = original_lines > 0 ? Math.round(((original_lines - cube_lines) / original_lines) * 100) : 0;
@@ -401,8 +370,8 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
         time_saved_minutes: Math.round(original_lines * 1.5)
     };
     
-    if (cube_lines === 0) {
-      throw new Error("Could not find any convertible operations in the provided code.");
+    if (cube_lines === 0 && original_lines > 0) {
+      throw new Error("Could not find any convertible operations in the provided input.");
     }
     
     return { cube_code, metrics };
