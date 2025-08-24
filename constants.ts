@@ -1,6 +1,53 @@
+
 import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
+  {
+    category: "AXL with CUDA Acceleration",
+    description: "GPU-accelerated workflows for real-time processing and AI.",
+    scripts: [
+      {
+        name: "Real-time Deconvolution",
+        description: "Process a 4K video stream live with GPU-accelerated deconvolution.",
+        script: `# GPU-accelerated deconvolution with AXL
+AXL|GPU[RTX_4090]→DECONVOLVE[REALTIME_DECONV]→CUDA[ACCELERATED]|INSTANT
+PROCESS|STREAM[4K_Video]→DECONV[Live]→DISPLAY[120fps]→LATENCY[8ms]|SMOOTH
+SAVE|FORMAT[H265]→COMPRESS[GPU]→BITRATE[100Mbps]|EFFICIENT`
+      },
+      {
+        name: "AI Cell Segmentation",
+        description: "Run a deep learning model on the GPU to segment and label cells in real-time.",
+        script: `# AI segmentation with CUDA acceleration
+AXL|AI[CellSegNet]→GPU[RTX_4090]→SEGMENT[AI_SEGMENT]|INTELLIGENT
+PROCESS|BATCH[100_Images]→INFERENCE[50ms/image]→LABEL[Unique_IDs]|FAST
+ANALYZE|COUNT[Cells]→MEASURE[Area,Shape]→CLASSIFY[Types]→EXPORT[CSV]|COMPLETE`
+      },
+      {
+        name: "Massive Volume Rendering",
+        description: "Render and interact with a 10GB+ cleared tissue dataset in real-time.",
+        script: `# Interactive volume rendering with CUDA
+AXL|VOLUME[MASSIVE_VOLUME]→GPU[Stream]→RENDER[Realtime]|MASSIVE
+INTERACT|ROTATE[360°]→ZOOM[1000x]→SLICE[Any_Plane]→FPS[60]|SMOOTH
+VISUALIZE|MIP[Maximum]→COLOR[Depth]→SHADOWS[Ambient]→EXPORT[4K]|BEAUTIFUL`
+      },
+      {
+        name: "Multiview Light Sheet Fusion",
+        description: "Acquire from 4 angles and fuse into a single high-res volume on the GPU.",
+        script: `# GPU-accelerated multiview fusion
+AXL|MULTIVIEW_FUSION[4_Angles]→ACQUIRE[Simultaneous]→GPU[Register]|ALIGNED
+FUSE|CUDA[Accelerated]→BLEND[Weighted]→RESOLUTION[Enhanced]→TIME[30s]|FAST
+OUTPUT|ISOTROPIC[Resolution]→ARTIFACTS[None]→QUALITY[Superior]|PERFECT`
+      },
+       {
+        name: "Live Processing Pipeline",
+        description: "Run a full analysis pipeline on live data with less than 50ms latency.",
+        script: `# Zero-lag live processing with CUDA
+AXL|LIVE_PROCESS[Acquisition]→GPU[Pipeline]→DISPLAY[Instant]|REALTIME
+PIPELINE|DENOISE→DECONVOLVE→TRACK→MEASURE→VISUALIZE|PARALLEL
+PERFORMANCE|LATENCY[<50ms]→THROUGHPUT[4K@120fps]→CUDA[Optimized]|BLAZING`
+      }
+    ]
+  },
   {
     category: "Real 3i Workflows",
     description: "End-to-end examples of complex experiments on 3i systems.",
@@ -54,16 +101,6 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
         name: "AI Deconvolution",
         description: "Acquire raw data and use AI to dramatically enhance resolution and clarity.",
         script: `AXL|ACQUIRE[Raw]→DECONVOLVE[AI]→ENHANCE[2x_Resolution]→DENOISE|CRYSTAL_CLEAR`
-      },
-      {
-        name: "High-Speed Volumetric",
-        description: "Capture 3D volumes at 100fps to track fast-moving particles.",
-        script: `AXL|VOLUME→SPEED[100fps]→ZSTACK[100_planes]→TRACK[Particles]|FAST_3D`
-      },
-      {
-        name: "Simultaneous FRAP & Imaging",
-        description: "Perform photomanipulation (FRAP) while simultaneously imaging the sample.",
-        script: `AXL|FRAP→BLEACH[ROI]→MONITOR[Recovery]→SIMULTANEOUS[Imaging]|QUANTIFIED`
       }
     ]
   },
@@ -98,22 +135,64 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
         script: `VECTOR|TARGET[ROI]→LASER[405nm,100%]→BLEACH→MONITOR[Recovery]|FRAP`
       }
     ]
-  },
-  {
-    category: "Large Volume Imaging",
-    description: "Methods for imaging large, cleared tissue samples.",
-    scripts: [
-      {
-        name: "Light Sheet Volume",
-        description: "Scan a large cleared tissue sample and fuse tiled volumes.",
-        script: `ACQUIRE|LIGHTSHEET[Cleared_Tissue]→VOLUME[5x5x3mm]→TILE[3x3]→FUSE|COMPLETE`
-      }
-    ]
   }
 ];
 
 
 export const CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
+  {
+    name: "AXL: Real-time Deconvolution (MATLAB)",
+    description: "Process massive datasets in real-time with GPU acceleration.",
+    code: `% Traditional deconvolution - 10+ minutes per frame
+for frame = 1:numFrames
+    raw_image = imread(sprintf('frame_%04d.tif', frame));
+    psf = generatePSF(NA, wavelength, pixelSize);
+    
+    % Slow CPU deconvolution
+    deconv_image = deconvlucy(raw_image, psf, iterations);
+    
+    % Wait for processing...
+    imwrite(deconv_image, sprintf('deconv_%04d.tif', frame));
+end`
+  },
+  {
+    name: "AXL: AI Cell Segmentation (MATLAB)",
+    description: "Deep learning segmentation on GPU",
+    code: `% Complex AI segmentation setup - 300+ lines
+model = loadTrainedNetwork('cellSegmentationNet.mat');
+gpu = gpuDevice(1);
+wait(gpu);
+
+for i = 1:numImages
+    img = imread(images{i});
+    img_gpu = gpuArray(img);
+    
+    % Preprocess
+    processed = preprocessForNetwork(img_gpu);
+    
+    % Run inference
+    segmentation = predict(model, processed);
+    
+    % Post-process
+    labeled = postprocessSegmentation(segmentation);
+    
+    % Transfer back from GPU
+    result = gather(labeled);
+end`
+  },
+  {
+    name: "AXL: Massive Volume Rendering (MATLAB)",
+    description: "Render TB-scale datasets interactively.",
+    code: `% Volume rendering - requires workstation with 128GB RAM
+volume_data = load_volume('mouse_brain_cleared.h5'); % 2TB file
+gpu_volume = gpuArray(volume_data);
+
+% Complex rendering pipeline
+for angle = 0:360
+    projection = maximum_intensity_projection(gpu_volume, angle);
+    % ... hundreds of lines of rendering code
+end`
+  },
   {
     name: "3i Adaptive Optics (MATLAB)",
     description: "Convert a real, 200+ line AO script from MATLAB to CUBE.",
@@ -153,18 +232,6 @@ dm.Send(zernikeVector * Z2C);
 % ... (more code for results and plotting)`
   },
   {
-    name: "Basic Image Capture (Python)",
-    description: "A simple Python script for capturing and saving a single image.",
-    code: `from pycromanager import Core
-import tifffile
-
-core = Core()
-core.setExposure(100)
-core.snapImage()
-image = core.getImage()
-tifffile.imwrite("output.tif", image)`
-  },
-  {
     name: "Multi-Channel Z-Stack (Python)",
     description: "Acquire a 3D stack across multiple fluorescent channels.",
     code: `# 3i Multi-channel Z-stack
@@ -183,23 +250,5 @@ for channel in channels:
         core.snapImage()
         images.append(core.getImage())
     tifffile.imwrite(f'{channel}_stack.tif', numpy.array(images))`
-  },
-  {
-    name: "Time-lapse Experiment (Python)",
-    description: "Run a long-term time-lapse acquisition over 24 hours.",
-    code: `# 3i Time-lapse
-import time
-from pycromanager import Core
-import tifffile
-
-duration_hours = 24
-interval_minutes = 5
-num_timepoints = int(duration_hours * 60 / interval_minutes)
-
-for t in range(num_timepoints):
-    core.snapImage()
-    image = core.getImage()
-    tifffile.imwrite(f'timelapse_t{t:04d}.tif', image)
-    time.sleep(interval_minutes * 60)`
   }
 ];

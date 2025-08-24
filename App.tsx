@@ -27,6 +27,11 @@ const getInitialScript = (): string => {
   return '';
 };
 
+const isGpuScript = (script: string): boolean => {
+    const upperScript = script.toUpperCase();
+    const gpuKeywords = ['GPU', 'CUDA', 'AXL', 'LATTICE', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS'];
+    return gpuKeywords.some(keyword => upperScript.includes(keyword));
+};
 
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
@@ -36,6 +41,7 @@ const App: React.FC = () => {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
+  const [isGpuActive, setIsGpuActive] = useState<boolean>(() => isGpuScript(initialScript));
   const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(() => {
     if (!initialScript) return null;
     try {
@@ -86,7 +92,7 @@ const App: React.FC = () => {
       }
       
       // Fallback if simulator misses the token
-      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE/i.test(cubeScript)) {
+      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS/i.test(cubeScript)) {
           const newImageUrl = imageGenerator.generateFromCube(cubeScript);
           setSimulatedImageUrl(newImageUrl);
       }
@@ -106,6 +112,7 @@ const App: React.FC = () => {
   const selectScript = (script: string) => {
     setCubeScript(script);
     setLogEntries([]);
+    setIsGpuActive(isGpuScript(script));
     const imageUrl = imageGenerator.generateFromCube(script);
     setSimulatedImageUrl(imageUrl);
   };
@@ -115,6 +122,8 @@ const App: React.FC = () => {
       <Header 
         onAboutClick={() => setIsAboutModalOpen(true)}
         onDocsClick={() => setIsDocsModalOpen(true)}
+        isGpuActive={isGpuActive}
+        isProcessing={isExecuting}
       />
       
       <main className="flex-grow flex flex-col p-6 overflow-hidden">
@@ -127,7 +136,10 @@ const App: React.FC = () => {
             <div className="md:col-span-5 flex flex-col gap-6 overflow-hidden">
               <Editor
                 script={cubeScript}
-                onScriptChange={setCubeScript}
+                onScriptChange={(newScript) => {
+                    setCubeScript(newScript);
+                    setIsGpuActive(isGpuScript(newScript));
+                }}
                 onExecute={handleExecute}
                 isExecuting={isExecuting}
               />

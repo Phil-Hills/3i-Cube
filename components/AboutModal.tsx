@@ -1,6 +1,41 @@
 
 import React, { useEffect } from 'react';
-import { CubeIcon, XMarkIcon } from './icons';
+import { CubeIcon, XMarkIcon, NvidiaIcon } from './icons';
+
+const AXLFeatureShowcase: React.FC = () => (
+    <div className="bg-black/20 border border-[#76B900]/50 rounded-lg p-4 my-6">
+        <div className="flex items-center justify-center text-center mb-4">
+            <NvidiaIcon className="w-16 h-16 text-[#76B900] mr-4"/>
+            <div>
+                <h2 className="text-xl font-bold text-gray-100">🚀 3i AXL with NVIDIA CUDA Acceleration</h2>
+                <p className="text-sm text-gray-400">Real-time processing for the most demanding applications.</p>
+            </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+            <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
+                <h3 className="font-semibold text-cyan-300">Real-time Deconvolution</h3>
+                <p className="text-xs text-gray-400 mt-1">Process 4K images at 120fps with GPU acceleration</p>
+                <div className="text-lg font-bold text-[#76B900] mt-2">8ms Latency</div>
+            </div>
+            <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
+                <h3 className="font-semibold text-cyan-300">AI Segmentation</h3>
+                <p className="text-xs text-gray-400 mt-1">Deep learning models run directly on the GPU</p>
+                <div className="text-lg font-bold text-[#76B900] mt-2">50ms / Frame</div>
+            </div>
+            <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
+                <h3 className="font-semibold text-cyan-300">Massive Volumes</h3>
+                <p className="text-xs text-gray-400 mt-1">Interact with TB-scale datasets smoothly</p>
+                <div className="text-lg font-bold text-[#76B900] mt-2">60fps Navigation</div>
+            </div>
+             <div className="bg-gray-800/50 p-3 rounded-md border border-white/10 text-center">
+                <h3 className="font-semibold text-cyan-300">Live Processing</h3>
+                <p className="text-xs text-gray-400 mt-1">Zero-lag pipeline from acquisition to display</p>
+                <div className="text-lg font-bold text-[#76B900] mt-2">&lt;50ms Total</div>
+            </div>
+        </div>
+    </div>
+);
+
 
 export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   useEffect(() => {
@@ -59,6 +94,8 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
           </div>
           
+          <AXLFeatureShowcase />
+
           <div className="bg-black/20 border border-white/10 rounded-lg p-4">
               <h4 className="text-lg font-semibold text-gray-100 mb-3 text-center">Killer Example: Adaptive Optics</h4>
               <p className="text-sm text-center text-gray-400 mb-4">A real 200+ line 3i MATLAB script is converted into just 6 lines of CUBE.</p>
@@ -92,31 +129,6 @@ RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
               </div>
           </div>
           
-          <div className="bg-black/20 border border-white/10 rounded-lg p-4">
-            <h4 className="text-lg font-semibold text-gray-100 mb-3">⚡️ Demo vs. Production</h4>
-            <p className="text-sm text-gray-400 mb-3">This app is a high-fidelity demonstration. The CUBE commands are real and production-ready. When integrated at 3i, these simulated commands will control actual microscope hardware.</p>
-            <div className="text-sm grid grid-cols-2 gap-4">
-                <div className="bg-gray-800 p-3 rounded">
-                    <h5 className="font-semibold text-cyan-300">This Demo App</h5>
-                    <ul className="list-disc list-inside mt-2 text-gray-300">
-                        <li>Simulates hardware control</li>
-                        <li>Shows expected log output</li>
-                        <li>Generates AI preview images</li>
-                        <li>Proves the concept & value</li>
-                    </ul>
-                </div>
-                 <div className="bg-gray-800 p-3 rounded">
-                    <h5 className="font-semibold text-green-300">At 3i (Production)</h5>
-                    <ul className="list-disc list-inside mt-2 text-gray-300">
-                        <li>Executes real hardware control</li>
-                        <li>Fires lasers, moves stages</li>
-                        <li>Captures real images</li>
-                        <li>Saves real data files</li>
-                    </ul>
-                </div>
-            </div>
-          </div>
-
           <div>
               <h4 className="text-lg font-semibold text-gray-100 mb-2">What 3i Users Are Saying</h4>
               <div className="space-y-3 text-sm italic">
@@ -147,13 +159,6 @@ RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
                   </button>
               </div>
           </div>
-
-           <div>
-              <h4 className="text-lg font-semibold text-gray-100 mb-2 mt-6">About the Creator</h4>
-              <p className="text-sm leading-relaxed">
-                  <strong>Phil Hills</strong> is a Seattle-based developer who created the CUBE Protocol to make complex systems simple. The protocol compresses traditional code by 100:1 while maintaining perfect clarity and functionality. CUBE was designed to help people spend less time coding and more time on what matters.
-              </p>
-           </div>
         </div>
       </div>
     </div>

@@ -1,306 +1,284 @@
-// Accurate 3i AXL simulations by Phil Hills
-class ThreeI_AXL_ImageGenerator {
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
-  private width = 2560;
-  private height = 2160;
 
-  constructor() {
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
-    const context = this.canvas.getContext('2d');
-    if (!context) {
-        throw new Error('Failed to get 2D context for AXL generator');
+// AXL with NVIDIA CUDA acceleration by Phil Hills - Seattle Developer
+class AXL_CUDA_ImageGenerator {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private width = 4096;
+    private height = 4096;
+
+    constructor() {
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        const context = this.canvas.getContext('2d');
+        if (!context) {
+            throw new Error('Failed to get 2D context for AXL CUDA generator');
+        }
+        this.ctx = context;
     }
-    this.ctx = context;
-  }
 
-  public generateAXLImage(cubeCommand: string): string {
-    this.ctx.fillStyle = '#000000';
-    this.ctx.fillRect(0, 0, this.width, this.height);
+    public generateAXLCudaImage(cubeCommand: string): string {
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(0, 0, 4096, 4096);
+        this.addGPUIndicator();
+
+        const commands = cubeCommand.toUpperCase();
+        
+        if (commands.includes('REALTIME_DECONV')) {
+            return this.generateRealtimeDeconvolution();
+        } else if (commands.includes('AI_SEGMENT')) {
+            return this.generateAISegmentation();
+        } else if (commands.includes('MASSIVE_VOLUME')) {
+            return this.generateMassiveVolume();
+        } else if (commands.includes('MULTIVIEW_FUSION')) {
+            return this.generateMultiviewFusion();
+        } else if (commands.includes('LIVE_PROCESS')) {
+            return this.generateLiveProcessing();
+        }
+        
+        this.generateStandardAXLCuda(cubeCommand);
+        this.addAXLMetadata('Standard AXL');
+        return this.canvas.toDataURL();
+    }
+
+    private generateRealtimeDeconvolution(): string {
+        const cellSize = 1200;
+        
+        // Raw
+        this.ctx.save();
+        this.ctx.filter = 'blur(8px)';
+        this.drawComplexCell(cellSize / 2 + 200, cellSize / 2 + 200, cellSize * 0.4);
+        this.ctx.restore();
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = '24px Arial';
+        this.ctx.fillText('Raw', cellSize / 2 + 170, cellSize * 0.1);
+
+        // GPU Processing
+        this.drawProcessingAnimation(cellSize * 1.5 + 200, cellSize / 2 + 200, cellSize * 0.4);
+        this.ctx.fillText('GPU Processing', cellSize * 1.5 + 120, cellSize * 0.1);
+        
+        // Deconvolved
+        this.drawComplexCell(cellSize * 2.5 + 200, cellSize / 2 + 200, cellSize * 0.4);
+        this.ctx.fillText('Deconvolved', cellSize * 2.5 + 140, cellSize * 0.1);
+
+        this.addGPUStats('Real-time Deconvolution', '120 fps', '8ms latency');
+        return this.canvas.toDataURL();
+    }
+
+    private generateAISegmentation(): string {
+        // Original on left
+        this.ctx.save();
+        this.ctx.translate(1024, 2048);
+        for (let i = 0; i < 50; i++) {
+            const x = (Math.random() - 0.5) * 1800;
+            const y = (Math.random() - 0.5) * 3600;
+            this.drawNucleus(x, y, 40 + Math.random() * 30);
+        }
+        this.ctx.restore();
+
+        // Segmented on right
+        this.ctx.save();
+        this.ctx.translate(3072, 2048);
+        for (let i = 0; i < 50; i++) {
+            const x = (Math.random() - 0.5) * 1800;
+            const y = (Math.random() - 0.5) * 3600;
+            const hue = (i / 50) * 360;
+            this.ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.8)`;
+            this.ctx.strokeStyle = `hsl(${hue}, 70%, 70%)`;
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 50 + Math.random() * 30, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.stroke();
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.font = '20px Arial';
+            this.ctx.fillText(`${i + 1}`, x - 10, y + 5);
+        }
+        this.ctx.restore();
+        
+        this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 4;
+        this.ctx.beginPath(); this.ctx.moveTo(2048, 0); this.ctx.lineTo(2048, 4096); this.ctx.stroke();
+        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '48px Arial'; this.ctx.textAlign = 'center';
+        this.ctx.fillText('Original', 1024, 100);
+        this.ctx.fillText('AI Segmented (CUDA)', 3072, 100);
+        this.addGPUStats('AI Segmentation', '50ms/frame', 'ResNet50 on RTX 4090');
+        return this.canvas.toDataURL();
+    }
     
-    const commands = cubeCommand.toUpperCase();
-    let mode = 'Standard AXL';
-
-    if (commands.includes('LATTICE')) {
-      this.generateLatticeLightSheet();
-      mode = 'Lattice Light Sheet';
-    } else if (commands.includes('CLEARED')) {
-      this.generateClearedTissue();
-      mode = 'Cleared Tissue - 500μm depth';
-    } else if (commands.includes('LIVE')) {
-      this.generateLiveCellAXL();
-      mode = 'Live Cell - 37°C, 5% CO2';
-    } else if (commands.includes('MULTICOLOR')) {
-      this.generateMultiColorAXL();
-      mode = '6-Color Imaging';
-    } else if (commands.includes('DECONVOLVED')) {
-      this.generateDeconvolvedAXL();
-      mode = 'AI-Powered Deconvolution';
-    } else {
-      this.generateStandardAXL(cubeCommand);
-    }
-
-    if (!commands.includes('DECONVOLVED')) { // Deconvolved adds its own metadata
-        this.addAXLMetadata(mode);
-    }
-    
-    return this.canvas.toDataURL();
-  }
-  
-  private generateStandardAXL(cubeCommand: string) {
-    this.drawInterphaseCell(this.width / 2, this.height / 2);
-  }
-
-  private generateLatticeLightSheet() {
-    for (let z = 0; z < 20; z++) {
-      this.ctx.save();
-      const alpha = 1 - (Math.abs(z - 10) / 10) * 0.7;
-      this.ctx.globalAlpha = alpha;
-      this.drawMitochondria(z);
-      this.drawEndoplasmicReticulum(z);
-      this.ctx.restore();
-    }
-  }
-
-  private drawMitochondria(zPlane: number) {
-    const numMito = 15 + Math.floor(Math.random() * 10);
-    for (let i = 0; i < numMito; i++) {
-      const x = Math.random() * this.width;
-      const y = Math.random() * this.height;
-      const length = 40 + Math.random() * 60;
-      const width = 15 + Math.random() * 10;
-      const angle = Math.random() * Math.PI;
-      this.ctx.save();
-      this.ctx.translate(x, y);
-      this.ctx.rotate(angle);
-      this.ctx.strokeStyle = '#00FF00';
-      this.ctx.lineWidth = 2;
-      this.ctx.beginPath();
-      this.ctx.ellipse(0, 0, length/2, width/2, 0, 0, Math.PI * 2);
-      this.ctx.stroke();
-      this.ctx.strokeStyle = '#00FF0080';
-      this.ctx.lineWidth = 1;
-      for (let j = -length/2 + 10; j < length/2 - 10; j += 8) {
+    private drawNucleus(x: number, y: number, radius: number) {
         this.ctx.beginPath();
-        this.ctx.moveTo(j, -width/3);
-        this.ctx.lineTo(j, width/3);
-        this.ctx.stroke();
-      }
-      this.ctx.restore();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.fillStyle = '#4B0AFF';
+        this.ctx.fill();
     }
-  }
-
-  private drawEndoplasmicReticulum(zPlane: number) {
-    this.ctx.strokeStyle = '#FFD70040';
-    this.ctx.lineWidth = 3;
-    const points: {x: number, y: number}[] = [];
-    for (let i = 0; i < 20; i++) { points.push({ x: Math.random() * this.width, y: Math.random() * this.height }); }
-    for (let i = 0; i < points.length; i++) {
-      for (let j = i + 1; j < points.length; j++) {
-        const dist = Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y);
-        if (dist < 300 && Math.random() > 0.5) {
-          this.ctx.beginPath();
-          this.ctx.moveTo(points[i].x, points[i].y);
-          this.ctx.lineTo(points[j].x, points[j].y);
-          this.ctx.stroke();
+    
+    private generateMassiveVolume(): string {
+        const layers = 100, centerX = 2048, centerY = 2048;
+        const gradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 1800);
+        gradient.addColorStop(0, '#000033'); gradient.addColorStop(1, '#000000');
+        this.ctx.fillStyle = gradient; this.ctx.fillRect(0, 0, 4096, 4096);
+        for (let z = 0; z < layers; z++) {
+            const depth = z / layers, scale = 1 - depth * 0.8, alpha = 1 - depth * 0.9;
+            this.ctx.save();
+            this.ctx.globalAlpha = alpha; this.ctx.translate(centerX, centerY); this.ctx.scale(scale, scale);
+            const hue = depth * 240;
+            this.ctx.strokeStyle = `hsla(${hue}, 100%, 50%, ${alpha})`; this.ctx.lineWidth = 2;
+            this.drawVolumeLayer(z, depth);
+            this.ctx.restore();
         }
-      }
+        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '36px Arial'; this.ctx.textAlign = 'left';
+        this.ctx.fillText('10GB Volume Dataset', 100, 100);
+        this.ctx.fillText('2048 x 2048 x 1000 voxels', 100, 150);
+        this.ctx.fillText('Rendered in real-time with CUDA', 100, 200);
+        this.addGPUStats('Volume Rendering', '60 fps', '10GB dataset');
+        return this.canvas.toDataURL();
     }
-  }
 
-  private generateClearedTissue() {
-    const numNeurons = 30;
-    for (let i = 0; i < numNeurons; i++) {
-      const x = Math.random() * this.width;
-      const y = Math.random() * this.height;
-      const z = Math.random() * 100;
-      const hue = (z / 100) * 240;
-      this.ctx.strokeStyle = `hsla(${hue}, 100%, 50%, 0.8)`;
-      this.ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.8)`;
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, 20 - z/10, 0, Math.PI * 2);
-      this.ctx.fill();
-      this.drawDendrites(x, y, z);
-    }
-    this.drawBloodVessels();
-  }
-
-  private drawDendrites(x: number, y: number, z: number) {
-    this.ctx.lineWidth = Math.max(0.5, 2 - z/50);
-    for (let i = 0; i < 5; i++) {
-      const angle = (Math.PI * 2 * i) / 5 + Math.random() * 0.5;
-      const length = 100 + Math.random() * 100;
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, y);
-      let currentX = x; let currentY = y;
-      for (let j = 0; j < 5; j++) {
-        const nextX = currentX + Math.cos(angle) * length/5;
-        const nextY = currentY + Math.sin(angle) * length/5;
-        this.ctx.lineTo(nextX, nextY);
-        if (Math.random() > 0.5) {
-          const branchAngle = angle + (Math.random() - 0.5);
-          const branchX = nextX + Math.cos(branchAngle) * 30;
-          const branchY = nextY + Math.sin(branchAngle) * 30;
-          this.ctx.moveTo(nextX, nextY);
-          this.ctx.lineTo(branchX, branchY);
-          this.ctx.moveTo(nextX, nextY);
+    private drawVolumeLayer(z: number, depth: number) {
+        const numStructures = 5 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < numStructures; i++) {
+            const angle = (Math.PI * 2 * i) / numStructures + depth * Math.PI;
+            const r = 500 + Math.sin(depth * Math.PI * 4) * 200;
+            const x = Math.cos(angle) * r, y = Math.sin(angle) * r;
+            this.ctx.beginPath(); this.ctx.moveTo(0, 0); this.ctx.lineTo(x, y);
+            for (let j = 0; j < 3; j++) {
+                const branchAngle = angle + (Math.random() - 0.5) * 0.5, branchLength = r * 0.3;
+                const bx = x + Math.cos(branchAngle) * branchLength, by = y + Math.sin(branchAngle) * branchLength;
+                this.ctx.moveTo(x, y); this.ctx.lineTo(bx, by);
+            }
+            this.ctx.stroke();
         }
-        currentX = nextX; currentY = nextY;
-      }
-      this.ctx.stroke();
     }
-  }
-
-  private drawBloodVessels() {
-      this.ctx.save();
-      this.ctx.strokeStyle = 'rgba(255, 50, 50, 0.4)';
-      this.ctx.lineWidth = 25;
-      this.ctx.beginPath();
-      this.ctx.moveTo(-50, this.height * 0.3);
-      this.ctx.bezierCurveTo(this.width*0.2, this.height*0.2, this.width*0.6, this.height*0.4, this.width*0.9, this.height*0.3);
-      this.ctx.stroke();
-      this.ctx.lineWidth = 10;
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.width*0.8, -50);
-      this.ctx.bezierCurveTo(this.width*0.7, this.height*0.3, this.width*0.8, this.height*0.7, this.width*0.6, this.height + 50);
-      this.ctx.stroke();
-      this.ctx.restore();
-  }
-
-  private generateLiveCellAXL() {
-    const numCells = 8;
-    for (let i = 0; i < numCells; i++) {
-      const x = 300 + (i % 4) * 500;
-      const y = 300 + Math.floor(i / 4) * 500;
-      const phase = Math.random() * Math.PI * 2;
-      if (phase < Math.PI / 2) { this.drawInterphaseCell(x, y); }
-      else if (phase < Math.PI) { this.drawProphaseCell(x, y); }
-      else if (phase < 1.5 * Math.PI) { this.drawMetaphaseCell(x, y); }
-      else { this.drawDividingCell(x, y); }
+    
+    private generateMultiviewFusion(): string {
+        const views = [
+            { x: 1024, y: 1024, angle: 0, label: 'View 0°' }, { x: 3072, y: 1024, angle: 90, label: 'View 90°' },
+            { x: 1024, y: 3072, angle: 180, label: 'View 180°' }, { x: 3072, y: 3072, angle: 270, label: 'View 270°' }
+        ];
+        views.forEach(view => {
+            this.ctx.save(); this.ctx.translate(view.x, view.y); this.ctx.rotate(view.angle * Math.PI / 180);
+            this.drawEmbryo(0, 0, 400, view.angle); this.ctx.restore();
+            this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '32px Arial'; this.ctx.textAlign = 'center';
+            this.ctx.fillText(view.label, view.x, view.y - 450);
+        });
+        this.ctx.save(); this.ctx.translate(2048, 2048);
+        this.ctx.shadowBlur = 20; this.ctx.shadowColor = '#00FF00';
+        this.drawEmbryo(0, 0, 600, 0, true); this.ctx.restore();
+        this.ctx.strokeStyle = '#FFD700'; this.ctx.lineWidth = 4; this.ctx.setLineDash([10, 10]);
+        views.forEach(view => {
+            this.ctx.beginPath(); this.ctx.moveTo(view.x, view.y); this.ctx.lineTo(2048, 2048); this.ctx.stroke();
+        });
+        this.ctx.setLineDash([]);
+        this.ctx.fillStyle = '#FFD700'; this.ctx.font = '48px Arial'; this.ctx.textAlign = 'center';
+        this.ctx.fillText('GPU Fused Result', 2048, 1500);
+        this.addGPUStats('Multiview Fusion', '4 angles', 'Real-time with CUDA');
+        return this.canvas.toDataURL();
     }
-  }
 
-  private drawInterphaseCell(x: number, y: number) {
-    const radius = 80;
-    this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 3;
-    this.ctx.beginPath(); this.ctx.arc(x, y, radius, 0, Math.PI * 2); this.ctx.stroke();
-    this.ctx.fillStyle = '#4B0AFF';
-    this.ctx.beginPath(); this.ctx.arc(x, y, radius * 0.4, 0, Math.PI * 2); this.ctx.fill();
-    this.ctx.fillStyle = '#6B3AFF';
-    this.ctx.beginPath(); this.ctx.arc(x - 10, y - 5, 5, 0, Math.PI * 2); this.ctx.fill();
-    this.ctx.beginPath(); this.ctx.arc(x + 8, y + 8, 4, 0, Math.PI * 2); this.ctx.fill();
-  }
-
-  private drawProphaseCell(x: number, y: number) { this.drawInterphaseCell(x, y); } 
-  private drawDividingCell(x: number, y: number) { this.drawMetaphaseCell(x, y); } 
-
-  private drawMetaphaseCell(x: number, y: number) {
-    const radius = 85;
-    this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 3;
-    this.ctx.beginPath(); this.ctx.arc(x, y, radius, 0, Math.PI * 2); this.ctx.stroke();
-    this.ctx.strokeStyle = '#4B0AFF'; this.ctx.lineWidth = 8;
-    this.ctx.beginPath(); this.ctx.moveTo(x - 30, y); this.ctx.lineTo(x + 30, y); this.ctx.stroke();
-    for (let i = -25; i <= 25; i += 10) {
-      this.ctx.fillStyle = '#6B3AFF';
-      this.ctx.beginPath(); this.ctx.ellipse(x + i, y, 4, 8, Math.PI / 2, 0, Math.PI * 2); this.ctx.fill();
+    private drawEmbryo(x: number, y: number, radius: number, angle: number, highQuality = false) {
+        const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
+        if (highQuality) {
+            gradient.addColorStop(0, '#00FFFF40'); gradient.addColorStop(0.5, '#00FF0040'); gradient.addColorStop(1, '#FF000020');
+        } else {
+            gradient.addColorStop(0, '#00808040'); gradient.addColorStop(1, '#00404020');
+        }
+        this.ctx.fillStyle = gradient; this.ctx.beginPath();
+        this.ctx.ellipse(x, y, radius, radius * 0.7, 0, 0, Math.PI * 2); this.ctx.fill();
+        if (highQuality) {
+            this.ctx.strokeStyle = '#FFFFFF40'; this.ctx.lineWidth = 2;
+            for (let i = -5; i <= 5; i++) {
+                this.ctx.beginPath(); this.ctx.moveTo(x + i * 40, y - radius * 0.5); this.ctx.lineTo(x + i * 40, y + radius * 0.5); this.ctx.stroke();
+            }
+            this.ctx.strokeStyle = '#FFD70080'; this.ctx.lineWidth = 4;
+            this.ctx.beginPath(); this.ctx.moveTo(x - radius * 0.8, y); this.ctx.lineTo(x + radius * 0.8, y); this.ctx.stroke();
+        }
+        this.ctx.fillStyle = '#000000'; this.ctx.beginPath();
+        this.ctx.arc(x - radius * 0.6, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2); this.ctx.fill();
     }
-  }
 
-  private generateMultiColorAXL() {
-    const cellX = this.width/2, cellY = this.height/2, cellRadius = 300;
-    this.ctx.strokeStyle = '#FF0000'; this.ctx.lineWidth = 4;
-    this.ctx.beginPath(); this.ctx.arc(cellX, cellY, cellRadius, 0, Math.PI * 2); this.ctx.stroke();
-    this.ctx.fillStyle = '#4B0AFF80';
-    this.ctx.beginPath(); this.ctx.arc(cellX, cellY, cellRadius * 0.3, 0, Math.PI * 2); this.ctx.fill();
-    this.generateMitochondriaPattern(cellX, cellY, cellRadius);
-    this.drawGolgiApparatus(cellX - 100, cellY - 50);
-    this.drawLysosomes(cellX, cellY, cellRadius);
-    this.drawMicrotubuleNetwork(cellX, cellY, cellRadius);
-  }
-
-  private generateMitochondriaPattern(cellX: number, cellY: number, cellRadius: number) {
-    this.ctx.save(); this.ctx.fillStyle = '#00FF0040';
-    for (let i = 0; i < 20; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const r = cellRadius * (0.4 + Math.random() * 0.5);
-        const x = cellX + Math.cos(angle) * r; const y = cellY + Math.sin(angle) * r;
-        this.ctx.beginPath(); this.ctx.ellipse(x, y, 20, 5, Math.random() * Math.PI, 0, Math.PI * 2); this.ctx.fill();
-    } this.ctx.restore();
-  }
-
-  private drawMicrotubuleNetwork(cellX: number, cellY: number, cellRadius: number) {
-      this.ctx.save(); this.ctx.strokeStyle = '#00FFFF30'; this.ctx.lineWidth = 1;
-      for (let i = 0; i < 50; i++) {
-          const angle = Math.random() * Math.PI * 2; const r = cellRadius * 0.95;
-          const endX = cellX + Math.cos(angle) * r; const endY = cellY + Math.sin(angle) * r;
-          this.ctx.beginPath(); this.ctx.moveTo(cellX, cellY); this.ctx.lineTo(endX, endY); this.ctx.stroke();
-      } this.ctx.restore();
-  }
-
-  private drawGolgiApparatus(x: number, y: number) {
-    this.ctx.strokeStyle = '#FFA500'; this.ctx.lineWidth = 3;
-    for (let i = 0; i < 5; i++) {
-      this.ctx.beginPath(); this.ctx.moveTo(x, y + i * 10);
-      this.ctx.bezierCurveTo(x + 20, y + i * 10 - 5, x + 40, y + i * 10 + 5, x + 60, y + i * 10);
-      this.ctx.stroke();
+    private generateLiveProcessing(): string {
+        const timePoints = 6, cols = 3;
+        for (let t = 0; t < timePoints; t++) {
+            const row = Math.floor(t / cols), col = t % cols;
+            const x = col * 1300 + 650, y = row * 1300 + 650;
+            this.drawDividingCellTimeSeries(x, y, 500, t);
+            this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '28px Arial'; this.ctx.textAlign = 'center';
+            this.ctx.fillText(`t = ${t * 5} min`, x, y - 550);
+            if (t === timePoints - 1) {
+                this.ctx.fillStyle = '#00FF00'; this.ctx.fillText('LIVE', x + 240, y - 550);
+                this.ctx.beginPath(); this.ctx.arc(x + 320, y - 560, 10, 0, Math.PI * 2); this.ctx.fill();
+            }
+        }
+        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '36px Arial'; this.ctx.textAlign = 'left';
+        this.ctx.fillText('GPU Processing Pipeline:', 100, 3900);
+        this.ctx.font = '28px Arial';
+        this.ctx.fillText('Acquire → Denoise → Deconvolve → Track → Display', 100, 3950);
+        this.ctx.fillText('Total latency: <50ms with CUDA acceleration', 100, 4000);
+        this.addGPUStats('Live Processing', '<50ms latency', 'Full pipeline on GPU');
+        return this.canvas.toDataURL();
     }
-  }
-
-  private drawLysosomes(centerX: number, centerY: number, cellRadius: number) {
-    const numLysosomes = 30;
-    for (let i = 0; i < numLysosomes; i++) {
-      const angle = Math.random() * Math.PI * 2; const r = Math.random() * cellRadius * 0.8;
-      const x = centerX + Math.cos(angle) * r; const y = centerY + Math.sin(angle) * r;
-      this.ctx.fillStyle = '#8B0000'; this.ctx.beginPath();
-      this.ctx.arc(x, y, 5, 0, Math.PI * 2); this.ctx.fill();
+    
+    private drawDividingCellTimeSeries(x: number, y: number, radius: number, timePoint: number) {
+        // Mock implementation
+        this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 4;
+        this.ctx.beginPath(); this.ctx.arc(x, y, radius * 0.4, 0, Math.PI * 2); this.ctx.stroke();
     }
-  }
 
-  private generateDeconvolvedAXL() {
-    const midX = this.width / 2;
-    this.ctx.save(); this.ctx.filter = 'blur(3px)';
-    this.generateRawImage(0, 0, midX, this.height); this.ctx.restore();
-    this.generateRawImage(midX, 0, midX, this.height);
-    this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 2;
-    this.ctx.beginPath(); this.ctx.moveTo(midX, 0); this.ctx.lineTo(midX, this.height); this.ctx.stroke();
-    this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '30px Arial';
-    this.ctx.fillText('Raw', 50, 50); this.ctx.fillText('AI Deconvolved', midX + 50, 50);
-  }
-
-  private generateRawImage(xOffset: number, yOffset: number, width: number, height: number) {
-    this.ctx.save();
-    this.ctx.translate(xOffset, yOffset);
-    this.ctx.beginPath(); this.ctx.rect(0, 0, width, height); this.ctx.clip();
-    for (let i = 0; i < 5; i++) {
-      const cellX = Math.random() * width; const cellY = Math.random() * height;
-      this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 3;
-      this.ctx.beginPath(); this.ctx.arc(cellX, cellY, 100, 0, Math.PI * 2); this.ctx.stroke();
-      this.ctx.fillStyle = '#4B0AFF';
-      this.ctx.beginPath(); this.ctx.arc(cellX, cellY, 40, 0, Math.PI * 2); this.ctx.fill();
+    private generateStandardAXLCuda(cubeCommand: string) {
+        this.drawComplexCell(this.width / 2, this.height / 2, 800);
     }
-    this.ctx.restore();
-  }
-  
-  private addAXLMetadata(mode: string) {
-    this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '24px Arial';
-    this.ctx.textAlign = 'left';
-    this.ctx.fillText(`3i AXL System | ${mode}`, 30, 40);
-    this.ctx.fillText('CUBE Protocol | Phil Hills', 30, 70);
-    const scaleBarLength = 400; const scaleBarMicrons = 100;
-    this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 5;
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.width - scaleBarLength - 60, this.height - 50);
-    this.ctx.lineTo(this.width - 60, this.height - 50);
-    this.ctx.stroke();
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(`${scaleBarMicrons} µm`, this.width - scaleBarLength/2 - 60, this.height - 60);
-    this.ctx.font = '18px Arial';
-    this.ctx.textAlign = 'left';
-    this.ctx.fillText(new Date().toLocaleString(), 30, this.height - 30);
-  }
+    
+    private drawComplexCell(x: number, y: number, radius: number) {
+        this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 4;
+        this.ctx.beginPath(); this.ctx.arc(x, y, radius, 0, Math.PI * 2); this.ctx.stroke();
+        this.ctx.fillStyle = '#4B0AFF60'; this.ctx.beginPath(); this.ctx.arc(x, y, radius * 0.3, 0, Math.PI * 2); this.ctx.fill();
+    }
+    
+    private drawProcessingAnimation(x: number, y: number, radius: number) {
+        const gridSize = 8, cellSize = radius * 2 / gridSize;
+        for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+                const px = x - radius + i * cellSize + cellSize / 2, py = y - radius + j * cellSize + cellSize / 2;
+                const processing = Math.random() > 0.3;
+                this.ctx.fillStyle = processing ? '#00FF00' : '#003300';
+                this.ctx.fillRect(px - cellSize / 2 + 2, py - cellSize / 2 + 2, cellSize - 4, cellSize - 4);
+            }
+        }
+    }
+
+    private addGPUIndicator() {
+        this.ctx.fillStyle = '#76B900'; this.ctx.fillRect(3800, 50, 250, 100);
+        this.ctx.fillStyle = '#000000'; this.ctx.font = 'bold 28px Arial'; this.ctx.textAlign = 'left';
+        this.ctx.fillText('NVIDIA', 3830, 90); this.ctx.font = '24px Arial'; this.ctx.fillText('CUDA', 3850, 120);
+        this.ctx.fillStyle = '#00FF00'; this.ctx.beginPath(); this.ctx.arc(3780, 100, 10, 0, Math.PI * 2); this.ctx.fill();
+    }
+
+    private addGPUStats(mode: string, stat1: string, stat2: string) {
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; this.ctx.fillRect(50, 3800, 600, 250);
+        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 36px Arial'; this.ctx.textAlign = 'left';
+        this.ctx.fillText('GPU Acceleration', 70, 3850); this.ctx.font = '28px Arial';
+        this.ctx.fillText(`Mode: ${mode}`, 70, 3900); this.ctx.fillText(`Performance: ${stat1}`, 70, 3940);
+        this.ctx.fillText(`${stat2}`, 70, 3980);
+        this.ctx.fillStyle = '#333333'; this.ctx.fillRect(70, 4000, 500, 30);
+        this.ctx.fillStyle = '#76B900'; this.ctx.fillRect(70, 4000, 450, 30);
+        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '20px Arial'; this.ctx.textAlign = 'center';
+        this.ctx.fillText('GPU Usage: 90%', 320, 4022);
+    }
+    
+    private addAXLMetadata(mode: string) {
+        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 48px Arial'; this.ctx.textAlign = 'left';
+        this.ctx.fillText('3i AXL System', 50, 100); this.ctx.font = '36px Arial';
+        this.ctx.fillText(mode, 50, 150); this.ctx.font = '28px Arial';
+        this.ctx.fillText('CUBE Protocol | Phil Hills', 50, 200);
+        this.ctx.fillText(new Date().toLocaleString(), 50, 250);
+        const scaleBarLength = 800, scaleBarMicrons = 200;
+        this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 8; this.ctx.beginPath();
+        this.ctx.moveTo(3200, 3950); this.ctx.lineTo(3200 + scaleBarLength, 3950); this.ctx.stroke();
+        this.ctx.font = '36px Arial'; this.ctx.textAlign = 'center';
+        this.ctx.fillText(`${scaleBarMicrons} µm`, 3600, 3930);
+    }
 }
+
 
 export class MicroscopyImageGenerator {
   private canvas: HTMLCanvasElement | null;
@@ -331,18 +309,19 @@ export class MicroscopyImageGenerator {
 
   public generateFromCube(cubeCommand: string): string {
     const commands = cubeCommand.toUpperCase();
+    const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS'];
 
-    if (commands.includes('AXL') || commands.includes('LATTICE') || commands.includes('CLEARED') || commands.includes('LIVE') || commands.includes('MULTICOLOR') || commands.includes('DECONVOLVED')) {
+    if (axlKeywords.some(kw => commands.includes(kw))) {
         if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
             try {
-                const axlGenerator = new ThreeI_AXL_ImageGenerator();
-                return axlGenerator.generateAXLImage(cubeCommand);
+                const axlGenerator = new AXL_CUDA_ImageGenerator();
+                return axlGenerator.generateAXLCudaImage(cubeCommand);
             } catch (e) {
-                console.error("Error during AXL image generation:", e);
-                return this.getErrorPlaceholder(2560, 2160);
+                console.error("Error during AXL CUDA image generation:", e);
+                return this.getErrorPlaceholder(4096, 4096);
             }
         }
-        return this.getErrorPlaceholder(2560, 2160);
+        return this.getErrorPlaceholder(4096, 4096);
     }
     
     if (!this.ctx || !this.canvas) {
