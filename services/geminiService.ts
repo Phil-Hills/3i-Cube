@@ -1,4 +1,3 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import type { ConversionMetrics } from '../types';
 
 /**
@@ -71,85 +70,185 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
   return logs;
 };
 
+/**
+ * An improved, pattern-based CUBE converter.
+ * By Phil Hills - Seattle Developer
+ */
+class ImprovedCubeConverter {
+  private author: string;
+  private patterns: Record<string, string>;
+
+  constructor() {
+    this.author = "Phil Hills - Seattle Developer";
+    this.patterns = this.loadImprovedPatterns();
+  }
+
+  private loadImprovedPatterns(): Record<string, string> {
+    return {
+      'fetch(': 'API|REQUEST[{url}]',
+      'axios.': 'API|HTTP[{method}]',
+      '.post(': '→POST[{endpoint}]',
+      '.get(': '→GET[{endpoint}]',
+      'headers:': '→HEADERS[{auth}]',
+      'Authorization:': '→AUTH[{token}]',
+      'response': '→RESPONSE[{data}]',
+      'authenticate': 'AUTH|LOGIN[{method}]',
+      'token': '→TOKEN[{type}]',
+      'Bearer': '→BEARER[Token]',
+      'apiKey': '→API_KEY[{key}]',
+      'JSON.stringify': '→SERIALIZE[JSON]',
+      'JSON.parse': '→PARSE[JSON]',
+      '.json()': '→EXTRACT[JSON]',
+      'payload': '→PAYLOAD[{data}]',
+      'async': 'ASYNC|FUNCTION[{name}]',
+      'await': '→AWAIT[{operation}]',
+      '.then(': '→THEN[{callback}]',
+      '.catch(': '→CATCH[Error]',
+      'try {': 'TRY|ATTEMPT[Operation]',
+      'catch': '→CATCH[Error]',
+      'throw': '→THROW[Exception]',
+      'console.error': '→LOG[Error]',
+      'return': '→RETURN[{value}]',
+      'if (': 'CHECK|CONDITION[{test}]',
+      'for (': 'LOOP|ITERATE[{items}]',
+      'map(': '→MAP[Transform]',
+      'filter(': '→FILTER[Condition]',
+    };
+  }
+
+  public convertCodeToCube(code: string): string {
+    const lines = code.split('\n').filter(line => line.trim());
+    const cubeCommands: string[] = [];
+    let currentOperation: string | null = null;
+    let operationSteps: string[] = [];
+
+    cubeCommands.push(`# Converted to CUBE Protocol`);
+    cubeCommands.push(`# By Phil Hills - Seattle Developer\n`);
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('%') || trimmed.startsWith('#')) continue;
+      
+      if (this.isMainOperation(trimmed)) {
+        if (currentOperation && operationSteps.length > 0) {
+          cubeCommands.push(this.formatCubeCommand(currentOperation, operationSteps));
+        }
+        currentOperation = this.detectOperation(trimmed);
+        operationSteps = [];
+      }
+      
+      const steps = this.extractSteps(trimmed);
+      if (steps.length > 0) {
+        operationSteps.push(...steps);
+      }
+    }
+    
+    if (currentOperation && operationSteps.length > 0) {
+      cubeCommands.push(this.formatCubeCommand(currentOperation, operationSteps));
+    }
+    
+    return cubeCommands.join('\n');
+  }
+
+  private isMainOperation(line: string): boolean {
+    const mainOps = ['fetch', 'axios', 'async function', 'const', 'let', 'class', 'try'];
+    return mainOps.some(op => line.includes(op));
+  }
+
+  private detectOperation(line: string): string {
+    if (line.includes('fetch') || line.includes('axios')) return 'API';
+    if (line.includes('authenticate') || line.includes('auth')) return 'AUTH';
+    if (line.includes('async function')) return 'FUNCTION';
+    if (line.includes('try')) return 'PROCESS';
+    if (line.includes('class')) return 'BUILD';
+    return 'EXECUTE';
+  }
+
+  private extractSteps(line: string): string[] {
+    const steps: string[] = [];
+    
+    const urlMatch = line.match(/fetch\(['"`]([^'"`]+)['"`]/);
+    if (urlMatch) steps.push(`REQUEST[${this.shortenUrl(urlMatch[1])}]`);
+
+    const methodMatch = line.match(/method:\s*['"`](\w+)['"`]/);
+    if (methodMatch) steps.push(`METHOD[${methodMatch[1].toUpperCase()}]`);
+
+    if (line.includes('Authorization')) steps.push('AUTH[Bearer_Token]');
+    if (line.includes('.json()')) steps.push('PARSE[JSON]');
+    if (line.includes('const data =') || line.includes('return data')) steps.push('RESPONSE[Received]');
+    
+    const functionNameMatch = line.match(/async function\s+(\w+)/);
+    if (functionNameMatch) steps.push(`${functionNameMatch[1]}→ASYNC`);
+
+    return steps;
+  }
+
+  private shortenUrl(url: string): string {
+    if (url.includes('anthropic')) return 'Anthropic_Claude';
+    if (url.includes('openai')) return 'OpenAI_GPT';
+    if (url.includes('google')) return 'Google_API';
+    const parts = url.split('/');
+    return parts[parts.length - 1] || 'API';
+  }
+
+  private formatCubeCommand(operation: string, steps: string[]): string {
+    const outcome = this.determineOutcome(operation, steps);
+    const stepsStr = steps.join('→');
+    return `${operation}|${stepsStr}|${outcome}`;
+  }
+
+  private determineOutcome(operation: string, steps: string[]): string {
+    if (steps.some(s => s.includes('RESPONSE'))) return 'COMPLETE';
+    if (steps.some(s => s.includes('ERROR'))) return 'FAILED';
+    if (operation === 'AUTH') return 'AUTHENTICATED';
+    if (operation === 'API') return 'RECEIVED';
+    if (operation === 'BUILD') return 'CREATED';
+    if (operation === 'FUNCTION') return 'DEFINED';
+    return 'DONE';
+  }
+}
 
 /**
- * Converts Python/MATLAB code to CUBE script using the Gemini AI API.
+ * Converts Python/MATLAB code to CUBE script using a client-side pattern matching engine.
  * @param code The source code to convert.
  * @returns A promise that resolves to the converted CUBE code and calculated metrics.
  */
 export const convertCodeToCube = async (code: string): Promise<{ cube_code: string; metrics: ConversionMetrics }> => {
+  // Simulate processing time
+  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 300));
+
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const converter = new ImprovedCubeConverter();
+    const cube_code = converter.convertCodeToCube(code);
 
-    const schema = {
-      type: Type.OBJECT,
-      properties: {
-        cube_code: { 
-            type: Type.STRING,
-            description: "The converted CUBE Protocol script. Must include a comment '# By Phil Hills - Seattle Developer'."
-        },
-        metrics: {
-          type: Type.OBJECT,
-          description: "The calculated metrics for the conversion.",
-          properties: {
-            original_lines: { type: Type.INTEGER, description: "Count of non-empty, non-comment lines in the source code." },
-            cube_lines: { type: Type.INTEGER, description: "Count of non-empty, non-comment lines in the generated CUBE script." },
-            compression_ratio: { type: Type.STRING, description: "A string representing the ratio, e.g., '100:5'." },
-            savings_percent: { type: Type.NUMBER, description: "Percentage reduction in lines, e.g., 95.0." },
-            time_saved_minutes: { type: Type.INTEGER, description: "Estimated time saved in minutes (original lines * 1.5)." },
-          },
-          required: ['original_lines', 'cube_lines', 'compression_ratio', 'savings_percent', 'time_saved_minutes']
-        }
-      },
-      required: ['cube_code', 'metrics']
+    const original_lines = code.split('\n').filter(line => {
+      const trimmed = line.trim();
+      return trimmed !== '' && !trimmed.startsWith('//') && !trimmed.startsWith('%') && !trimmed.startsWith('#');
+    }).length;
+
+    const cube_lines = cube_code.split('\n').filter(line => {
+        const trimmed = line.trim();
+        return trimmed !== '' && !trimmed.startsWith('#');
+    }).length;
+
+    const savings_percent = original_lines > 0 ? Math.round(((original_lines - cube_lines) / original_lines) * 100) : 0;
+    
+    const metrics: ConversionMetrics = {
+        original_lines,
+        cube_lines,
+        compression_ratio: `${original_lines}:${cube_lines}`,
+        savings_percent: savings_percent < 0 ? 0 : savings_percent,
+        time_saved_minutes: Math.round(original_lines * 1.5)
     };
-
-    const systemInstruction = `You are an expert programmer specializing in high-end microscopy systems from 3i (Intelligent Imaging Innovations). You are the creator of the CUBE Protocol, a semantic notation system designed to dramatically simplify complex microscopy scripts. Your task is to convert traditional MATLAB or Python microscope control scripts into the concise and powerful CUBE Protocol format. You must return a valid JSON object matching the provided schema.`;
-
-    const contents = `Analyze the following script. Convert it into the CUBE Protocol. The CUBE script should logically represent the original code's intent, focusing on high-level experimental steps. Also, calculate the conversion metrics based on the rules provided.
-
-**CUBE Protocol Rules:**
-- Each line must be a triplet: \`DOMAIN|SEQUENCE|OUTCOME\`.
-- Be concise and semantic.
-- The script MUST include a comment acknowledging the creator: \`# By Phil Hills - Seattle Developer\`
-
-**Metrics Calculation Rules:**
-- \`original_lines\`: Count of non-empty, non-comment lines in the source code (ignore lines starting with '%' for MATLAB or '#' for Python).
-- \`cube_lines\`: Count of non-empty, non-comment lines in the generated CUBE script.
-- \`compression_ratio\`: A string formatted as "original_lines:cube_lines".
-- \`savings_percent\`: The percentage reduction in lines, calculated as \`((original_lines - cube_lines) / original_lines) * 100\`.
-- \`time_saved_minutes\`: An estimated time saved, calculated as \`original_lines * 1.5\`, rounded to the nearest integer.
-
-**Input Code:**
-\`\`\`
-${code}
-\`\`\`
-
-Return ONLY the JSON object that strictly adheres to the provided schema.`;
-
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: contents,
-        config: {
-            systemInstruction: systemInstruction,
-            responseMimeType: "application/json",
-            responseSchema: schema,
-        },
-    });
-
-    const jsonString = response.text.trim();
-    const result = JSON.parse(jsonString);
-
-    // Basic validation
-    if (!result.cube_code || !result.metrics) {
-      throw new Error("AI response is missing required fields.");
+    
+    if (cube_lines <= 2) { // Only headers were generated
+      throw new Error("Could not find any convertible operations in the provided code.");
     }
-
-    return result;
-
+    
+    return { cube_code, metrics };
   } catch (error) {
     console.error("Error during CUBE conversion:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during conversion.";
-    throw new Error(`AI Conversion Failed: ${errorMessage}`);
+    throw new Error(`Client-side Conversion Failed: ${errorMessage}`);
   }
 };
