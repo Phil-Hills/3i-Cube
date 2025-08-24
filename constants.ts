@@ -1,5 +1,5 @@
 
-import type { ExampleScriptCategory } from './types';
+import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
   {
@@ -92,47 +92,52 @@ STIMULUS|PRESENT[Visual-Grating]→REPEAT[20x]→RANDOMIZE[Orientation]|EXPERIME
 ];
 
 
-export const EXAMPLE_PYTHON_CODE = `# Example 3i Microscope Code
-import numpy as np
+export const CONVERTER_EXAMPLES: ConverterExample[] = [
+  {
+    name: "Basic Image Capture",
+    code: `from pycromanager import Core
+import tifffile
+
+core = Core()
+core.setExposure(100)
+core.snapImage()
+image = core.getImage()
+tifffile.imwrite("output.tif", image)`
+  },
+  {
+    name: "Multi-Channel Z-Stack",
+    code: `# 3i Multi-channel Z-stack
+import numpy
 from pycromanager import Core
 import tifffile
-import time
 
-# Initialize microscope
-core = Core()
-core.loadSystemConfiguration("3i_marianas_config.cfg")
-
-# Set up imaging parameters
-exposure_time = 100
-core.setExposure(exposure_time)
-
-# Configure channels
 channels = ['DAPI', 'GFP', 'RFP']
+z_start, z_end, z_step = -10, 10, 0.5
+
 for channel in channels:
     core.setConfig('Channel', channel)
-    core.waitForConfig('Channel', channel)
-    
-    # Capture image
-    core.snapImage()
-    image = core.getImage()
-    
-    # Save image
-    filename = f"cell_{channel}.tif"
-    tifffile.imwrite(filename, image)
-    
-    time.sleep(0.5)
+    images = []
+    for z in numpy.arange(z_start, z_end, z_step):
+        core.setPosition(z)
+        core.snapImage()
+        images.append(core.getImage())
+    tifffile.imwrite(f'{channel}_stack.tif', numpy.array(images))`
+  },
+  {
+    name: "Time-lapse Experiment",
+    code: `# 3i Time-lapse
+import time
+from pycromanager import Core
+import tifffile
 
-# Run time-lapse
-num_timepoints = 20
-interval = 300  # 5 minutes
+duration_hours = 24
+interval_minutes = 5
+num_timepoints = int(duration_hours * 60 / interval_minutes)
 
 for t in range(num_timepoints):
-    for channel in channels:
-        core.setConfig('Channel', channel)
-        core.snapImage()
-        image = core.getImage()
-        tifffile.imwrite(f"timelapse_{channel}_t{t:03d}.tif", image)
-    
-    if t < num_timepoints - 1:
-        time.sleep(interval)
-`;
+    core.snapImage()
+    image = core.getImage()
+    tifffile.imwrite(f'timelapse_t{t:04d}.tif', image)
+    time.sleep(interval_minutes * 60)`
+  }
+];

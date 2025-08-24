@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { convertCodeToCube } from '../services/geminiService';
-import { EXAMPLE_PYTHON_CODE } from '../constants';
+import { CONVERTER_EXAMPLES } from '../constants';
 import type { ConversionMetrics } from '../types';
-import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon } from './icons';
+import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ArrowDownTrayIcon } from './icons';
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) => (
   <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
@@ -32,6 +32,7 @@ export const ConverterView: React.FC = () => {
   const [metrics, setMetrics] = useState<ConversionMetrics | null>(null);
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState('');
 
   const handleConvert = async () => {
     if (!inputCode.trim() || isConverting) return;
@@ -53,11 +54,55 @@ export const ConverterView: React.FC = () => {
     }
   };
 
-  const handleLoadExample = () => {
-    setInputCode(EXAMPLE_PYTHON_CODE);
-    setOutputCode('');
-    setMetrics(null);
-    setError(null);
+  const handleCopy = () => {
+    if (!outputCode) return;
+    navigator.clipboard.writeText(outputCode).then(() => {
+      setCopySuccess('Copied!');
+      setTimeout(() => setCopySuccess(''), 2000);
+    }, () => {
+      setCopySuccess('Failed');
+      setTimeout(() => setCopySuccess(''), 2000);
+    });
+  };
+
+  const handleDownloadCube = () => {
+    const element = document.createElement("a");
+    const file = new Blob([outputCode], {type: 'text/plain;charset=utf-8'});
+    element.href = URL.createObjectURL(file);
+    element.download = "experiment.cuby";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleDownloadComparison = () => {
+    if (!metrics) return;
+    const comparison = `
+# ===============================================
+# Original Code (${metrics.original_lines} lines)
+# ===============================================
+${inputCode}
+
+# ==================================================
+# CUBE Protocol Version (${metrics.cube_lines} lines)
+# Converted by Phil Hills - Seattle Developer
+# ==================================================
+${outputCode}
+
+# =================
+# Metrics
+# =================
+# Compression Ratio: ${metrics.compression_ratio}
+# Code Savings: ${metrics.savings_percent}%
+`;
+  
+    const element = document.createElement("a");
+    const file = new Blob([comparison.trim()], {type: 'text/plain;charset=utf-8'});
+    element.href = URL.createObjectURL(file);
+    element.download = "code_comparison.txt";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
 
   return (
@@ -75,19 +120,50 @@ export const ConverterView: React.FC = () => {
             className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
             placeholder="Paste your Python microscope code here..."
           />
-           <button
-                onClick={handleLoadExample}
-                className="mt-2 text-sm text-blue-400 hover:text-blue-300"
-            >
-                Load Example Code
-            </button>
+           <div className="mt-2">
+             <select
+                onChange={(e) => {
+                  const selectedName = e.target.value;
+                  const example = CONVERTER_EXAMPLES.find(ex => ex.name === selectedName);
+                  if (example) {
+                    setInputCode(example.code);
+                    setOutputCode('');
+                    setMetrics(null);
+                    setError(null);
+                  }
+                }}
+                className="bg-gray-700 text-sm text-gray-200 rounded-md p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto"
+                defaultValue=""
+              >
+                <option value="" disabled>Load Example Snippet...</option>
+                {CONVERTER_EXAMPLES.map(example => (
+                  <option key={example.name} value={example.name}>{example.name}</option>
+                ))}
+              </select>
+            </div>
         </div>
         
         {/* Output Panel */}
         <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
-          <div className="flex items-center mb-4">
-            <CubeIcon className="w-6 h-6 text-blue-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-100">CUBE Protocol Output</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <CubeIcon className="w-6 h-6 text-blue-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-100">CUBE Protocol Output</h2>
+            </div>
+            <div className="flex items-center space-x-3">
+                <button onClick={handleCopy} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                  <ClipboardIcon className="w-4 h-4 mr-1"/>
+                  {copySuccess || 'Copy'}
+                </button>
+                <button onClick={handleDownloadCube} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                  <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
+                  .cuby
+                </button>
+                <button onClick={handleDownloadComparison} disabled={!outputCode || !metrics} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                  <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
+                  Compare
+                </button>
+            </div>
           </div>
           <textarea
             value={outputCode}

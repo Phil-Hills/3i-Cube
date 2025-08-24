@@ -27,3 +27,8 @@ export interface ConversionMetrics {
     compression_ratio: string;
     savings_percent: number;
 }
+
+export interface ConverterExample {
+    name: string;
+    code: string;
+}

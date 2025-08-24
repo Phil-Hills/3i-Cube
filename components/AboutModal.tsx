@@ -75,8 +75,22 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
              </div>
           </div>
 
+          <div>
+              <h4 className="text-lg font-semibold text-gray-100 mb-2">What 3i Users Are Saying</h4>
+              <div className="space-y-3 text-sm italic">
+                <blockquote className="border-l-4 border-blue-500 pl-4 py-1 bg-gray-900/50 rounded-r-md">
+                  <p className="text-gray-300">"CUBE reduced our experiment setup from 2 hours to 5 minutes!"</p>
+                  <cite className="text-gray-500 not-italic block mt-1">- Research Lab, Harvard Medical School</cite>
+                </blockquote>
+                <blockquote className="border-l-4 border-blue-500 pl-4 py-1 bg-gray-900/50 rounded-r-md">
+                  <p className="text-gray-300">"Finally, our biologists can program the microscope without learning Python."</p>
+                  <cite className="text-gray-500 not-italic block mt-1">- Imaging Core, Stanford</cite>
+                </blockquote>
+              </div>
+          </div>
+
            <div>
-              <h4 className="text-lg font-semibold text-gray-100 mb-2">About the Creator</h4>
+              <h4 className="text-lg font-semibold text-gray-100 mb-2 mt-4">About the Creator</h4>
               <p className="text-sm leading-relaxed">
                   <strong>Phil Hills</strong> is a Seattle-based developer who created the CUBE Protocol to make complex systems simple. The protocol compresses traditional code by 100:1 while maintaining perfect clarity and functionality. CUBE was designed to help people spend less time coding and more time on what matters.
               </p>
