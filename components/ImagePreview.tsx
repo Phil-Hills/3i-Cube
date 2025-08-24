@@ -8,7 +8,7 @@ interface ImagePreviewProps {
 
 export const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl }) => {
   return (
-    <div className="bg-black/20 backdrop-blur-lg rounded-lg p-4 flex flex-col border border-white/10 h-full">
+    <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 flex flex-col h-full">
       <div className="flex items-center mb-3 flex-shrink-0">
         <PhotoIcon className="w-6 h-6 text-cyan-400 mr-2" />
         <h2 className="text-lg font-semibold text-gray-100">AI-Generated Preview</h2>

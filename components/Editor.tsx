@@ -11,7 +11,7 @@ interface EditorProps {
 
 export const Editor: React.FC<EditorProps> = ({ script, onScriptChange, onExecute, isExecuting }) => {
   return (
-    <div className="bg-black/20 backdrop-blur-lg rounded-lg p-4 flex flex-col h-full border border-white/10">
+    <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 flex flex-col h-full">
       <div className="flex items-center mb-4">
         <CodeBracketIcon className="w-6 h-6 text-cyan-400 mr-2" />
         <h2 className="text-lg font-semibold text-gray-100">CUBE Script Editor</h2>
@@ -25,7 +25,7 @@ export const Editor: React.FC<EditorProps> = ({ script, onScriptChange, onExecut
       <button
         onClick={onExecute}
         disabled={isExecuting}
-        className="mt-4 w-full flex items-center justify-center p-3 bg-cyan-600 text-gray-900 font-bold rounded-md hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-lg shadow-cyan-600/20 hover:shadow-cyan-500/40"
+        className="mt-4 w-full flex items-center justify-center p-3 bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold rounded-md hover:from-cyan-400 hover:to-teal-400 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-950 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-400/50 transform hover:-translate-y-0.5"
       >
         {isExecuting ? (
           <>

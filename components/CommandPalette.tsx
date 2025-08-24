@@ -9,7 +9,7 @@ interface CommandPaletteProps {
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ onSelectScript }) => {
   return (
-    <div className="bg-black/20 backdrop-blur-lg rounded-lg p-4 flex flex-col h-full border border-white/10">
+    <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 flex flex-col h-full">
       <div className="flex items-center mb-4 flex-shrink-0">
         <DocumentTextIcon className="w-6 h-6 text-cyan-400 mr-2" />
         <h2 className="text-lg font-semibold text-gray-100">Method Templates</h2>

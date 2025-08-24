@@ -14,7 +14,7 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
 
   return (
     <div className="flex justify-center mb-0">
-      <div className="flex space-x-2 bg-black/20 p-1 rounded-lg border border-white/10 backdrop-blur-lg">
+      <div className="flex space-x-2 bg-gray-950/40 backdrop-blur-2xl p-1 rounded-lg border border-white/10">
         <button
           onClick={() => onViewChange('executor')}
           className={`${baseClasses} ${currentView === 'executor' ? activeClasses : inactiveClasses}`}

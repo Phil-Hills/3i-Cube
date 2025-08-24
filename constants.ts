@@ -2,90 +2,46 @@ import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
   {
-    category: "Live Cell Imaging",
-    description: "Long-term imaging of living cells with minimal photodamage.",
+    category: "Core Techniques",
+    description: "Fundamental and commonly used 3i imaging protocols.",
     scripts: [
       {
-        name: "Live Cell Time-lapse",
-        description: "48-hour time-lapse with autofocus and environmental control.",
-        script: `SETUP|ENVIRONMENT[37C,5%CO2]→OBJECTIVE[60x-Water]→PERFUSION[On]|READY
-MINIMIZE|PHOTODAMAGE→LASER[2%]→EXPOSURE[50ms]→INTERVAL[5min]|GENTLE
-EXPERIMENT|LIVE_CELLS→DURATION[48h]→CHANNELS[GFP:Minimal]→AUTOFOCUS[Every-3rd]|RUNNING
-ANALYZE|TRACK[Cells]→MEASURE[Division,Migration]→PLOT[Growth]|REALTIME`
+        name: "Spinning Disk Confocal",
+        description: "High-speed Z-stack acquisition with deconvolution for clarity.",
+        script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
       },
       {
-        name: "Calcium Imaging",
-        description: "High-speed capture of calcium transients upon stimulation.",
-        script: `PREPARE|CELLS[Load-Fluo4]→WASH[3x]→EQUILIBRATE[10min]|READY
-CAPTURE|CALCIUM→RATE[10Hz]→DURATION[5min]→TRIGGER[Stimulation]|FAST
-ANALYZE|PEAKS[Detect]→AMPLITUDE[Measure]→FREQUENCY[Calculate]|QUANTIFIED`
+        name: "Live Cell Perfect Focus",
+        description: "Long-term imaging with hardware autofocus to maintain stability.",
+        script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
+      },
+    ]
+  },
+  {
+    category: "Advanced Applications",
+    description: "Cutting-edge methods for super-resolution and photomanipulation.",
+    scripts: [
+      {
+        name: "SoRa Super-Resolution",
+        description: "Achieve 120nm resolution for seeing subcellular details.",
+        script: `ACQUIRE|SORA[Super_Res]→CHANNELS[488,561]→RESOLUTION[120nm]→RECONSTRUCT|ENHANCED`
+      },
+      {
+        name: "Vector FRAP",
+        description: "Targeted laser bleaching and recovery monitoring using Vector photomanipulation.",
+        script: `VECTOR|TARGET[ROI]→LASER[405nm,100%]→BLEACH→MONITOR[Recovery]|FRAP`
       }
     ]
   },
   {
-    category: "Super-Resolution",
-    description: "Break the diffraction limit with advanced techniques.",
+    category: "Large Volume Imaging",
+    description: "Methods for imaging large, cleared tissue samples.",
     scripts: [
       {
-        name: "STORM Imaging",
-        description: "Stochastic Optical Reconstruction Microscopy for single-molecule localization.",
-        script: `PREPARE|SAMPLE[Fix]→LABEL[Alexa647-Antibody]→BUFFER[STORM]|READY
-CALIBRATE|DRIFT[Fiducials]→PSF[Measure]→BACKGROUND[Subtract]|OPTIMIZED
-ACQUIRE|STORM→FRAMES[50000]→LASER[647nm:100%]→ACTIVATE[405nm:Ramp]|LOCALIZING
-RECONSTRUCT|LOCALIZE[ThunderSTORM]→FILTER[Precision<20nm]→RENDER[10nm-Pixels]|SUPER_RES`
-      },
-      {
-        name: "SIM Imaging",
-        description: "Structured Illumination Microscopy for 2x resolution improvement.",
-        script: `SETUP|SIM[3D]→GRATING[Rotate]→PHASE[5-Steps]→ORIENTATIONS[3]|CONFIGURED
-ACQUIRE|MULTI_ANGLE→Z_STACK[-2um:2um:0.125um]→CHANNELS[488,561,647]|STRUCTURED
-RECONSTRUCT|SIM[Wiener-Filter]→RESOLUTION[2x-Improvement]→OUTPUT[16bit]|ENHANCED`
+        name: "Light Sheet Volume",
+        description: "Scan a large cleared tissue sample and fuse tiled volumes.",
+        script: `ACQUIRE|LIGHTSHEET[Cleared_Tissue]→VOLUME[5x5x3mm]→TILE[3x3]→FUSE|COMPLETE`
       }
-    ]
-  },
-  {
-    category: "FRAP/FRET Analysis",
-    description: "Analyze protein dynamics and interactions.",
-    scripts: [
-        {
-            name: "FRAP Experiment",
-            description: "Measure protein mobility using Fluorescence Recovery After Photobleaching.",
-            script: `DEFINE|ROI[Circle-5um]→REFERENCE[Background]→CONTROL[Unbleached]|REGIONS
-PREBLEACH|CAPTURE[10-Frames]→BASELINE[Establish]→READY|INITIALIZED
-BLEACH|ROI→LASER[488nm:100%]→DURATION[500ms]→VERIFY[Bleached]|EXECUTED
-RECOVER|MONITOR→INTERVAL[1s]→DURATION[5min]→FIT[Exponential]|ANALYZING
-CALCULATE|MOBILE_FRACTION→HALF_TIME→DIFFUSION[Coefficient]|QUANTIFIED`
-        },
-        {
-            name: "FRET Biosensor",
-            description: "Use a biosensor to measure Förster Resonance Energy Transfer.",
-            script: `SETUP|FRET_PAIR[CFP-YFP]→EXCITATION[440nm]→DETECTION[CFP:480nm,FRET:535nm]|CONFIGURED
-CALIBRATE|DONOR_ONLY→ACCEPTOR_ONLY→BLEEDTHROUGH[Calculate]|CORRECTED
-ACQUIRE|RATIO_IMAGING→CHANNELS[Simultaneous]→TREATMENT[Add-Stimulus]|MONITORING
-ANALYZE|RATIO[FRET/CFP]→NORMALIZE→PLOT[Time-Course]→STATISTICS|PROCESSED`
-        }
-    ]
-  },
-  {
-    category: "Neuroscience",
-    description: "Applications for brain slice and in vivo imaging.",
-    scripts: [
-        {
-            name: "Brain Slice Electrophysiology",
-            description: "Combine two-photon imaging with whole-cell patch clamp recording.",
-            script: `PREPARE|SLICE[300um]→PERFUSE[ACSF]→TEMPERATURE[32C]→OXYGENATE[95/5]|VIABLE
-PATCH|NEURON[Layer5-Pyramidal]→SEAL[GigaOhm]→BREAK[Whole-Cell]|RECORDING
-IMAGE|TWO_PHOTON→EXCITATION[920nm]→Z_STACK[Dendrites]→LINE_SCAN[Spines]|STRUCTURAL
-STIMULATE|UNCAGE[MNI-Glutamate]→LOCATION[Spine]→MONITOR[Calcium]|FUNCTIONAL`
-        },
-        {
-            name: "In Vivo Two-Photon Imaging",
-            description: "Image neuronal activity in a live, head-fixed mouse.",
-            script: `SETUP|MOUSE[Head-Fixed]→WINDOW[Cranial]→ANESTHESIA[Isoflurane-1%]|PREPARED
-ALIGN|TWO_PHOTON→FIND[Surface-Vessels]→NAVIGATE[Cortex-Layer2/3]|POSITIONED
-IMAGE|NEURONS[GCaMP6]→DEPTH[150um]→RATE[30Hz]→DURATION[Trial]|RECORDING
-STIMULUS|PRESENT[Visual-Grating]→REPEAT[20x]→RANDOMIZE[Orientation]|EXPERIMENTAL`
-        }
     ]
   }
 ];

@@ -73,7 +73,7 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       aria-modal="true"
       role="dialog"
     >
-      <div className="bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+      <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl shadow-black/20">
         <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center">
             <BookOpenIcon className="w-7 h-7 text-cyan-400 mr-3" />

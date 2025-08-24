@@ -49,13 +49,13 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries }) => {
   }, [logEntries]);
   
   return (
-    <div className="bg-black/20 backdrop-blur-lg rounded-lg flex flex-col h-full border border-white/10 overflow-hidden">
+    <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg flex flex-col h-full overflow-hidden">
       <div className="flex items-center p-4 border-b border-white/10 flex-shrink-0">
         <TerminalIcon className="w-6 h-6 text-cyan-400 mr-2" />
         <h2 className="text-lg font-semibold text-gray-100">Simulated Microscope Log</h2>
       </div>
       
-      <div className="p-2 bg-cyan-900/30 border-b border-cyan-400/10 text-center text-xs text-cyan-200 flex-shrink-0">
+      <div className="p-2 bg-cyan-900/40 text-center text-xs text-cyan-200 flex-shrink-0">
         ⚡️ <strong>Demo Mode:</strong> Simulating commands for real 3i hardware.
       </div>
 

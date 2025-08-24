@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onAboutClick, onDocsClick }) => {
   return (
-    <header className="flex items-center p-4 bg-black/10 border-b border-cyan-400/10 backdrop-blur-sm">
+    <header className="flex items-center p-4 bg-gray-950/40 backdrop-blur-2xl border-b border-cyan-400/20">
       <CubeIcon className="w-8 h-8 text-cyan-400 mr-3 text-glow" />
       <h1 className="text-2xl font-bold text-gray-100 tracking-wider text-glow text-cyan-400">
         CUBE Protocol

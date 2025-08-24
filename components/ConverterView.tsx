@@ -7,19 +7,19 @@ import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardI
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) => (
   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-    <div className="bg-black/20 p-2 rounded-md">
+    <div className="bg-black/20 p-3 rounded-md">
       <p className="text-xs text-gray-400">Original Lines</p>
       <p className="text-lg font-bold text-cyan-300">{metrics.original_lines}</p>
     </div>
-    <div className="bg-black/20 p-2 rounded-md">
+    <div className="bg-black/20 p-3 rounded-md">
       <p className="text-xs text-gray-400">CUBE Lines</p>
       <p className="text-lg font-bold text-green-400">{metrics.cube_lines}</p>
     </div>
-    <div className="bg-black/20 p-2 rounded-md">
+    <div className="bg-black/20 p-3 rounded-md">
       <p className="text-xs text-gray-400">Compression</p>
       <p className="text-lg font-bold text-gray-100">{metrics.compression_ratio}</p>
     </div>
-    <div className="bg-green-900/20 p-2 rounded-md border border-green-800/50">
+    <div className="bg-green-900/20 p-3 rounded-md border border-green-800/50">
       <p className="text-xs text-green-300">Code Reduction</p>
       <p className="text-lg font-bold text-green-400">{metrics.savings_percent}%</p>
     </div>
@@ -110,7 +110,7 @@ ${outputCode}
     <div className="flex flex-col flex-grow pt-6 overflow-hidden gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow overflow-hidden">
         {/* Input Panel */}
-        <div className="bg-black/20 backdrop-blur-lg rounded-lg p-4 flex flex-col h-full border border-white/10">
+        <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 flex flex-col h-full">
           <div className="flex items-center mb-4">
             <CodeBracketIcon className="w-6 h-6 text-cyan-400 mr-2" />
             <h2 className="text-lg font-semibold text-gray-100">Your 3i Microscope Code</h2>
@@ -135,7 +135,7 @@ ${outputCode}
                     setError(null);
                   }
                 }}
-                className="bg-gray-700 text-sm text-gray-200 rounded-md p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:flex-grow"
+                className="bg-gray-900/70 text-sm text-gray-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:flex-grow"
               >
                 <option value="" disabled>Load Example Snippet...</option>
                 {CONVERTER_EXAMPLES.map(example => (
@@ -151,7 +151,7 @@ ${outputCode}
         </div>
         
         {/* Output Panel */}
-        <div className="bg-black/20 backdrop-blur-lg rounded-lg p-4 flex flex-col h-full border border-white/10">
+        <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 flex flex-col h-full">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <CubeIcon className="w-6 h-6 text-cyan-400 mr-2" />
@@ -188,7 +188,7 @@ ${outputCode}
          <button
           onClick={handleConvert}
           disabled={isConverting || !inputCode.trim()}
-          className="w-full flex items-center justify-center p-3 bg-cyan-600 text-gray-900 font-bold rounded-md hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-lg shadow-cyan-600/20 hover:shadow-cyan-500/40"
+          className="w-full flex items-center justify-center p-3 bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold rounded-md hover:from-cyan-400 hover:to-teal-400 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-950 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-400/50 transform hover:-translate-y-0.5"
         >
           {isConverting ? (
             <>

@@ -2,8 +2,8 @@
 export class MicroscopyImageGenerator {
   private canvas: HTMLCanvasElement | null;
   private ctx: CanvasRenderingContext2D | null;
-  private width = 512;
-  private height = 512;
+  private width = 2048;
+  private height = 2048;
 
   constructor() {
     if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
@@ -19,7 +19,7 @@ export class MicroscopyImageGenerator {
 
   private getErrorPlaceholder(): string {
     const errorText = 'Image generation failed.';
-    const svg = `<svg width="${this.width}" height="${this.height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/><text x="50%" y="50%" fill="#f87171" font-family="sans-serif" font-size="16" text-anchor="middle" dy=".3em">${errorText}</text></svg>`;
+    const svg = `<svg width="${this.width}" height="${this.height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/><text x="50%" y="50%" fill="#f87171" font-family="sans-serif" font-size="24" text-anchor="middle" dy=".3em">${errorText}</text></svg>`;
     if (typeof btoa === 'function') {
         return `data:image/svg+xml;base64,${btoa(svg)}`;
     }
@@ -33,40 +33,27 @@ export class MicroscopyImageGenerator {
     }
 
     try {
+      const commands = cubeCommand.toUpperCase();
+      
+      // Black background (3i images have very clean backgrounds)
       this.ctx.fillStyle = '#000000';
       this.ctx.fillRect(0, 0, this.width, this.height);
       
-      const commands = cubeCommand.toUpperCase();
-      let hasDrawn = false;
-      
-      if (commands.includes('MULTI')) {
-          this.generateMultiChannel(commands);
-          hasDrawn = true;
+      // Determine imaging mode from CUBE
+      if (commands.includes('CONFOCAL') || commands.includes('MARIANAS')) {
+        this.generateConfocalImage(commands);
+      } else if (commands.includes('LIGHTSHEET')) {
+        this.generateLightSheetImage(commands);
+      } else if (commands.includes('WIDEFIELD')) {
+        this.generateWidefieldImage(commands);
+      } else if (commands.includes('SIM') || commands.includes('SORA')) {
+        this.generateSuperResImage(commands);
       } else {
-          if (commands.includes('GFP') || commands.includes('GREEN')) {
-              this.generateFluorescentCells('#00FF00', '#0066FF');
-              hasDrawn = true;
-          }
-          if (commands.includes('RFP') || commands.includes('RED')) {
-              this.generateFluorescentCells('#FF0000', '#0066FF');
-              hasDrawn = true;
-          }
-          if (commands.includes('DAPI') || commands.includes('NUCLEI')) {
-              this.generateNuclei();
-              hasDrawn = true;
-          }
-          if (commands.includes('NEURONS')) {
-              this.drawNeurons();
-              hasDrawn = true;
-          }
+        // Default to confocal style for other captures
+        this.generateConfocalImage(commands);
       }
 
-      if (!hasDrawn) {
-        this.generateGenericMicroscopy();
-      }
-
-      this.addMetadata(cubeCommand);
-
+      this.addMetadata(commands);
       return this.canvas.toDataURL('image/png');
 
     } catch (e) {
@@ -74,165 +61,211 @@ export class MicroscopyImageGenerator {
       return this.getErrorPlaceholder();
     }
   }
-  
-  private generateGenericMicroscopy() {
-    this.generateFluorescentCells('#00FF00', '#0066FF'); // Default to GFP
-  }
-  
-  private generateMultiChannel(commands: string) {
-    if(!this.ctx) return;
-    let channelsDrawn = 0;
-    
-    if (commands.includes('GFP')) {
-      this.generateFluorescentCells('#00FF00', '#8888FF');
-      channelsDrawn++;
-    }
-    if (commands.includes('RFP')) {
-      if (channelsDrawn > 0) this.ctx.globalCompositeOperation = 'screen';
-      this.generateFluorescentCells('#FF0000', '#8888FF');
-      channelsDrawn++;
-    }
-    if (commands.includes('DAPI')) {
-       if (channelsDrawn > 0) this.ctx.globalCompositeOperation = 'screen';
-       this.generateNuclei();
-       channelsDrawn++;
-    }
-    
-    this.ctx.globalCompositeOperation = 'source-over';
-    if(channelsDrawn === 0) { // If MULTI is specified but no known channels
-        this.generateGenericMicroscopy();
-    }
+
+  private parseChannels(cubeCommand: string): string[] {
+    const channels: string[] = [];
+    if (cubeCommand.includes('DAPI') || cubeCommand.includes('405')) channels.push('405');
+    if (cubeCommand.includes('GFP') || cubeCommand.includes('488')) channels.push('488');
+    if (cubeCommand.includes('RFP') || cubeCommand.includes('CHERRY') || cubeCommand.includes('561')) channels.push('561');
+    if (cubeCommand.includes('CY5') || cubeCommand.includes('647')) channels.push('647');
+    if (channels.length === 0) channels.push('488'); // Default if no channel specified
+    return channels;
   }
 
-  private generateFluorescentCells(membraneColor: string, nucleusColor: string) {
+  private generateConfocalImage(cubeCommand: string) {
+    const channels = this.parseChannels(cubeCommand);
+    this.generateConfocalCells(channels);
+  }
+
+  private generateWidefieldImage(cubeCommand: string) {
     if (!this.ctx) return;
-    const numCells = 8 + Math.floor(Math.random() * 7);
+    const channels = this.parseChannels(cubeCommand);
+    this.generateConfocalCells(channels);
+    // Add more haze/noise for widefield effect
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    this.ctx.fillRect(0, 0, this.width, this.height);
+    this.addNoise(50);
+  }
+  
+  private generateConfocalCells(channels: string[]) {
+    if(!this.ctx) return;
+    const numCells = 5 + Math.floor(Math.random() * 10);
+    this.ctx.globalCompositeOperation = 'screen';
     
     for (let i = 0; i < numCells; i++) {
-      const x = 50 + Math.random() * (this.width - 100);
-      const y = 50 + Math.random() * (this.height - 100);
-      const radius = 25 + Math.random() * 20;
-      
-      const gradient = this.ctx.createRadialGradient(x, y, radius * 0.8, x, y, radius * 1.2);
-      gradient.addColorStop(0, membraneColor + '00');
-      gradient.addColorStop(0.7, membraneColor + '40');
-      gradient.addColorStop(0.9, membraneColor + 'AA');
-      gradient.addColorStop(1, membraneColor + '00');
-      
-      this.ctx.fillStyle = gradient;
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, radius * 1.2, 0, Math.PI * 2);
-      this.ctx.fill();
-      
-      this.ctx.strokeStyle = membraneColor;
-      this.ctx.lineWidth = 1.5;
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-      this.ctx.stroke();
-      
-      const nucleusGradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius * 0.4);
-      nucleusGradient.addColorStop(0, nucleusColor + 'FF');
-      nucleusGradient.addColorStop(0.7, nucleusColor + '88');
-      nucleusGradient.addColorStop(1, nucleusColor + '44');
-      
-      this.ctx.fillStyle = nucleusGradient;
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, radius * 0.35, 0, Math.PI * 2);
-      this.ctx.fill();
-    }
-    this.addNoise();
-  }
-  
-  private generateNuclei() {
-    if (!this.ctx) return;
-    const nucleusColor = '#8888FF'; // DAPI-like blue
-    const numNuclei = 15 + Math.random() * 10;
-     for (let i = 0; i < numNuclei; i++) {
-        const x = Math.random() * this.width;
-        const y = Math.random() * this.height;
-        const radius = 8 + Math.random() * 8;
+      const x = 200 + Math.random() * (this.width - 400);
+      const y = 200 + Math.random() * (this.height - 400);
+      const radius = 80 + Math.random() * 60;
 
-        const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-        gradient.addColorStop(0, `${nucleusColor}CC`);
-        gradient.addColorStop(1, 'transparent');
-        this.ctx.fillStyle = gradient;
+      if (channels.includes('488')) { // GFP
+        this.ctx.strokeStyle = '#00FF00';
+        this.ctx.lineWidth = 3; 
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-        this.ctx.fill();
-     }
-     this.addNoise();
-  }
-
-  private drawNeurons() {
-      if (!this.ctx) return;
-      this.ctx.strokeStyle = '#33ff33'; // GCaMP green
-      this.ctx.lineWidth = 1.5;
-      this.ctx.globalAlpha = 0.7;
-
-      for (let i = 0; i < 3; i++) { 
-          let x = Math.random() * this.width;
-          let y = Math.random() * this.height;
-          const radius = 10 + Math.random() * 5;
-
-          this.ctx.beginPath();
-          this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-          const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-          gradient.addColorStop(0, '#AAFFAA');
-          gradient.addColorStop(1, '#33ff33');
-          this.ctx.fillStyle = gradient;
-          this.ctx.fill();
-
-          for (let j = 0; j < 5; j++) {
-              this.ctx.beginPath();
-              this.ctx.moveTo(x, y);
-              let endX = x + (Math.random() - 0.5) * 150;
-              let endY = y + (Math.random() - 0.5) * 150;
-              this.ctx.lineTo(endX, endY);
-              this.ctx.stroke();
-          }
+        this.ctx.stroke();
+        this.drawCellularStructure(x, y, radius, '#00FF00');
       }
-      this.ctx.globalAlpha = 1.0;
-      this.addNoise();
+      
+      if (channels.includes('561')) { // RFP
+        this.ctx.strokeStyle = '#FFD700';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius * (0.8 + Math.random()*0.2), 0, Math.PI * 2);
+        this.ctx.stroke();
+      }
+      
+      if (channels.includes('647')) { // Far Red
+        this.ctx.strokeStyle = '#FF0000';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.stroke();
+      }
+
+      if (channels.includes('405')) { // DAPI
+        const nucleusRadius = radius * 0.4;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, nucleusRadius, 0, Math.PI * 2);
+        this.ctx.fillStyle = '#4B0AFF';
+        this.ctx.fill();
+        this.drawChromatinTexture(x, y, nucleusRadius);
+      }
+    }
+    this.ctx.globalCompositeOperation = 'source-over';
+    this.addNoise(20);
   }
 
-  private addNoise() {
+  private drawCellularStructure(x: number, y: number, radius: number, color: string) {
+    if(!this.ctx) return;
+    this.ctx.strokeStyle = color + '40';
+    this.ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      const angle = (Math.PI * 2 * i) / 5;
+      const innerX = x + Math.cos(angle) * radius * 0.3;
+      const innerY = y + Math.sin(angle) * radius * 0.3;
+      this.ctx.beginPath();
+      this.ctx.arc(innerX, innerY, radius * 0.15, 0, Math.PI * 2);
+      this.ctx.stroke();
+    }
+  }
+
+  private drawChromatinTexture(x: number, y: number, radius: number) {
+    if(!this.ctx) return;
+    const numSpeckles = 20;
+    for (let i = 0; i < numSpeckles; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * radius * 0.8;
+      const speckleX = x + Math.cos(angle) * r;
+      const speckleY = y + Math.sin(angle) * r;
+      this.ctx.beginPath();
+      this.ctx.arc(speckleX, speckleY, 3, 0, Math.PI * 2);
+      this.ctx.fillStyle = '#6B3AFF';
+      this.ctx.fill();
+    }
+  }
+
+  private generateLightSheetImage(cubeCommand: string) {
+    if (!this.ctx) return;
+    const depths = 10;
+    for (let d = 0; d < depths; d++) {
+      const alpha = 1 - (d / depths) * 0.7;
+      this.ctx.globalAlpha = alpha;
+      const numStructures = 3 + Math.floor(Math.random() * 5);
+      for (let i = 0; i < numStructures; i++) {
+        const x = Math.random() * this.width;
+        const y = Math.random() * this.height;
+        const size = 50 + Math.random() * 100;
+        const hue = (d / depths) * 240; // Blue to red
+        this.ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
+        this.ctx.beginPath();
+        this.ctx.ellipse(x, y, size, size * 0.7, Math.random() * Math.PI, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+    }
+    this.ctx.globalAlpha = 1;
+  }
+
+  private generateSuperResImage(cubeCommand: string) {
+    if (!this.ctx) return;
+    const numStructures = 50 + Math.floor(Math.random() * 50);
+    for (let i = 0; i < numStructures; i++) {
+      const x = Math.random() * this.width;
+      const y = Math.random() * this.height;
+      const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, 10);
+      gradient.addColorStop(0, '#00FF00FF');
+      gradient.addColorStop(0.5, '#00FF0080');
+      gradient.addColorStop(1, '#00FF0000');
+      this.ctx.fillStyle = gradient;
+      this.ctx.fillRect(x - 10, y - 10, 20, 20);
+    }
+    this.drawMicrotubules();
+  }
+
+  private drawMicrotubules() {
+    if (!this.ctx) return;
+    this.ctx.strokeStyle = '#00FF00';
+    this.ctx.lineWidth = 2;
+    for (let i = 0; i < 10; i++) {
+      this.ctx.beginPath();
+      let startX = Math.random() * this.width;
+      let startY = Math.random() * this.height;
+      this.ctx.moveTo(startX, startY);
+      for (let j = 0; j < 5; j++) {
+        const cpX = startX + (Math.random() - 0.5) * 200;
+        const cpY = startY + (Math.random() - 0.5) * 200;
+        const endX = startX + (Math.random() - 0.5) * 400;
+        const endY = startY + (Math.random() - 0.5) * 400;
+        this.ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+        startX = endX;
+        startY = endY;
+      }
+      this.ctx.stroke();
+    }
+  }
+
+  private addNoise(amount: number) {
     if (!this.ctx) return;
     const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
     const data = imageData.data;
-    
     for (let i = 0; i < data.length; i += 4) {
-      const noise = (Math.random() - 0.5) * 30;
+      const noise = (Math.random() - 0.5) * amount;
       data[i] = Math.max(0, Math.min(255, data[i] + noise));
       data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
       data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
     }
-    
     this.ctx.putImageData(imageData, 0, 0);
   }
 
   private addMetadata(cubeCommand: string) {
     if (!this.ctx) return;
+    
     // Scale bar
     this.ctx.strokeStyle = '#FFFFFF';
-    this.ctx.lineWidth = 3;
+    this.ctx.lineWidth = 5;
     this.ctx.beginPath();
-    this.ctx.moveTo(this.width - 80, this.height - 30);
-    this.ctx.lineTo(this.width - 30, this.height - 30);
+    const scaleBarLength = 200; 
+    const scaleBarMicrons = 10;
+    this.ctx.moveTo(this.width - scaleBarLength - 40, this.height - 50);
+    this.ctx.lineTo(this.width - 40, this.height - 50);
     this.ctx.stroke();
     
     this.ctx.fillStyle = '#FFFFFF';
-    this.ctx.font = '12px Arial';
+    this.ctx.font = '24px Arial';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('50μm', this.width - 55, this.height - 35);
+    this.ctx.fillText(`${scaleBarMicrons} µm`, this.width - scaleBarLength/2 - 40, this.height - 60);
     
-    // Attribution
-    this.ctx.font = '10px Arial';
+    // System info
+    this.ctx.font = '18px Arial';
     this.ctx.textAlign = 'left';
-    this.ctx.fillText('AI Preview | CUBE Protocol | Phil Hills', 10, this.height - 10);
+    this.ctx.fillText('3i Marianas | CUBE Protocol', 20, 30);
+    this.ctx.fillText('AI Preview by Phil Hills', 20, 55);
     
-    // Timestamp
-    const now = new Date();
-    this.ctx.textAlign = 'left';
-    this.ctx.fillText(now.toLocaleTimeString(), 10, 20);
+    // Imaging mode
+    let mode = 'Confocal';
+    if (cubeCommand.includes('LIGHTSHEET')) mode = 'Light Sheet';
+    if (cubeCommand.includes('SORA') || cubeCommand.includes('SIM')) mode = 'SIM Super-Resolution';
+    if (cubeCommand.includes('WIDEFIELD')) mode = 'Widefield';
+    
+    this.ctx.fillText(`Mode: ${mode}`, 20, 80);
   }
 }
