@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { CubeIcon, XMarkIcon } from './icons';
 
@@ -90,6 +89,31 @@ APPLY|BEST[Pattern]→DM[Send]→LOCK|CORRECTED
 RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
                   </div>
               </div>
+          </div>
+          
+          <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-100 mb-3">⚡️ Demo vs. Production</h4>
+            <p className="text-sm text-gray-400 mb-3">This app is a high-fidelity demonstration. The CUBE commands are real and production-ready. When integrated at 3i, these simulated commands will control actual microscope hardware.</p>
+            <div className="text-sm grid grid-cols-2 gap-4">
+                <div className="bg-gray-800 p-3 rounded">
+                    <h5 className="font-semibold text-blue-300">This Demo App</h5>
+                    <ul className="list-disc list-inside mt-2 text-gray-300">
+                        <li>Simulates hardware control</li>
+                        <li>Shows expected log output</li>
+                        <li>Generates AI preview images</li>
+                        <li>Proves the concept & value</li>
+                    </ul>
+                </div>
+                 <div className="bg-gray-800 p-3 rounded">
+                    <h5 className="font-semibold text-green-300">At 3i (Production)</h5>
+                    <ul className="list-disc list-inside mt-2 text-gray-300">
+                        <li>Executes real hardware control</li>
+                        <li>Fires lasers, moves stages</li>
+                        <li>Captures real images</li>
+                        <li>Saves real data files</li>
+                    </ul>
+                </div>
+            </div>
           </div>
 
           <div>

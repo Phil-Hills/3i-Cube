@@ -13,6 +13,7 @@ import { DocsModal } from './components/DocsModal';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { ConverterView } from './components/ConverterView';
 import { MicroscopyImageGenerator } from './services/imageGenerator';
+import { ImagePreview } from './components/ImagePreview';
 
 const getInitialScript = (): string => {
   if (
@@ -84,7 +85,7 @@ const App: React.FC = () => {
         }
       }
       
-      // Fallback if Gemini misses the token
+      // Fallback if simulator misses the token
       if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE/i.test(cubeScript)) {
           const newImageUrl = imageGenerator.generateFromCube(cubeScript);
           setSimulatedImageUrl(newImageUrl);
@@ -95,7 +96,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setLogEntries(prev => [...prev, { type: 'ERROR', message: `Gemini API Error: ${errorMessage}`, timestamp: new Date() }]);
+      setLogEntries(prev => [...prev, { type: 'ERROR', message: `API Error: ${errorMessage}`, timestamp: new Date() }]);
       setMicroscopeStatus('ERROR');
     } finally {
       setIsExecuting(false);
@@ -131,8 +132,13 @@ const App: React.FC = () => {
                 isExecuting={isExecuting}
               />
             </div>
-            <div className="md:col-span-4 flex flex-col gap-4 overflow-hidden">
-              <OutputLog logEntries={logEntries} imageUrl={simulatedImageUrl} />
+            <div className="md:col-span-4 grid grid-rows-2 gap-4 overflow-hidden">
+              <div className="row-span-1 overflow-hidden">
+                <ImagePreview imageUrl={simulatedImageUrl} />
+              </div>
+              <div className="row-span-1 overflow-hidden">
+                <OutputLog logEntries={logEntries} />
+              </div>
             </div>
           </div>
         ) : (

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { MicroscopeStatus } from '../types';
 
@@ -11,14 +10,14 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
     switch (status) {
       case 'CONNECTED':
       case 'IDLE':
-        return { color: 'bg-green-500', text: 'Connected & Idle' };
+        return { color: 'bg-green-500', text: 'Simulated: Connected & Idle' };
       case 'EXECUTING':
-        return { color: 'bg-yellow-500 animate-pulse', text: 'Executing...' };
+        return { color: 'bg-yellow-500 animate-pulse', text: 'Simulated: Executing...' };
       case 'ERROR':
         return { color: 'bg-red-500', text: 'Error' };
       case 'DISCONNECTED':
       default:
-        return { color: 'bg-gray-500', text: 'Disconnected' };
+        return { color: 'bg-gray-500', text: 'Simulated: Disconnected' };
     }
   };
 

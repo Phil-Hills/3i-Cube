@@ -1,10 +1,10 @@
+
 import React, { useEffect, useRef } from 'react';
 import type { LogEntry } from '../types';
-import { TerminalIcon, PhotoIcon } from './icons';
+import { TerminalIcon } from './icons';
 
 interface OutputLogProps {
   logEntries: LogEntry[];
-  imageUrl: string | null;
 }
 
 const LogMessage: React.FC<{ entry: LogEntry }> = ({ entry }) => {
@@ -35,7 +35,7 @@ const LogMessage: React.FC<{ entry: LogEntry }> = ({ entry }) => {
   );
 };
 
-export const OutputLog: React.FC<OutputLogProps> = ({ logEntries, imageUrl }) => {
+export const OutputLog: React.FC<OutputLogProps> = ({ logEntries }) => {
   const logContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,39 +46,24 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries, imageUrl }) =>
   
   return (
     <div className="bg-gray-800/50 rounded-lg flex flex-col h-full border border-gray-700/50 overflow-hidden">
-      <div className="flex items-center p-4 border-b border-gray-700/50">
+      <div className="flex items-center p-4 border-b border-gray-700/50 flex-shrink-0">
         <TerminalIcon className="w-6 h-6 text-blue-400 mr-2" />
-        <h2 className="text-lg font-semibold text-gray-100">Execution Log</h2>
+        <h2 className="text-lg font-semibold text-gray-100">Simulated Microscope Log</h2>
       </div>
+      
+      <div className="p-3 bg-blue-900/20 border-b border-gray-700/50 text-center text-xs text-blue-200 flex-shrink-0">
+        ⚡️ <strong>Demo Mode:</strong> This log shows the commands that would execute on real 3i hardware.
+      </div>
+
       <div ref={logContainerRef} className="flex-grow p-4 font-mono text-sm space-y-2 overflow-y-auto">
-        {logEntries.length === 0 && !imageUrl && (
+        {logEntries.length === 0 ? (
             <div className="text-gray-500">Awaiting execution...</div>
+        ) : (
+            logEntries.map((entry, index) => (
+              <LogMessage key={index} entry={entry} />
+            ))
         )}
-         {logEntries.length === 0 && imageUrl && (
-            <div className="text-gray-500">Ready to execute. AI preview generated below.</div>
-        )}
-        {logEntries.map((entry, index) => (
-          <LogMessage key={index} entry={entry} />
-        ))}
       </div>
-      {imageUrl && (
-        <div className="p-4 border-t border-gray-700/50 bg-gray-900/50">
-          <div className="flex items-center mb-2">
-            <PhotoIcon className="w-5 h-5 text-blue-400 mr-2" />
-            <h3 className="text-md font-semibold text-gray-200">AI-Generated Preview</h3>
-          </div>
-          <div className="relative">
-            <img 
-              src={imageUrl} 
-              alt="AI-generated microscopy preview" 
-              className="rounded-md w-full object-cover border-2 border-blue-800/50"
-            />
-            <p className="absolute bottom-2 right-2 text-xs text-white/80 bg-black/60 px-1.5 py-0.5 rounded">
-                AI visualization by Phil Hills
-             </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
