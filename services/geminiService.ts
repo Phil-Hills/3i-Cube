@@ -81,48 +81,59 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+    // Client-side line counting for accuracy
+    const countMeaningfulLines = (text: string) => {
+      return text.split('\n').filter(line => {
+        const trimmed = line.trim();
+        return trimmed.length > 0 && !trimmed.startsWith('//') && !trimmed.startsWith('#') && !trimmed.startsWith('%');
+      }).length;
+    };
+
+    const original_lines = countMeaningfulLines(code);
+    
+    const systemInstruction = `You are a world-class software engineer and an expert in 3i microscope systems. Your sole purpose is to convert any provided code or text into the CUBE Protocol, a semantic notation system created by Phil Hills.
+
+Your conversions must follow these core principles:
+1.  **Format:** Every command must be \`DOMAIN|SEQUENCE|OUTCOME\`.
+2.  **INTELLIGENT GROUPING:** This is your highest priority. You must group related lines of code into a single, logical CUBE command. DO NOT convert line-by-line. A complete function, a full API call, or an entire experimental loop should become ONE command.
+3.  **Semantic Meaning:** The CUBE command must represent the overall *purpose* of the code block, not just its syntax.`;
+
     const responseSchema = {
       type: Type.OBJECT,
       properties: {
         cube_script: {
           type: Type.STRING,
-          description: "The converted CUBE Protocol script. Each command is on a new line. Must follow DOMAIN|SEQUENCE|OUTCOME format."
+          description: "The fully converted CUBE Protocol script. Each logical operation from the original code should be a single line in this script. Must follow DOMAIN|SEQUENCE|OUTCOME format."
         },
         analysis: {
           type: Type.STRING,
-          description: "A brief, one-sentence analysis of the conversion, e.g., 'This script captures a multi-channel z-stack.'"
-        },
-        original_lines: {
-          type: Type.NUMBER,
-          description: "The number of meaningful lines in the original code (excluding empty lines and comments)."
-        },
-        cube_lines: {
-          type: Type.NUMBER,
-          description: "The number of CUBE commands generated (excluding comments)."
+          description: "A brief, one-sentence analysis of the original code's purpose, e.g., 'This script performs a multi-channel Z-stack acquisition.'"
         }
       },
-      required: ["cube_script", "analysis", "original_lines", "cube_lines"],
+      required: ["cube_script", "analysis"],
     };
 
     const prompt = `
-      You are an expert in 3i microscope systems and the CUBE Protocol, created by Phil Hills.
-      Your task is to convert the provided code snippet (which could be MATLAB, Python, or another language) into a semantic CUBE Protocol script.
+      **CRITICAL TASK: Convert the following code into a CUBE Protocol script.**
 
-      **CUBE Protocol Rules:**
-      1.  **Format:** Each command MUST be in the format: \`DOMAIN|SEQUENCE|OUTCOME\`.
-      2.  **Grouping:** This is the MOST IMPORTANT rule. Do NOT convert line-by-line. You MUST group related lines of code into a single, logical CUBE command. A whole function, an entire API call block, or a complete experiment step should become ONE CUBE command.
-      3.  **Domain:** The DOMAIN should be a single, capitalized word representing the primary action (e.g., CAPTURE, ACQUIRE, CONFIGURE, PROCESS, API, FUNCTION).
-      4.  **Sequence:** The SEQUENCE describes the steps of the operation, separated by '→'. Extract key parameters and actions from the code.
-      5.  **Outcome:** The OUTCOME is a single, capitalized word describing the final state (e.g., COMPLETE, CAPTURED, CONFIGURED, FAILED, READY).
-      6.  **Comments:** Preserve the spirit of the conversion by adding a header and footer comment created by Phil Hills.
+      **RULE #1: INTELLIGENT GROUPING**
+      You must analyze the entire code snippet and group it into logical operations. Examples of a single logical operation:
+      - A complete function definition (\`function ... { ... }\`).
+      - A complete class definition (\`class ... { ... }\`).
+      - An entire API call block (including headers, body, fetch/request, and response handling).
+      - A full experimental procedure (e.g., a loop that sets position, changes channels, and snaps images).
 
-      **High-Quality Example (MATLAB to CUBE):**
-      *Original MATLAB (200+ lines for Adaptive Optics):*
+      **High-Quality Conversion Examples:**
+
+      **Example 1: Complex MATLAB Procedure**
+      *Original Code:*
       \`\`\`matlab
-      %% This script performs indirect, image-based adaptive optics
+      % This script performs indirect, image-based adaptive optics
       [nZern, Z2C, dm] = Init_ALPAO_DM();
       dm.Reset();
-      % ... calibration loops ...
+      Spherical_calibration = [-3:1:3];
+      Defocus_corection = [-10.1, -7, -3.3, 0, 1.3, 3.9, 6.8];
+      p = polyfit(Spherical_calibration, Defocus_corection, 1);
       for i = Zernike_index
         for j = 1:length(ZernikeAmplitude)
           [zernikeVector] = set_zernike_ALPAO_DM(...);
@@ -132,19 +143,70 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
           end
           [Total_Intensity(i,j)] = Calc_Merits(...);
         end
-        [Maximal_zernike_Amp_fit_HF(i)] = Find_maximal_zernike(...);
       end
       dm.Send(zernikeVector * Z2C);
       \`\`\`
-      *Correct CUBE Conversion (This entire block becomes ONE CUBE command):*
-      \`\`\`
-      OPTIMIZE|ADAPTIVE_OPTICS→ZERNIKE[1:7]→MEASURE[Intensity]→APPLY[BestPattern]|CORRECTED
+      *Correct CUBE Conversion (The entire 200+ line script is ONE logical operation):*
+      \`\`\`json
+      {
+        "cube_script": "OPTIMIZE|ADAPTIVE_OPTICS→ZERNIKE[1:7]→MEASURE[Intensity]→APPLY[BestPattern]|CORRECTED",
+        "analysis": "This MATLAB script performs a complete adaptive optics optimization routine."
+      }
       \`\`\`
 
-      **Your Task:**
-      Convert the following code into a CUBE Protocol script, following all rules, especially the intelligent grouping rule. Analyze the code's intent and produce a concise, semantic representation.
+      **Example 2: Python Microscopy Function**
+      *Original Code:*
+      \`\`\`python
+      def capture_z_stack(core, channels, z_start, z_end, z_step):
+          all_images = {}
+          for channel in channels:
+              core.setConfig('Channel', channel)
+              images = []
+              for z in numpy.arange(z_start, z_end, z_step):
+                  core.setPosition(z)
+                  core.snapImage()
+                  images.append(core.getImage())
+              all_images[channel] = numpy.array(images)
+          return all_images
+      \`\`\`
+      *Correct CUBE Conversion (The entire function is ONE logical operation):*
+      \`\`\`json
+      {
+        "cube_script": "ACQUIRE|Z_STACK→CHANNELS[Multi]→ITERATE[Z-Planes]→CAPTURE[Images]|COMPLETE",
+        "analysis": "This Python function acquires a multi-channel Z-stack."
+      }
+      \`\`\`
 
-      **Code to Convert:**
+      **Example 3: JavaScript API Call**
+      *Original Code:*
+      \`\`\`javascript
+      async function callClaudeAPI(prompt) {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer sk-ant-api-key',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-3-opus',
+            messages: [{role: 'user', content: prompt}],
+          })
+        });
+        const data = await response.json();
+        return data;
+      }
+      \`\`\`
+      *Correct CUBE Conversion (The entire async function is ONE logical operation):*
+      \`\`\`json
+      {
+        "cube_script": "API|REQUEST[Anthropic]→METHOD[POST]→AUTH[Bearer]→BODY[JSON]→RESPONSE[JSON]|COMPLETE",
+        "analysis": "This JavaScript function makes an authenticated API call to the Anthropic Claude model."
+      }
+      \`\`\`
+
+      Now, apply this logic to the user's code. Analyze its structure, group it into the minimum number of logical CUBE commands, and return the result in the specified JSON format.
+
+      **User's Code to Convert:**
       \`\`\`
       ${code}
       \`\`\`
@@ -154,6 +216,7 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
+        systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
@@ -161,17 +224,17 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
 
     const jsonStr = response.text.trim();
     const result = JSON.parse(jsonStr);
+    
+    const cube_lines = countMeaningfulLines(result.cube_script);
 
     const cube_code_with_header = [
       `# Converted to CUBE Protocol`,
       `# By Phil Hills - Seattle Developer`,
-      `# Analysis: ${result.analysis}\n`,
+      `# Analysis: ${result.analysis}`,
+      `# Compression: ${original_lines}:${cube_lines} lines\n`,
       result.cube_script,
     ].join('\n');
-
-    const original_lines = result.original_lines;
-    const cube_lines = result.cube_lines;
-
+    
     const savings_percent = original_lines > 0 ? Math.round(((original_lines - cube_lines) / original_lines) * 100) : 0;
     
     const metrics: ConversionMetrics = {
