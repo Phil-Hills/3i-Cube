@@ -174,3 +174,9 @@ export const CpuChipIcon: React.FC<IconProps> = ({ className }) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15M9 15l6-6m-1.5-6.75h-3m3 0a.75.75 0 0 1 .75.75v3m-3.75 0V3.75A.75.75 0 0 1 9 3h3m-3 18h3m-3 0a.75.75 0 0 0-.75.75v3m3.75 0V20.25a.75.75 0 0 0-.75-.75h-3m18-3v-3m0 3a.75.75 0 0 1-.75.75h-3m3.75 0H20.25a.75.75 0 0 1-.75-.75v-3m-18 3v-3m0 3a.75.75 0 0 0 .75.75h3M3.75 15H4.5a.75.75 0 0 0 .75-.75v-3" />
     </svg>
 );
+
+export const SparklesIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+    </svg>
+);

@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { CpuChipIcon, CubeIcon, PlayIcon, CircleStackIcon, BeakerIcon, ArrowDownTrayIcon } from './icons';
-import type { View } from '../types';
+import { CpuChipIcon, CubeIcon, PlayIcon, CircleStackIcon, BeakerIcon, ArrowDownTrayIcon, SparklesIcon } from './icons';
 
-type DataSource = 'live' | 'gallery' | 'imagenet';
+type DataSource = 'live' | 'gallery' | 'simulated';
 type Model = 'unet' | 'stardist' | 'custom';
 type LossFunction = 'bce' | 'tversky' | 'dice' | 'focal';
 type OutputAction = 'apply' | 'save' | 'export';
+type SimCellType = 'HeLa' | 'Neurons' | 'Tissue';
+type SimArtifact = 'PSF_Blur' | 'Poisson_Noise' | 'Photobleaching';
 
 interface MLBuilderViewProps {
   onLoadInExecutor: (script: string) => void;
 }
 
 const PipelineNode: React.FC<{ title: string; children: React.ReactNode; icon: React.FC<{ className?: string }> }> = ({ title, children, icon: Icon }) => (
-  <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4 w-full">
+  <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4 w-full flex flex-col">
     <h3 className="text-md font-semibold text-cyan-300 mb-3 flex items-center">
       <Icon className="w-5 h-5 mr-2" />
       {title}
     </h3>
-    <div className="space-y-2">
+    <div className="space-y-2 flex-grow">
       {children}
     </div>
   </div>
@@ -31,23 +32,32 @@ const PipelineConnector: React.FC = () => (
   </div>
 );
 
-
 export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }) => {
-  const [dataSource, setDataSource] = useState<DataSource>('live');
+  const [dataSource, setDataSource] = useState<DataSource>('simulated');
   const [model, setModel] = useState<Model>('unet');
   const [epochs, setEpochs] = useState(50);
   const [learningRate, setLearningRate] = useState('0.001');
   const [lossFunction, setLossFunction] = useState<LossFunction>('dice');
   const [outputAction, setOutputAction] = useState<OutputAction>('apply');
   const [generatedScript, setGeneratedScript] = useState('');
+  
+  // Simulation-specific state
+  const [simCellType, setSimCellType] = useState<SimCellType>('HeLa');
+  const [simImageCount, setSimImageCount] = useState(1000);
+  const [simArtifacts, setSimArtifacts] = useState<Set<SimArtifact>>(new Set(['PSF_Blur', 'Poisson_Noise']));
 
   useEffect(() => {
-    const dataMap = {
-        'live': 'DATA[Live_Feed]',
-        'gallery': 'DATA[From_Gallery]',
-        'imagenet': 'DATA[Public:ImageNet_Sample]'
-    };
-    const dataStr = dataMap[dataSource];
+    let dataStr = '';
+    if (dataSource === 'simulated') {
+        const artifactsStr = Array.from(simArtifacts).join(',');
+        dataStr = `SIMULATE|CELLS[${simCellType}:${simImageCount}]→ARTIFACTS[${artifactsStr}]|DATASET`;
+    } else {
+        const dataMap = {
+            'live': 'DATA[Live_Feed]',
+            'gallery': 'DATA[From_Gallery]',
+        };
+        dataStr = dataMap[dataSource];
+    }
 
     const modelMap = {
         'unet': 'MODEL[U-Net:Segmentation]',
@@ -65,9 +75,21 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
     };
     const outputStr = outputMap[outputAction];
 
-    const script = `ML|${dataStr}→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
+    const script = `${dataStr}\nML|DATA[Generated]→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
     setGeneratedScript(script);
-  }, [dataSource, model, epochs, learningRate, lossFunction, outputAction]);
+  }, [dataSource, model, epochs, learningRate, lossFunction, outputAction, simCellType, simImageCount, simArtifacts]);
+
+  const toggleArtifact = (artifact: SimArtifact) => {
+    setSimArtifacts(prev => {
+        const next = new Set(prev);
+        if (next.has(artifact)) {
+            next.delete(artifact);
+        } else {
+            next.add(artifact);
+        }
+        return next;
+    });
+  };
 
   const SelectInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; children: React.ReactNode }> = ({ label, value, onChange, children }) => (
     <div>
@@ -78,10 +100,10 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
     </div>
   );
   
-  const NumberInput: React.FC<{ label: string; value: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; }> = ({ label, value, onChange }) => (
+  const NumberInput: React.FC<{ label: string; value: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; step?: number }> = ({ label, value, onChange, step=1 }) => (
     <div>
       <label className="text-sm text-slate-400 block mb-1">{label}</label>
-      <input type="number" value={value} onChange={onChange} className="w-full bg-slate-700/50 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+      <input type="number" value={value} onChange={onChange} step={step} className="w-full bg-slate-700/50 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
     </div>
   );
 
@@ -98,10 +120,31 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
       <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4">
         <PipelineNode title="1. Data Source" icon={CircleStackIcon}>
           <SelectInput label="Source" value={dataSource} onChange={e => setDataSource(e.target.value as DataSource)}>
+            <option value="simulated">Simulated Data</option>
             <option value="live">Live Microscope Feed</option>
             <option value="gallery">From Gallery</option>
-            <option value="imagenet">Public Dataset (ImageNet)</option>
           </SelectInput>
+          {dataSource === 'simulated' && (
+            <div className="mt-3 pt-3 border-t border-white/10 space-y-2 animate-fade-in">
+              <SelectInput label="Cell Type" value={simCellType} onChange={e => setSimCellType(e.target.value as SimCellType)}>
+                <option value="HeLa">HeLa Cells</option>
+                <option value="Neurons">Neurons</option>
+                <option value="Tissue">Tissue Section</option>
+              </SelectInput>
+              <NumberInput label="Image Count" value={simImageCount} onChange={e => setSimImageCount(parseInt(e.target.value, 10) || 0)} step={100} />
+              <div>
+                <label className="text-sm text-slate-400 block mb-2">Artifacts</label>
+                <div className="space-y-1">
+                  {(['PSF_Blur', 'Poisson_Noise', 'Photobleaching'] as SimArtifact[]).map(artifact => (
+                    <label key={artifact} className="flex items-center text-sm text-slate-300">
+                      <input type="checkbox" checked={simArtifacts.has(artifact)} onChange={() => toggleArtifact(artifact)} className="mr-2 h-4 w-4 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600"/>
+                      {artifact.replace('_', ' ')}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </PipelineNode>
         
         <PipelineConnector />
@@ -158,7 +201,7 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
         className="mt-2 w-full flex items-center justify-center p-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-lg hover:brightness-110 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-500/50 shadow-2xl shadow-purple-500/20 transform hover:-translate-y-1"
       >
         <PlayIcon className="w-6 h-6 mr-3" />
-        Load in Executor
+        Load in Executor & Run Simulation
       </button>
     </div>
   );

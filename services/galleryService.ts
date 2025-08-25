@@ -7,35 +7,33 @@ const DB_VERSION = 1;
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 const initDB = (): Promise<IDBDatabase> => {
-  if (dbPromise) {
-    return dbPromise;
-  }
-  
   if (typeof indexedDB === 'undefined') {
     return Promise.reject(new Error('IndexedDB is not supported by this browser.'));
   }
 
-  dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => {
-        console.error('Error opening IndexedDB', request.error);
-        dbPromise = null; // Reset promise on error to allow retries
-        reject(new Error(`IndexedDB error: ${request.error?.message}`));
-    };
-    
-    request.onsuccess = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      resolve(db);
-    };
+      request.onerror = () => {
+          console.error('Error opening IndexedDB', request.error);
+          dbPromise = null; // Reset promise on error to allow retries
+          reject(new Error(`IndexedDB error: ${request.error?.message}`));
+      };
+      
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        resolve(db);
+      };
 
-    request.onupgradeneeded = (event) => {
-      const dbInstance = (event.target as IDBOpenDBRequest).result;
-      if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
-        dbInstance.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-    };
-  });
+      request.onupgradeneeded = (event) => {
+        const dbInstance = (event.target as IDBOpenDBRequest).result;
+        if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
+          dbInstance.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        }
+      };
+    });
+  }
   
   return dbPromise;
 };
@@ -53,13 +51,13 @@ const parseCubeScriptForTags = (script: string): { system: string, technique: st
         'DECONVOLVE': 'Deconvolution', 'AI_SEGMENT': 'AI Segmentation', 'REALTIME_DECONV': 'Deconvolution',
         'CONFOCAL': 'Confocal', 'SORA': 'Super-Resolution', 'FRAP': 'FRAP',
         'MULTIVIEW_FUSION': 'Multiview Fusion', 'MASSIVE_VOLUME': 'Volume Imaging', 'LIVE_PROCESS': 'Live Processing',
-        'SUPER_RES': 'Super-Resolution', 'SRDTRANS': 'Super-Resolution'
+        'SUPER_RES': 'Super-Resolution', 'SRDTRANS': 'Super-Resolution', 'SIMULATE': 'ML Simulation',
     };
-    const foundTechnique = Object.keys(techniques).find(t => upperScript.includes(t)) || 'Standard';
+    const foundTechniqueKey = Object.keys(techniques).find(t => upperScript.includes(t)) || 'Standard';
 
     return {
         system: foundSystem,
-        technique: techniques[foundTechnique] || foundTechnique
+        technique: techniques[foundTechniqueKey] || foundTechniqueKey
     };
 };
 

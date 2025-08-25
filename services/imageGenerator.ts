@@ -23,7 +23,9 @@ class AXL_CUDA_ImageGenerator {
 
         const commands = cubeCommand.toUpperCase();
         
-        if (commands.includes('REALTIME_DECONV')) {
+        if (commands.includes('SIMULATE')) {
+            return this.generateSimulatedTrainingDataComparison();
+        } else if (commands.includes('REALTIME_DECONV')) {
             return this.generateRealtimeDeconvolution();
         } else if (commands.includes('SUPER_RES') || commands.includes('SRDTRANS')) {
             return this.generateSuperResolutionComparison();
@@ -42,14 +44,103 @@ class AXL_CUDA_ImageGenerator {
         return this.canvas.toDataURL();
     }
     
+    private generateSimulatedTrainingDataComparison(): string {
+        const centerX = this.width / 2;
+        const centerY = this.height / 2;
+        const cells: {x: number, y: number, radius: number, angle: number, eccentricity: number}[] = [];
+        const numCells = 25;
+        for (let i = 0; i < numCells; i++) {
+            cells.push({
+                x: centerX + (Math.random() - 0.5) * (this.width - 800),
+                y: centerY + (Math.random() - 0.5) * (this.height - 800),
+                radius: 150 + Math.random() * 100,
+                angle: Math.random() * Math.PI,
+                eccentricity: 0.5 + Math.random() * 0.4
+            });
+        }
+    
+        // Left side: Ground Truth Mask
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.rect(0, 0, centerX, this.height);
+        this.ctx.clip();
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(0, 0, centerX, this.height);
+        cells.forEach((cell, i) => {
+            const hue = (i / numCells) * 360;
+            this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+            this.ctx.beginPath();
+            this.ctx.ellipse(cell.x, cell.y, cell.radius, cell.radius * cell.eccentricity, cell.angle, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+        this.ctx.restore();
+
+        // Right side: Simulated Training Image
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.rect(centerX, 0, centerX, this.height);
+        this.ctx.clip();
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(centerX, 0, centerX, this.height);
+        this.ctx.globalCompositeOperation = 'screen';
+        cells.forEach(cell => {
+             this.drawSingleComplexCell(cell.x, cell.y, cell.radius, true);
+        });
+        this.ctx.globalCompositeOperation = 'source-over';
+        // Apply artifacts
+        this.ctx.filter = 'blur(4px) brightness(1.1)';
+        this.ctx.drawImage(this.canvas, centerX, 0, centerX, this.height, centerX, 0, centerX, this.height);
+        this.ctx.filter = 'none';
+        this.addNoise(centerX, 0, centerX, this.height);
+        this.ctx.restore();
+
+        // Dividing line and labels
+        this.ctx.strokeStyle = '#00FFFF';
+        this.ctx.lineWidth = 8;
+        this.ctx.shadowColor = '#00FFFF';
+        this.ctx.shadowBlur = 20;
+        this.ctx.beginPath();
+        this.ctx.moveTo(centerX, 0);
+        this.ctx.lineTo(centerX, this.height);
+        this.ctx.stroke();
+        this.ctx.shadowBlur = 0;
+
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(100, 100, 450, 60);
+        this.ctx.fillRect(centerX + 100, 100, 550, 60);
+
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = 'bold 36px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('Ground Truth Mask', 120, 140);
+        this.ctx.fillText('Simulated Training Image', centerX + 120, 140);
+
+        this.addGPUStats('ML Data Generation', `Generated ${numCells} cells`, 'Realistic Artifacts');
+        return this.canvas.toDataURL();
+    }
+
+    private addNoise(x: number, y: number, w: number, h: number) {
+        const imageData = this.ctx.getImageData(x, y, w, h);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const noise = (Math.random() - 0.5) * 40;
+            data[i] = Math.max(0, Math.min(255, data[i] + noise));
+            data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
+            data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
+        }
+        this.ctx.putImageData(imageData, x, y);
+    }
+
     private generateSuperResolutionComparison(): string {
         const centerX = this.width / 2;
         const centerY = this.height / 2;
     
         // Draw the "Before" side (left)
         this.ctx.save();
-        this.ctx.filter = 'blur(6px) brightness(0.7)';
         this.drawComplexCellStructures(centerX, centerY, 1800, false);
+        this.ctx.filter = 'blur(8px) brightness(0.7)';
+        this.ctx.drawImage(this.canvas, 0, 0);
+        this.ctx.filter = 'none';
         this.ctx.restore();
     
         // Draw the "After" side (right), clipped
@@ -87,16 +178,27 @@ class AXL_CUDA_ImageGenerator {
     }
     
     private drawComplexCellStructures(x: number, y: number, areaRadius: number, highDetail: boolean) {
+        // Clear a circular area for drawing
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, areaRadius * 1.5, 0, Math.PI * 2);
+        this.ctx.clip();
+        this.ctx.fillStyle = '#000';
+        this.ctx.fillRect(0,0, this.width, this.height);
+        this.ctx.restore();
+
+        this.ctx.globalCompositeOperation = 'screen';
         for (let i = 0; i < 30; i++) {
             // Use a seed for positioning to ensure both sides are identical
             const seed = i / 30;
-            const angle = seed * Math.PI * 5;
+            const angle = seed * Math.PI * 5 + (seed * 1.2);
             const dist = seed * areaRadius * 1.5;
             const cellX = x + Math.cos(angle) * dist;
             const cellY = y + Math.sin(angle) * dist;
             const radius = 80 + seed * 100;
             this.drawSingleComplexCell(cellX, cellY, radius, highDetail);
         }
+        this.ctx.globalCompositeOperation = 'source-over';
     }
     
     private drawSingleComplexCell(x: number, y: number, radius: number, highDetail: boolean) {
@@ -104,9 +206,13 @@ class AXL_CUDA_ImageGenerator {
         const nucleusColor = `rgba(75, 10, 255, ${0.9 * brightness})`;
         const cytoplasmColor = `rgba(0, 255, 0, ${0.4 * brightness})`;
         const mitoColor = `rgba(255, 20, 20, ${0.6 * brightness})`;
+        const actinColor = `rgba(255, 0, 255, ${0.5 * brightness})`;
 
         // Cytoplasm
-        this.ctx.fillStyle = cytoplasmColor;
+        const cytoGrad = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
+        cytoGrad.addColorStop(0, `rgba(0, 255, 0, ${0.5 * brightness})`);
+        cytoGrad.addColorStop(1, `rgba(0, 100, 0, ${0.2 * brightness})`);
+        this.ctx.fillStyle = cytoGrad;
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.fill();
@@ -125,13 +231,20 @@ class AXL_CUDA_ImageGenerator {
              this.ctx.strokeStyle = `rgba(200, 255, 200, 0.6)`;
              this.ctx.lineWidth = 2;
              this.ctx.stroke();
+             // Chromatin condensation
+             for(let i=0; i<5; i++) {
+                 this.ctx.fillStyle = `rgba(150, 180, 255, 0.8)`;
+                 this.ctx.beginPath();
+                 this.ctx.arc(x + (Math.random()-0.5) * nucleusRadius, y + (Math.random()-0.5) * nucleusRadius, radius * 0.05, 0, Math.PI*2);
+                 this.ctx.fill();
+             }
         }
 
         // Mitochondria / Internal Structures
         const numMito = highDetail ? 15 : 5;
         for (let i = 0; i < numMito; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * radius * 0.7;
+            const dist = Math.random() * radius * 0.7 + nucleusRadius;
             const mitoX = x + Math.cos(angle) * dist;
             const mitoY = y + Math.sin(angle) * dist;
             const mitoLength = highDetail ? 15 : 10;
@@ -140,6 +253,21 @@ class AXL_CUDA_ImageGenerator {
             this.ctx.beginPath();
             this.ctx.ellipse(mitoX, mitoY, mitoLength, mitoWidth, Math.random() * Math.PI, 0, Math.PI * 2);
             this.ctx.fill();
+        }
+        
+        // Actin Filaments (only in high detail)
+        if (highDetail) {
+            this.ctx.strokeStyle = actinColor;
+            this.ctx.lineWidth = 1.5;
+            this.ctx.shadowColor = actinColor;
+            this.ctx.shadowBlur = 5;
+            for(let i=0; i < 10; i++) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x - radius + Math.random() * 2 * radius, y - radius + Math.random() * 2 * radius);
+                this.ctx.lineTo(x - radius + Math.random() * 2 * radius, y - radius + Math.random() * 2 * radius);
+                this.ctx.stroke();
+            }
+            this.ctx.shadowBlur = 0;
         }
     }
 
@@ -426,7 +554,7 @@ export class MicroscopyImageGenerator {
 
     public generateFromCube(cubeCommand: string): string {
         const commands = cubeCommand.toUpperCase();
-        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS'];
+        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS', 'SIMULATE'];
 
         if (axlKeywords.some(kw => commands.includes(kw))) {
             if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
