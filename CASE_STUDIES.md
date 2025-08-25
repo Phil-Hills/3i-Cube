@@ -1,10 +1,11 @@
-# Case Studies: Achieving 91:1 Compression on Real 3i Workflows
+
+# Case Studies: Achieving 91:1 Compression on Real Microscopy Workflows
 
 ```cube
 BENCHMARK|ORIGINAL[2374_lines]→CUBE[26_commands]→RATIO[91.3:1]|VALIDATED
 ```
 
-This document provides a detailed analysis of three complex Python notebooks used for 3i microscopy workflows, demonstrating their conversion into the CUBE Protocol. The results showcase an average code compression ratio of **91.3-to-1**, proving the protocol's ability to dramatically simplify and standardize advanced scientific programming.
+This document provides a detailed analysis of three complex Python notebooks used for microscopy workflows, demonstrating their conversion into the CUBE Protocol. The results showcase an average code compression ratio of **91.3-to-1**, proving the protocol's ability to dramatically simplify and standardize advanced scientific programming.
 
 ---
 
@@ -38,7 +39,7 @@ class ExperimentManager:
 
     def acquire_zstack(self, well):
         # ... acquire multi-channel Z-stack ...
-        # ... save data to distributed .sldy files ...
+        # ... save data to distributed files ...
 
 class AnalysisPipeline:
     def deconvolve(self, data):
@@ -54,18 +55,18 @@ class AnalysisPipeline:
 ### After: CUBE Protocol (11 lines)
 ```cube
 # Multi-Well Plate High-Content Screen
-SETUP|MICROSCOPE[Marianas]→OBJECTIVE[60x_Oil]→CAMERA[ORCA-Fusion]|CONFIGURED
+SETUP|MICROSCOPE[System_A]→OBJECTIVE[60x_Oil]→CAMERA[Camera_1]|CONFIGURED
 LOAD|PLATE[384_Well_Plate_ID]→GEOMETRY[Corning_3712]|READY
 CALIBRATE|FOCUS[Surface_Scan]→PSF[Measure:Beads_Well_A1]|COMPLETE
 
 EXECUTE|WELLS[A1:P24]→ITERATE[Positions:16]|RUNNING
-  ACQUIRE|ZSTACK[50:0.2um]→CHANNELS[DAPI,GFP,RFP]→SAVE[SLDY]|CAPTURED
+  ACQUIRE|ZSTACK[50:0.2um]→CHANNELS[DAPI,GFP,RFP]→SAVE[DATA]|CAPTURED
   PROCESS|DECONVOLVE[RichardsonLucy:20]→GPU[CUDA]|RESTORED
   ANALYZE|SEGMENT[U-Net:Nuclei]→MEASURE[Intensity,Area]|ANALYZED
 END|ITERATE|WELLS_COMPLETE
 
 EXPORT|RESULTS[Database]→FORMAT[CSV]→PATH[/analysis/plate_id]|SAVED
-NOTIFY|USER[team@3i.com]→STATUS[SUCCESS]|SENT
+NOTIFY|USER[team@example.com]→STATUS[SUCCESS]|SENT
 CLEANUP|SYSTEM[Shutdown_Lasers]→OBJECTIVE[Move_Home]|DONE
 ```
 
@@ -73,7 +74,7 @@ CLEANUP|SYSTEM[Shutdown_Lasers]→OBJECTIVE[Move_Home]|DONE
 
 ## Case Study 2: Adaptive Optics Correction Loop
 
-- **Original Lines:** 473 (Python with ALPAO SDK, custom merit functions)
+- **Original Lines:** 473 (Python with a vendor-specific SDK, custom merit functions)
 - **CUBE Commands:** 7
 - **Compression Ratio:** 67:1
 
@@ -82,12 +83,12 @@ CLEANUP|SYSTEM[Shutdown_Lasers]→OBJECTIVE[Move_Home]|DONE
 # This script performs indirect, image-based adaptive optics correction
 # by iterating through Zernike modes and optimizing a merit function.
 
-import alpaodm
+import deformable_mirror_sdk as dm_sdk
 import numpy as np
 # ... other imports
 
 def init_dm():
-    # ... initialize ALPAO deformable mirror ...
+    # ... initialize deformable mirror ...
     
 def calculate_merit_function(image):
     # ... calculate image sharpness using FFT or wavelet analysis ...
@@ -107,7 +108,7 @@ def optimize_loop():
 ### After: CUBE Protocol (7 lines)
 ```cube
 # Adaptive Optics Correction Routine
-CONNECT|DM[ALPAO_97]→CAMERA[Acquire_Live]|INITIALIZED
+CONNECT|DM[Deformable_Mirror]→CAMERA[Acquire_Live]|INITIALIZED
 CALIBRATE|SYSTEM[Find_Flat_Reference]|COMPLETE
 
 OPTIMIZE|MODES[Zernike:3-11]→AMPLITUDES[-0.5:0.1:0.5]|STARTING
@@ -122,7 +123,7 @@ APPLY|CORRECTION[Optimal_Shape]→DM[Update]→LOCK|CORRECTED
 
 ## Case Study 3: Live Cell FRAP Experiment
 
-- **Original Lines:** 246 (Python for controlling Vector photomanipulation)
+- **Original Lines:** 246 (Python for controlling photomanipulation hardware)
 - **CUBE Commands:** 8
 - **Compression Ratio:** 30:1
 
@@ -137,7 +138,7 @@ def pre_bleach_capture():
     # ... capture baseline fluorescence ...
 
 def bleach_rois():
-    # ... iterate through ROIs, control Vector scanner and laser power ...
+    # ... iterate through ROIs, control scanner and laser power ...
 
 def post_bleach_monitor():
     # ... time-lapse acquisition of recovery ...
@@ -155,7 +156,7 @@ SETUP|ENVIRONMENT[37C:5%CO2]→FOCUS[PerfectFocusSystem]|STABLE
 LOAD|ROIS[FromFile:rois.json]|DEFINED
 
 ACQUIRE|PREBLEACH[10_frames:100ms_exp]|BASELINE_CAPTURED
-PHOTOMANIP|VECTOR[Target_ROIs]→LASER[488nm:100%]→BLEACH[5_iterations]|EXECUTED
+PHOTOMANIP|SCANNER[Target_ROIs]→LASER[488nm:100%]→BLEACH[5_iterations]|EXECUTED
 ACQUIRE|POSTBLEACH[300_frames:100ms_exp]→TIMELAPSE[30s_total]|MONITORING
 
 ANALYZE|KINETICS[FRAP_Recovery]→FIT[Exponential]|CALCULATED

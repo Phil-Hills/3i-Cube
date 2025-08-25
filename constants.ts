@@ -2,16 +2,16 @@
 import type { ExampleScriptCategory, ConverterExample, Brand, BrandConfig } from './types';
 
 export const BRAND_CONFIGS: Record<Brand, BrandConfig> = {
-  '3i': { name: '3i (Intelligent Imaging Innovations)', appName: 'CUBE Protocol for 3i Microscopes' },
+  'generic': { name: 'CUBE Protocol', appName: 'Universal CUBE Protocol' },
+  '3i': { name: '3i', appName: 'CUBE Protocol for 3i' },
   'zeiss': { name: 'Zeiss', appName: 'ZEN CUBE Protocol' },
   'nikon': { name: 'Nikon', appName: 'NIS CUBE Protocol' },
   'leica': { name: 'Leica Microsystems', appName: 'LAS X CUBE' },
   'olympus': { name: 'Olympus (Evident Scientific)', appName: 'cellSens CUBE' },
-  'generic': { name: 'Generic', appName: 'Universal CUBE Protocol' },
 };
 
 export const BRANDED_METHOD_SCRIPTS: Record<Brand, ExampleScriptCategory[]> = {
-  '3i': [
+  'generic': [
     {
       category: "AI Media Generation",
       description: "Use generative AI models to create images and videos from text prompts.",
@@ -24,7 +24,7 @@ export const BRANDED_METHOD_SCRIPTS: Record<Brand, ExampleScriptCategory[]> = {
       ]
     },
     {
-      category: "AXL with CUDA Acceleration",
+      category: "GPU Acceleration",
       description: "GPU-accelerated workflows for real-time processing and AI.",
       scripts: [
         {
@@ -37,30 +37,51 @@ ENHANCE|IMAGE[input.tif]→SUPER_RES[SRDTrans:4x]→DENOISE→SAVE|HD`
           name: "U-Net Nuclei Segmentation",
           description: "Run a U-Net model on the GPU to segment and label nuclei in an image.",
           script: `# AI segmentation with CUDA acceleration
-AXL|AI[U-Net_Nuclei]→GPU[RTX_4090]→SEGMENT|INTELLIGENT
-PROCESS|IMAGE[Input]→INFERENCE[25ms]→MASK[Instance]→LABEL[Unique_IDs]|FAST
+PROCESS|IMAGE[Input]→AI[U-Net_Nuclei]→GPU[ACCELERATED]→SEGMENT|INTELLIGENT
 ANALYZE|COUNT[Nuclei]→MEASURE[Area,Shape]→EXPORT[CSV]|COMPLETE`
         },
         {
           name: "StarDist 3D Cell Tracking",
           description: "Use StarDist 3D for high-accuracy object detection and tracking in a volume over time.",
           script: `# 3D tracking with StarDist
-AXL|AI[StarDist_3D]→GPU[RTX_4090]→TRACK[4D_Volume]|PRECISE
-PROCESS|TIMESERIES[100_Volumes]→DETECT[Cells]→LINK[Trajectories]|ACCURATE
+PROCESS|TIMESERIES[100_Volumes]→AI[StarDist_3D]→GPU[ACCELERATED]→TRACK[4D_Volume]|PRECISE
 VISUALIZE|RENDER[3D_Tracks]→COLOR[Time]→EXPORT[Movie]|DYNAMIC`
         },
         {
           name: "Real-time Deconvolution",
           description: "Process a 4K video stream live with GPU-accelerated deconvolution.",
-          script: `# GPU-accelerated deconvolution with AXL
-AXL|GPU[RTX_4090]→DECONVOLVE[REALTIME_DECONV]→CUDA[ACCELERATED]|INSTANT
-PROCESS|STREAM[4K_Video]→DECONV[Live]→DISPLAY[120fps]→LATENCY[8ms]|SMOOTH
+          script: `# GPU-accelerated deconvolution
+PROCESS|STREAM[4K_Video]→DECONVOLVE[Live]→GPU[ACCELERATED]→DISPLAY[120fps]|SMOOTH
 SAVE|FORMAT[H265]→COMPRESS[GPU]→BITRATE[100Mbps]|EFFICIENT`
         },
       ]
     },
     {
-      category: "Real 3i Workflows",
+      category: "Core Techniques",
+      description: "Fundamental and commonly used imaging protocols.",
+      scripts: [
+        {
+          name: "Spinning Disk Confocal",
+          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
+          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
+        },
+        {
+          name: "Live Cell Perfect Focus",
+          description: "Long-term imaging with hardware autofocus to maintain stability.",
+          script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
+        },
+        {
+          name: "Cleared Tissue Imaging",
+          description: "Image a large cleared tissue sample by scanning and stitching tiles.",
+          script: `SCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING
+STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
+        }
+      ]
+    },
+  ],
+  '3i': [
+     {
+      category: "3i-Specific Workflows",
       description: "End-to-end examples of complex experiments on 3i systems.",
       scripts: [
         {
@@ -72,21 +93,13 @@ TIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUN
 ANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE`
         },
         {
-          name: "AXL Lattice Light Sheet",
+          name: "Lattice Light Sheet",
           description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution.",
-          script: `# 4D Lattice light sheet with AXL
+          script: `# 4D Lattice light sheet with AXL GPU acceleration
 AXL|LATTICE→SAMPLE[Zebrafish_Embryo]→GENTLE[Low_Power]|CONFIGURED
 ACQUIRE|4D→VOLUME[500x500x200um]→TIME[6h]→INTERVAL[30s]|CAPTURING
 PROCESS|DECONVOLVE[AI]→PROJECT[MIP]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
         },
-        {
-          name: "Cleared Tissue Imaging",
-          description: "Image an entire mouse brain section by scanning and stitching large tiles.",
-          script: `# Cleared tissue with 3i AXL
-AXL|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY
-SCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING
-STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
-        }
       ]
     },
   ],
@@ -112,22 +125,6 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
             }
         ]
     },
-    {
-      category: "Universal Techniques",
-      description: "Core techniques applicable to any microscope.",
-      scripts: [
-        {
-          name: "Spinning Disk Confocal",
-          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
-          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
-        },
-        {
-          name: "Live Cell Imaging",
-          description: "Long-term imaging with hardware autofocus to maintain stability.",
-          script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
-        },
-      ]
-    },
   ],
   'nikon': [
     {
@@ -150,22 +147,6 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
                 script: `NIKON|JOBS[Load:My_Experiment.job]→EXECUTE|COMPLETE`
             }
         ]
-    },
-    {
-      category: "Universal Techniques",
-      description: "Core techniques applicable to any microscope.",
-      scripts: [
-        {
-          name: "Spinning Disk Confocal",
-          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
-          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
-        },
-        {
-          name: "Live Cell Imaging",
-          description: "Long-term imaging with hardware autofocus to maintain stability.",
-          script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
-        },
-      ]
     },
   ],
   'leica': [
@@ -204,29 +185,11 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
       ]
     }
   ],
-  'generic': [
-    {
-      category: "Core Techniques",
-      description: "Fundamental and commonly used imaging protocols.",
-      scripts: [
-        {
-          name: "Spinning Disk Confocal",
-          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
-          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
-        },
-        {
-          name: "Live Cell Perfect Focus",
-          description: "Long-term imaging with hardware autofocus to maintain stability.",
-          script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
-        },
-      ]
-    },
-  ]
 };
 
 export const CODE_CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
   {
-    name: "3i Case Study 1: Multi-Well Plate Analysis",
+    name: "Case Study 1: Multi-Well Plate Analysis",
     description: "Original Lines: 1655, CUBE Commands: 11, Ratio: 150:1. A full high-content screening workflow.",
     code: `# Full Python script includes extensive error handling, parallel processing setup (Dask/Ray), 
 # database logging, and custom visualization functions using libraries like NumPy, 
@@ -259,7 +222,7 @@ class ExperimentManager:
 
     def acquire_zstack(self, well):
         # ... complex multi-channel Z-stack acquisition logic ...
-        # ... save data to distributed .sldy files with metadata ...
+        # ... save data to distributed files with metadata ...
         return path_to_data
 
 class AnalysisPipeline:
@@ -282,11 +245,11 @@ class AnalysisPipeline:
 `
   },
   {
-    name: "3i Case Study 2: Adaptive Optics Correction",
+    name: "Case Study 2: Adaptive Optics Correction",
     description: "Original Lines: 473, CUBE Commands: 7, Ratio: 67:1. An iterative hardware optimization routine.",
     code: `# This Python script performs indirect, image-based adaptive optics correction
 # by iterating through Zernike modes and optimizing a merit function.
-# It uses the ALPAO SDK and custom image quality metrics.
+# It uses a deformable mirror SDK and custom image quality metrics.
 
 import alpaodm
 import numpy as np
@@ -295,7 +258,7 @@ from scipy.optimize import curve_fit
 
 class AdaptiveOpticsController:
     def __init__(self):
-        self.dm = alpaodm. डीएम() # Initialize ALPAO DM
+        self.dm = alpaodm.DM() # Initialize Deformable Mirror
         # ... camera and device setup ...
 
     def calculate_merit_function(self, image):
@@ -323,9 +286,9 @@ class AdaptiveOpticsController:
 `
   },
   {
-    name: "3i Case Study 3: Live Cell FRAP Experiment",
+    name: "Case Study 3: Live Cell FRAP Experiment",
     description: "Original Lines: 246, CUBE Commands: 8, Ratio: 30:1. A photomanipulation and recovery monitoring workflow.",
-    code: `# Python script to perform a multi-ROI FRAP experiment using a 3i Vector scanner.
+    code: `# Python script to perform a multi-ROI FRAP experiment using a photomanipulation scanner.
 # Includes environmental control, precise timing, and kinetic analysis.
 
 import time
@@ -352,7 +315,7 @@ class FrapExperiment:
         # ... capture N frames at low laser power for baseline ...
 
     def execute_bleach(self):
-        # ... control Vector scanner to target ROIs ...
+        # ... control scanner to target ROIs ...
         # ... set laser to high power, open shutter for specified duration ...
     
     def monitor_post_bleach(self):
@@ -387,7 +350,7 @@ export const NATURAL_LANGUAGE_EXAMPLES: { name: string, description: string, pro
   {
     name: "Super-Resolution of Cytoskeleton",
     description: "Achieve sub-120nm resolution on fixed cells.",
-    prompt: "Use SoRa super-resolution to image the cytoskeleton in fixed cells. I'm looking for 120 nanometer resolution. I've stained them for actin with a 488 dye and tubulin with a 561 dye."
+    prompt: "Use a super-resolution technique to image the cytoskeleton in fixed cells. I'm looking for 120 nanometer resolution. I've stained them for actin with a 488 dye and tubulin with a 561 dye."
   },
   {
     name: "Targeted Photobleaching (FRAP)",
@@ -402,11 +365,11 @@ export const DATA_COMPRESSION_EXAMPLES: { name: string, description: string, dat
     description: "Compress a typical JSON payload from an API.",
     data: JSON.stringify({
       "experimentId": "EXP-2024-07-29-001",
-      "user": "phil_hills",
-      "system": "3i_AXL",
+      "user": "demo_user",
+      "system": "microscope_A",
       "parameters": {
         "objective": "60x Oil",
-        "mode": "Lattice Light Sheet",
+        "mode": "Confocal",
         "channels": ["GFP", "RFP"],
         "z_stack": {
           "slices": 200,
@@ -417,7 +380,7 @@ export const DATA_COMPRESSION_EXAMPLES: { name: string, description: string, dat
           "interval_s": 30
         }
       },
-      "rawDataUri": "/data/raw/exp001.sldy"
+      "rawDataUri": "/data/raw/exp001.dat"
     }, null, 2)
   },
   {
@@ -427,12 +390,12 @@ export const DATA_COMPRESSION_EXAMPLES: { name: string, description: string, dat
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>3i Experiment Report</title>
+    <title>Experiment Report</title>
 </head>
 <body>
     <h1>Experiment EXP-2024-07-29-001</h1>
-    <p>Conducted by: Phil Hills</p>
-    <p>System: 3i AXL</p>
+    <p>Conducted by: Demo User</p>
+    <p>System: Microscope A</p>
     <p>This report contains the preliminary findings from the live cell imaging session. Further analysis is pending.</p>
 </body>
 </html>`
@@ -440,11 +403,11 @@ export const DATA_COMPRESSION_EXAMPLES: { name: string, description: string, dat
   {
     name: "README.md Content",
     description: "Compress a markdown document.",
-    data: `# CUBE Protocol Technical Overview for 3i Systems
+    data: `# CUBE Protocol Technical Overview
 
 ## 1. Introduction
 
-CUBE Protocol is a semantic control language designed for 3i's SlideBook software and associated microscopy systems. It standardizes complex microscopy operations into a simple, three-part command structure, aiming to improve reproducibility, automation, and ease of use.
+CUBE Protocol is a semantic control language designed for complex scientific instruments. It standardizes operations into a simple, three-part command structure, aiming to improve reproducibility, automation, and ease of use.
 
 ## 2. Core Syntax
 

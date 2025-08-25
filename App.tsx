@@ -60,7 +60,7 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
-  const initialBrand: Brand = '3i';
+  const initialBrand: Brand = 'generic';
 
   const [brand, setBrand] = useState<Brand>(initialBrand);
   const [cubeScript, setCubeScript] = useState<string>(getInitialScript(initialBrand));
@@ -260,7 +260,7 @@ const App: React.FC = () => {
         {renderView()}
       </main>
       
-      <StatusBar status={microscopeStatus} />
+      <StatusBar status={microscopeStatus} brand={brand} />
       {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
       {isDocsModalOpen && <DocsModal onClose={() => setIsDocsModalOpen(false)} />}
       {isImageModalOpen && selectedMedia && (

@@ -1,16 +1,17 @@
-# CUBE PROTOCOL FOR 3i TECHNICAL WORKFLOWS
+
+# Example: Advanced Technical Workflows with CUBE
 
 ```cube
-SLIDEBOOK|TECHNICAL[Answers]→AUTOMATE[Workflows]→SIMPLIFY[Complex]|REVOLUTIONARY
+WORKFLOWS|TECHNICAL[Answers]→AUTOMATE[Complex]→SIMPLIFY[Operations]|REVOLUTIONARY
 ```
 
-## MAPPING 3i TECHNICAL ANSWERS TO CUBE COMMANDS
+## MAPPING TECHNICAL ANSWERS TO CUBE COMMANDS
 
-After analyzing the technical answers page, here's how CUBE Protocol can simplify these complex SlideBook operations:
+This document shows how CUBE Protocol can simplify complex, technical operations found in advanced microscopy software.
 
 ### 1. **CAPTURE WORKFLOWS**
 
-#### Traditional SlideBook Workflow:
+#### Traditional Process:
 ```
 1. Open Capture window
 2. Configure channels
@@ -59,7 +60,7 @@ DECONVOLVE|IMAGE[Current]→PSF[Measured]→ALGORITHM[ConstrainedIterative:10]�
 ANALYZE|SEGMENT[Threshold:Auto]→MEASURE[Area,Intensity,Count]→EXPORT[CSV]|COMPLETE
 ```
 
-## TECHNICAL ANSWER AUTOMATIONS
+## TECHNICAL AUTOMATIONS
 
 ### Common Technical Questions as CUBE Commands:
 
@@ -85,7 +86,7 @@ EXPORT|FORMAT[OME-TIFF]→METADATA[Include]→COMPRESSION[LZW]→PATH[/exports]|
 
 ## ADVANCED TECHNICAL WORKFLOWS
 
-### 1. **Conditional Capture (MATLAB Integration)**
+### 1. **Conditional Capture (Script Integration)**
 ```cube
 CONDITIONAL|SCAN[LowMag]→DETECT[Cells>Threshold]→CAPTURE[HighMag:Selected]→ANALYZE|SMART
 ```
@@ -175,37 +176,17 @@ FIX|AUTOFOCUS[Hardware]→INTERVAL[Every:3]→OFFSET[Store]|STABILIZED
 FIX|OVERLAP[Increase:20%]→CORRELATION[Refine]→BLEND[Gaussian]|SMOOTH
 ```
 
-## INTEGRATION WITH SLIDEBOOK FEATURES
-
-### SlideBook Modules as CUBE Domains
-```cube
-# 3D Deconvolution Module
-DECONVOLVE|METHOD[ConstrainedIterative]→PSF[Measured]→GPU|RESTORED
-
-# Stereology Module
-STEREOLOGY|GRID[Systematic]→COUNT[Unbiased]→ESTIMATE[Volume]|QUANTIFIED
-
-# FRET Module
-FRET|LIFETIME[Measure]→EFFICIENCY[Calculate]→DISPLAY[HeatMap]|ANALYZED
-
-# Ratio Imaging Module
-RATIO|INDICATORS[Fura2:340:380]→CALIBRATE[InVivo]→CALCULATE|MEASURED
-
-# Photomanipulation Module
-PHOTOMANIP|VECTOR[Points]→POWER[Laser:50%]→DURATION[100ms]|ACTIVATED
-```
-
-## CUBE SCRIPT GENERATOR FOR SLIDEBOOK
+## CUBE SCRIPT GENERATOR (CONCEPT)
 
 ```python
-class SlideBookCubeGenerator:
+class CubeGenerator:
     """
-    Generate CUBE commands from SlideBook UI selections
+    Generate CUBE commands from UI selections
     """
     
     def generate_capture_cube(self, settings):
         """
-        Convert SlideBook capture settings to CUBE
+        Convert capture settings to CUBE
         """
         components = []
         
@@ -227,47 +208,41 @@ class SlideBookCubeGenerator:
             t = settings['time_lapse']
             components.append(f"TIMELAPSE[{t['duration']}:{t['interval']}]")
         
-        # Multi-position
-        if settings['positions']:
-            components.append(f"POSITIONS[{len(settings['positions'])}]")
-        
         sequence = '→'.join(components) if components else 'IMAGE'
         
         return f"CAPTURE|{sequence}|ACQUIRED"
     
-    def parse_cube_to_slidebook(self, cube_command):
+    def parse_cube_to_api_calls(self, cube_command):
         """
-        Convert CUBE command to SlideBook API calls
+        Convert CUBE command to vendor API calls
         """
         # Parse CUBE
         domain, sequence, outcome = cube_command.split('|')
         
-        slidebook_commands = []
+        api_commands = []
         
         if domain == 'CAPTURE':
-            # Parse sequence
             operations = sequence.split('→')
-            
             for op in operations:
                 if 'CHANNELS' in op:
                     # Extract channel settings
                     channels = self.parse_channels(op)
                     for ch in channels:
-                        slidebook_commands.append(
-                            f"slide.capture.add_channel('{ch['name']}', {ch['exposure']})"
+                        api_commands.append(
+                            f"microscope.add_channel('{ch['name']}', {ch['exposure']})"
                         )
                 
                 elif 'ZSTACK' in op:
                     # Extract Z-stack settings
                     z_params = self.parse_zstack(op)
-                    slidebook_commands.append(
-                        f"slide.capture.set_zstack({z_params['slices']}, {z_params['step']})"
+                    api_commands.append(
+                        f"microscope.set_zstack({z_params['slices']}, {z_params['step']})"
                     )
         
-        return slidebook_commands
+        return api_commands
 ```
 
-## CUBE PROTOCOL ADVANTAGES FOR 3i USERS
+## CUBE PROTOCOL ADVANTAGES FOR TECHNICAL USERS
 
 ### 1. **Simplified Training**
 - New users learn CUBE syntax in minutes
@@ -285,67 +260,14 @@ class SlideBookCubeGenerator:
 - Batch processing with variations
 
 ### 4. **Cross-Platform**
-- Same CUBE works on any 3i system
+- Same CUBE works on any system
 - Export protocols between labs
 - Universal microscopy language
-
-## IMPLEMENTATION FOR SLIDEBOOK
-
-```python
-# slidebook_cube_bridge.py
-class SlideBookCubeBridge:
-    """
-    Bridge between CUBE Protocol and SlideBook API
-    """
-    
-    def __init__(self, slidebook_instance):
-        self.sb = slidebook_instance
-        self.command_map = {
-            'CAPTURE': self.execute_capture,
-            'PROCESS': self.execute_process,
-            'ANALYZE': self.execute_analyze,
-            'EXPORT': self.execute_export
-        }
-    
-    def execute_cube(self, cube_command):
-        """
-        Execute CUBE command in SlideBook
-        """
-        domain, sequence, outcome = self.parse_cube(cube_command)
-        
-        if domain in self.command_map:
-            return self.command_map[domain](sequence, outcome)
-        else:
-            raise ValueError(f"Unknown domain: {domain}")
-    
-    def execute_capture(self, sequence, outcome):
-        """
-        Execute capture operations
-        """
-        # Parse sequence and execute in SlideBook
-        operations = self.parse_sequence(sequence)
-        
-        for op in operations:
-            if op['name'] == 'CHANNELS':
-                for channel in op['params']:
-                    self.sb.add_channel(channel)
-            
-            elif op['name'] == 'ZSTACK':
-                self.sb.set_zstack(op['params'])
-            
-            elif op['name'] == 'TIMELAPSE':
-                self.sb.set_timelapse(op['params'])
-        
-        # Start capture
-        return self.sb.start_capture()
-```
 
 ## THE BOTTOM LINE
 
 ```cube
-SLIDEBOOK|COMPLEX[Operations]→CUBE[Simple]→EFFICIENCY[10x]|REVOLUTIONARY
+COMPLEXITY|Technical[Operations]→CUBE[Simple]→EFFICIENCY[10x]|REVOLUTIONARY
 ```
 
-CUBE Protocol can transform SlideBook's powerful but complex operations into simple, shareable, and reproducible commands. This makes advanced microscopy accessible to more researchers while maintaining full control over sophisticated features.
-
-The technical answers page shows dozens of complex workflows that could each be reduced to a single CUBE command, making SlideBook even more powerful and user-friendly!
+CUBE Protocol can transform any software's powerful but complex operations into simple, shareable, and reproducible commands. This makes advanced microscopy accessible to more researchers while maintaining full control over sophisticated features.

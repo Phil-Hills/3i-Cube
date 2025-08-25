@@ -4,23 +4,23 @@ import { CubeIcon, XMarkIcon } from './icons';
 
 const AdaptiveOpticsShowcase: React.FC = () => (
   <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4 my-6">
-      <h4 className="text-lg font-semibold text-slate-100 mb-3 text-center">Killer Example: Adaptive Optics</h4>
-      <p className="text-sm text-center text-slate-400 mb-4">A real 200+ line 3i MATLAB script is converted into just 6 lines of CUBE.</p>
+      <h4 className="text-lg font-semibold text-slate-100 mb-3 text-center">Example: Adaptive Optics</h4>
+      <p className="text-sm text-center text-slate-400 mb-4">A real 200+ line script is converted into just 6 lines of CUBE.</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-              <h5 className="font-semibold text-red-300 mb-2">Before (MATLAB - Excerpt)</h5>
+              <h5 className="font-semibold text-red-300 mb-2">Before (Procedural Script - Excerpt)</h5>
               <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-red-200/80 h-full overflow-auto"><code>{`
-% This script performs indirect, image-based adaptive optics
-% ... (150+ lines of nested loops, calibration, and plotting)
+# This script performs indirect, image-based adaptive optics
+# ... (150+ lines of nested loops, calibration, and plotting)
 
-[nZern, Z2C, dm] = Init_ALPAO_DM();
+[nZern, Z2C, dm] = Init_Deformable_Mirror();
 dm.Reset();
 
 p = polyfit(Spherical_calibration, Defocus_corection, 1);
 
 for i = Zernike_index
   for j = 1:length(ZernikeAmplitude) 
-    [zernikeVector] = set_zernike_ALPAO_DM(dm, nZern, Z2C, ...);      
+    [zernikeVector] = set_zernike_on_dm(dm, nZern, Z2C, ...);      
     
     isRequestingFrame = 1;
     while (isFrameReady == 0)
@@ -33,15 +33,15 @@ for i = Zernike_index
   [Max_amp_fit(i)] = Find_maximal_zernike(...);
 end
 
-% Apply optimal pattern
+# Apply optimal pattern
 dm.Send(zernikeVector * Z2C);
 `}</code></pre>
           </div>
            <div>
               <h5 className="font-semibold text-green-300 mb-2">After (CUBE Protocol)</h5>
               <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-green-200/80 h-full overflow-auto"><code>{`
-# 3i Adaptive Optics - By Phil Hills
-CONNECT|MICROSCOPE[3i]→DM[ALPAO]|READY
+# Adaptive Optics - By Phil Hills
+CONNECT|MICROSCOPE→DM[Deformable_Mirror]|READY
 
 CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[...]|FITTED
 
@@ -93,7 +93,7 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <AdaptiveOpticsShowcase />
           
            <div className="text-center border-t border-white/10 pt-6 mt-6">
-              <h4 className="text-xl font-semibold text-slate-100 mb-2">Ready to Transform Your 3i Workflow?</h4>
+              <h4 className="text-xl font-semibold text-slate-100 mb-2">Ready to Transform Your Workflow?</h4>
               <p className="text-slate-400 mb-4">Bring the power of CUBE Protocol to your lab.</p>
               <div className="flex justify-center space-x-4">
                   <button className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-md hover:brightness-110 transition-all duration-300 shadow-lg shadow-purple-500/30">

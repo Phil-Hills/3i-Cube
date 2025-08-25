@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CubeIcon, ArrowPathIcon } from './icons';
 import type { View } from '../types';
@@ -44,7 +45,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onViewChange }) =>
                 CUBE Protocol v2.0 Dashboard
             </h1>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-400">
-                Showcasing a <span className="text-cyan-300 font-semibold">91.3:1</span> average code compression ratio on real-world 3i workflows.
+                Showcasing a <span className="text-cyan-300 font-semibold">91.3:1</span> average code compression ratio on real-world microscopy workflows.
             </p>
              <div className="mt-6">
                 <button
@@ -60,10 +61,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onViewChange }) =>
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl p-6">
             <h2 className="text-2xl font-bold text-slate-100 mb-4 flex items-center">
                 <CubeIcon className="w-7 h-7 text-cyan-400 mr-3" />
-                3i Workflow Compression Benchmark
+                Microscopy Workflow Compression Benchmark
             </h2>
             <p className="text-slate-400 mb-6">
-                Analysis of three complex Python scripts, converted to CUBE Protocol.
+                Analysis of complex Python microscopy scripts, converted to CUBE Protocol.
             </p>
             
             <div className="overflow-x-auto">

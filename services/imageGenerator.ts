@@ -1,5 +1,6 @@
-// AXL with NVIDIA CUDA acceleration by Phil Hills - Seattle Developer
-class AXL_CUDA_ImageGenerator {
+
+// Advanced Image Generation with NVIDIA CUDA acceleration by Phil Hills - Seattle Developer
+class AdvancedImageGenerator {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private width = 4096;
@@ -11,12 +12,12 @@ class AXL_CUDA_ImageGenerator {
         this.canvas.height = this.height;
         const context = this.canvas.getContext('2d');
         if (!context) {
-            throw new Error('Failed to get 2D context for AXL CUDA generator');
+            throw new Error('Failed to get 2D context for image generator');
         }
         this.ctx = context;
     }
 
-    public async generateAXLCudaMedia(cubeCommand: string): Promise<{url: string, type: 'image' | 'video'}> {
+    public async generateMedia(cubeCommand: string): Promise<{url: string, type: 'image' | 'video'}> {
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(0, 0, 4096, 4096);
         this.addGPUIndicator();
@@ -47,8 +48,8 @@ class AXL_CUDA_ImageGenerator {
             this.generateDatasetPreview(cubeCommand);
             url = this.canvas.toDataURL();
         } else {
-          this.generateStandardAXLCuda(cubeCommand);
-          this.addAXLMetadata('Standard AXL');
+          this.generateStandardMicroscopy(cubeCommand);
+          this.addMicroscopyMetadata('Standard Acquisition');
           url = this.canvas.toDataURL();
         }
         return { url, type: 'image' };
@@ -220,6 +221,34 @@ class AXL_CUDA_ImageGenerator {
                     cells.push(...newCells);
 
                     this.ctx.globalCompositeOperation = 'source-over';
+                    
+                    // Add reassuring messages
+                    const progress = frame / duration;
+                    const messages = [
+                        { t: 0, msg: "Initializing VEO AI Model..." },
+                        { t: 0.2, msg: "Parsing prompt and generating keyframes..." },
+                        { t: 0.6, msg: "Interpolating frames and upscaling..." },
+                        { t: 0.9, msg: "Encoding final video..." },
+                    ];
+                    let currentMessage = messages[0].msg;
+                    for (const message of messages) {
+                        if (progress >= message.t) {
+                            currentMessage = message.msg;
+                        }
+                    }
+                    this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    this.ctx.fillRect(0, 0, this.width, 100);
+                    this.ctx.fillStyle = '#FFFFFF';
+                    this.ctx.font = 'bold 36px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(currentMessage, this.width/2, 65);
+
+                    // Progress bar
+                    this.ctx.fillStyle = '#444';
+                    this.ctx.fillRect(0, 95, this.width, 5);
+                    this.ctx.fillStyle = '#00FFFF';
+                    this.ctx.fillRect(0, 95, this.width * progress, 5);
+                    
                     this.ctx.fillStyle = 'rgba(0,0,0,0.6)'; this.ctx.fillRect(0, this.height - 150, this.width, 150);
                     this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 32px Arial'; this.ctx.textAlign = 'left';
                     this.ctx.fillText(`VEO AI Simulation: "${prompt}"`, 50, this.height - 80);
@@ -662,7 +691,7 @@ class AXL_CUDA_ImageGenerator {
         this.ctx.beginPath(); this.ctx.arc(x, y, radius * 0.4, 0, Math.PI * 2); this.ctx.stroke();
     }
 
-    private generateStandardAXLCuda(cubeCommand: string) {
+    private generateStandardMicroscopy(cubeCommand: string) {
         this.drawComplexCell(this.width / 2, this.height / 2, 800);
     }
     
@@ -703,9 +732,9 @@ class AXL_CUDA_ImageGenerator {
         this.ctx.fillText('GPU Usage: 90%', 320, 4022);
     }
     
-    private addAXLMetadata(mode: string) {
+    private addMicroscopyMetadata(mode: string) {
         this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 48px Arial'; this.ctx.textAlign = 'left';
-        this.ctx.fillText('3i AXL System', 50, 100); this.ctx.font = '36px Arial';
+        this.ctx.fillText('Microscopy Simulation', 50, 100); this.ctx.font = '36px Arial';
         this.ctx.fillText(mode, 50, 150); this.ctx.font = '28px Arial';
         this.ctx.fillText('CUBE Protocol | Phil Hills', 50, 200);
         this.ctx.fillText(new Date().toLocaleString(), 50, 250);
@@ -754,10 +783,10 @@ export class MicroscopyImageGenerator {
         if (axlKeywords.some(kw => commands.includes(kw))) {
             if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
                 try {
-                    const axlGenerator = new AXL_CUDA_ImageGenerator();
-                    return await axlGenerator.generateAXLCudaMedia(cubeCommand);
+                    const advancedGenerator = new AdvancedImageGenerator();
+                    return await advancedGenerator.generateMedia(cubeCommand);
                 } catch (e) {
-                    console.error("Error during AXL CUDA media generation:", e);
+                    console.error("Error during advanced media generation:", e);
                     const url = this.getErrorPlaceholder(4096, 4096);
                     return { url, type: 'image' };
                 }

@@ -1,29 +1,30 @@
-# CUBE PROTOCOL FOR SLIDEBOOK/3i MICROSCOPY
+
+# Example: Integrating CUBE with Vendor Software
 **Translating Complex Microscopy Operations to Simple Commands**
 
 ```cube
-SLIDEBOOK|CAPTURE[3D]→DECONVOLVE[GPU]→ANALYZE[AI]→EXPORT[OME-TIFF]|COMPLETE
+VENDORSW|CAPTURE[3D]→DECONVOLVE[GPU]→ANALYZE[AI]→EXPORT[OME-TIFF]|COMPLETE
 ```
 
-## MAPPING SLIDEBOOK TO CUBE
+## MAPPING VENDOR SOFTWARE TO CUBE
 
-### Core SlideBook Operations as CUBE
+### Core Operations as CUBE
 
 #### Basic Image Capture
 ```cube
 CAPTURE|ZSTACK[100]→CHANNELS[GFP,DAPI,RFP]→TIMELAPSE[5min]|ACQUIRED
 ```
-**Expands to SlideBook:**
+**Expands to Vendor Software:**
 - Z-stack with 100 slices
 - Multi-channel acquisition (GFP, DAPI, RFP)
 - Time-lapse at 5-minute intervals
-- Native 3D format (.sldy)
+- Native 3D format
 
 #### Deconvolution Pipeline
 ```cube
 DECONVOLVE|PSF[Measured]→ALGORITHM[ConstrainedIterative]→GPU[CUDA]|RESTORED
 ```
-**SlideBook Operations:**
+**Vendor Software Operations:**
 - Load measured PSF from database
 - Apply Constrained Iterative deconvolution
 - CUDA GPU acceleration
@@ -34,16 +35,16 @@ DECONVOLVE|PSF[Measured]→ALGORITHM[ConstrainedIterative]→GPU[CUDA]|RESTORED
 LIGHTSHEET|TISSUE[Cleared]→PRESCAN[3D]→ROI[Select]→MONTAGE[4.5cm]|IMAGED
 ```
 **Maps to:**
-- AxL Cleared Tissue LightSheet console
+- Cleared Tissue LightSheet console
 - 3D prescan for ROI selection
 - Automated lightsheet pattern generation
 - Large tissue montaging
 
-## CUBE COMPRESSION FOR SLIDEBOOK WORKFLOWS
+## CUBE COMPRESSION FOR WORKFLOWS
 
-### Traditional SlideBook Workflow (Manual)
+### Traditional Workflow (Manual)
 ```
-1. Open SlideBook
+1. Open vendor software
 2. Configure microscope settings
 3. Set up channels (GFP: 488nm, 20% power)
 4. Configure Z-stack (100 slices, 0.5μm step)
@@ -60,14 +61,14 @@ LIGHTSHEET|TISSUE[Cleared]→PRESCAN[3D]→ROI[Select]→MONTAGE[4.5cm]|IMAGED
 EXPERIMENT|SETUP[GFP:488nm:20%]→ZSTACK[100:0.5μm]→TIMELAPSE[60:5min]→DECONVOLVE→ANALYZE|COMPLETE
 ```
 
-## SLIDEBOOK-SPECIFIC CUBE PATTERNS
+## VENDOR-SPECIFIC CUBE PATTERNS
 
 ### 1. Conditional Capture
 ```cube
 CONDITIONAL|LOWMAG[Scan]→DETECT[Cells>Threshold]→HIGHMAG[Capture]→ANALYZE|SMART
 ```
-**SlideBook Implementation:**
-- MATLAB script control
+**Implementation:**
+- Script control (Python, MATLAB, etc.)
 - Hierarchical capture
 - Automated cell selection
 - Higher magnification on targets
@@ -86,7 +87,7 @@ MULTIWELL|PLATE[384]→WELLS[A1:P24]→FOCUS[Surface]→CAPTURE[All]|SCREENED
 ```cube
 FRET|DONOR[CFP]→ACCEPTOR[YFP]→LIFETIME[Measure]→PROXIMITY[Calculate]|ANALYZED
 ```
-**SlideBook Operations:**
+**Software Operations:**
 - FLIM module activation
 - Frequency modulation
 - Lifetime measurement
@@ -97,124 +98,57 @@ FRET|DONOR[CFP]→ACCEPTOR[YFP]→LIFETIME[Measure]→PROXIMITY[Calculate]|ANALY
 PHOTOMANIP|ROI[Define]→FRAP[Bleach]→RECOVER[Monitor]→KINETICS[Measure]|COMPLETE
 ```
 **Uses:**
-- Vector/Phasor systems
+- Scanner systems (Vector/Phasor)
 - ROI definition
 - Laser control
 - Recovery monitoring
 
-## DEVICE CONTROL CUBE PATTERNS
-
-### Microscope Control
-```cube
-SCOPE|OBJECTIVE[40x]→IMMERSION[Oil]→POSITION[X:100,Y:200,Z:50]|READY
-```
-
-### Camera Settings
-```cube
-CAMERA|DEVICE[Hamamatsu-ORCA]→EXPOSURE[100ms]→BINNING[2x2]→STREAM[60fps]|CONFIGURED
-```
-
-### Laser Configuration
-```cube
-LASER|POWER[488nm:20%,561nm:30%]→AOTF[Enable]→PINHOLE[1AU]|ALIGNED
-```
-
-## ADVANCED CUBE PATTERNS FOR SLIDEBOOK
-
-### GPU-Accelerated Processing
-```cube
-PROCESS|DECONVOLVE[GPU]→PROJECT[MaxIntensity]→DESKEW→MONTAGE[3D]|ACCELERATED
-```
-**CUDA-Optimized Operations:**
-- Deconvolution (all modalities)
-- MLS Cross-correlation
-- Adaptive Optics
-- 3D montage
-- Max-intensity projections
-
-### Big Data Handling
-```cube
-BIGDATA|FORMAT[SLDY]→COMPRESS[Zstandard]→DISTRIBUTE[Files]→PYTHON[NumPy]|OPTIMIZED
-```
-**SlideBook Features:**
-- .sldy distributed format
-- Lossless compression
-- Python-compatible arrays
-- YAML metadata
-
-### AI Integration
-```cube
-ANALYZE|EXPORT[Aivia]→SEGMENT[ML]→CLASSIFY[Objects]→IMPORT[Results]|INTELLIGENT
-```
-**Workflow:**
-- Export to Aivia
-- Machine learning segmentation
-- Object classification
-- Import back to SlideBook
-
-## REAL-WORLD SLIDEBOOK EXPERIMENTS AS CUBE
-
-### Neuron Imaging
-```cube
-NEURON|MULTIPHOTON[2P]→CALCIUM[GCaMP]→STIMULUS[Visual]→TRACK[Response]|RECORDED
-```
-
-### Live Cell Dynamics
-```cube
-LIVE|CELLS[HeLa]→LABEL[GFP-Actin]→RAPID4D[100fps]→TRACK[Movement]|DYNAMICS
-```
-
-### Tissue Clearing
-```cube
-CLEAR|TISSUE[Brain]→METHOD[PEGASOS]→LIGHTSHEET[4.5cm]→STITCH[Tiles]|WHOLE_ORGAN
-```
-
-## CUBE TO SLIDEBOOK TRANSLATOR
+## CUBE TO VENDOR SOFTWARE TRANSLATOR (EXAMPLE)
 
 ```python
-class CubeToSlideBook:
-    """Translates CUBE commands to SlideBook operations"""
+class CubeToVendorSW:
+    """Translates CUBE commands to vendor-specific operations"""
     
     def translate(self, cube_command):
         parsed = self.parse_cube(cube_command)
         
-        slidebook_script = []
+        script = []
         
-        # Map domain to SlideBook module
+        # Map domain to vendor module
         if parsed['domain'] == 'CAPTURE':
-            slidebook_script.append('capture.start()')
+            script.append('capture.start()')
         elif parsed['domain'] == 'DECONVOLVE':
-            slidebook_script.append('deconvolution.enable()')
+            script.append('deconvolution.enable()')
         
         # Process sequence
         for operation in parsed['sequence']:
             if 'ZSTACK' in operation:
                 params = self.extract_params(operation)
-                slidebook_script.append(f'capture.setZStack({params})')
+                script.append(f'capture.setZStack({params})')
             elif 'CHANNELS' in operation:
                 channels = self.extract_channels(operation)
                 for ch in channels:
-                    slidebook_script.append(f'capture.addChannel("{ch}")')
+                    script.append(f'capture.addChannel("{ch}")')
         
-        return '\n'.join(slidebook_script)
+        return '\n'.join(script)
 ```
 
 ## COMPRESSION METRICS
 
-### Traditional SlideBook Script
-```matlab
-% 500+ lines of MATLAB code for complex experiment
-scope = SlideBook.connect();
-scope.setObjective('40x');
-scope.setImmersionMedium('oil');
+### Traditional Script
+```python
+# 500+ lines of Python/MATLAB code for complex experiment
+scope = VendorAPI.connect()
+scope.setObjective('40x')
+scope.setImmersionMedium('oil')
 for i = 1:384
-    scope.moveToWell(i);
-    scope.autoFocus();
-    scope.setChannel('GFP', 488, 20);
-    scope.setChannel('DAPI', 405, 10);
-    scope.captureZStack(100, 0.5);
-    scope.deconvolve('ConstrainedIterative');
-    scope.analyze();
+    scope.moveToWell(i)
+    scope.autoFocus()
+    scope.setChannel('GFP', 488, 20)
+    scope.setChannel('DAPI', 405, 10)
+    scope.captureZStack(100, 0.5)
+    scope.deconvolve('ConstrainedIterative')
+    scope.analyze()
 end
 ```
 
@@ -226,10 +160,10 @@ MULTIWELL|PLATE[384]→CHANNELS[GFP:488:20,DAPI:405:10]→ZSTACK[100:0.5]→DECO
 
 ## THE VALUE PROPOSITION
 
-### Why CUBE for SlideBook Makes Sense:
+### Why CUBE for Vendor Software Makes Sense:
 
 1. **Simplifies Complex Workflows**
-   - SlideBook has hundreds of features
+   - Software has hundreds of features
    - CUBE reduces to essential operations
 
 2. **Standardizes Protocols**
@@ -238,7 +172,7 @@ MULTIWELL|PLATE[384]→CHANNELS[GFP:488:20,DAPI:405:10]→ZSTACK[100:0.5]→DECO
    - Reproducible science
 
 3. **Enables Automation**
-   - Parse CUBE → Generate SlideBook scripts
+   - Parse CUBE → Generate control scripts
    - Batch processing
    - Conditional workflows
 
@@ -250,12 +184,12 @@ MULTIWELL|PLATE[384]→CHANNELS[GFP:488:20,DAPI:405:10]→ZSTACK[100:0.5]→DECO
 ## IMPLEMENTATION PATH
 
 ```cube
-IMPLEMENT|PARSER[CUBE→SlideBook]→API[Create]→PLUGIN[Deploy]→ADOPT[Community]|REVOLUTION
+IMPLEMENT|PARSER[CUBE→VendorAPI]→API[Create]→PLUGIN[Deploy]→ADOPT[Community]|REVOLUTION
 ```
 
 This could be:
-1. **SlideBook Plugin** that accepts CUBE commands
-2. **Web API** that translates CUBE to SlideBook scripts
-3. **Universal Microscopy Protocol** adopted industry-wide
+1. **A Plugin** that accepts CUBE commands
+2. **A Web API** that translates CUBE to control scripts
+3. **A Universal Protocol** adopted industry-wide
 
 The compression from complex microscopy workflows to simple CUBE commands could revolutionize how scientists share and reproduce experiments!

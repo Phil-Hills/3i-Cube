@@ -1,12 +1,14 @@
 
 import React from 'react';
-import type { MicroscopeStatus } from '../types';
+import type { MicroscopeStatus, Brand } from '../types';
+import { BRAND_CONFIGS } from '../constants';
 
 interface StatusBarProps {
   status: MicroscopeStatus;
+  brand: Brand;
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
+export const StatusBar: React.FC<StatusBarProps> = ({ status, brand }) => {
   const getStatusIndicator = () => {
     switch (status) {
       case 'CONNECTED':
@@ -23,6 +25,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
   };
 
   const { color, text } = getStatusIndicator();
+  const currentBrandConfig = BRAND_CONFIGS[brand];
 
   return (
     <footer className="flex items-center justify-between p-2 px-4 bg-slate-900 border-t-2 border-[var(--cube-blue)] text-sm">
@@ -32,7 +35,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
       <div className="text-slate-500 text-right">
-        <div>3i CUBE Protocol v2.0</div>
+        <div>{currentBrandConfig.name} Protocol v2.0</div>
         <div className="text-xs">Created by Phil Hills</div>
       </div>
     </footer>

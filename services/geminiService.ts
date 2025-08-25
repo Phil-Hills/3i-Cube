@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ConversionMetrics } from '../types';
 
@@ -13,7 +14,7 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
 
   const lines = script.trim().split('\n');
   const logs: string[] = [
-    '🔬 3i Microscope Control System',
+    '🔬 CUBE Protocol Control System',
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
     'CUBE Protocol Execution Log',
     'Created by Phil Hills - Seattle Developer',
@@ -35,8 +36,8 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
     logs.push(`[${new Date().toLocaleTimeString()}] Executing: ${line}`);
 
     const upperDomain = domain.toUpperCase();
-    if (upperDomain === 'MARIANAS' || upperDomain === 'AXL') {
-        logs.push(`  -> ✓ Connected to 3i ${domain} system`);
+    if (upperDomain === 'MARIANAS' || upperDomain === 'AXL' || upperDomain === 'MICROSCOPE') {
+        logs.push(`  -> ✓ Connected to ${domain} system`);
         logs.push(`     • Serial: ${upperDomain}-2024-${Math.floor(1000 + Math.random() * 9000)}`);
         logs.push(`     • Firmware: v7.3.2`);
         if (sequence.toUpperCase().includes('TEMP')) logs.push(`     • Temperature: 37.0°C`);
@@ -234,7 +235,7 @@ export const generateCubeFromNaturalLanguage = async (description: string): Prom
       *User Description:* "I want to do a 24-hour time-lapse of live cells, keeping them at 37C and 5% CO2. I'm using GFP and RFP channels and need autofocus."
       *Correct Response JSON:*
       {
-        "cube_script": "MARIANAS|LIVE_CELL→TEMP[37C]→CO2[5%]→OBJECTIVE[60x_Oil]|READY\\nTIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUNNING\\nANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE",
+        "cube_script": "SETUP|LIVE_CELL→TEMP[37C]→CO2[5%]|READY\\nTIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUNNING\\nANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE",
         "analysis": "This experiment involves long-term live-cell imaging with environmental control and subsequent analysis.",
         "estimated_lines_saved": 75
       }
@@ -242,7 +243,7 @@ export const generateCubeFromNaturalLanguage = async (description: string): Prom
       *User Description:* "Scan a whole cleared mouse brain section for DAPI and GFP using tiles and stitch it."
       *Correct Response JSON:*
       {
-        "cube_script": "AXL|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY\\nSCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING\\nSTITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE",
+        "cube_script": "SETUP|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY\\nSCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING\\nSTITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE",
         "analysis": "This protocol describes a large-volume tile-scanning experiment on a cleared tissue sample.",
         "estimated_lines_saved": 150
       }
