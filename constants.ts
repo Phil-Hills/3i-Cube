@@ -6,6 +6,12 @@ export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
     description: "GPU-accelerated workflows for real-time processing and AI.",
     scripts: [
       {
+        name: "SRDTrans Super-Resolution",
+        description: "Apply a state-of-the-art Dense Transformer model (SRDTrans) for 4x super-resolution.",
+        script: `# SRDTrans: 500+ lines of Python -> 1 CUBE command
+ENHANCE|IMAGE[input.tif]→SUPER_RES[SRDTrans:4x]→DENOISE→SAVE|HD`
+      },
+      {
         name: "U-Net Nuclei Segmentation",
         description: "Run a U-Net model on the GPU to segment and label nuclei in an image.",
         script: `# AI segmentation with CUDA acceleration

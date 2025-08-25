@@ -25,6 +25,8 @@ class AXL_CUDA_ImageGenerator {
         
         if (commands.includes('REALTIME_DECONV')) {
             return this.generateRealtimeDeconvolution();
+        } else if (commands.includes('SUPER_RES') || commands.includes('SRDTRANS')) {
+            return this.generateSuperResolutionComparison();
         } else if (commands.includes('AI_SEGMENT') || commands.includes('SEGMENT') || commands.includes('U-NET') || commands.includes('STARDIST')) {
             return this.generateAISegmentation();
         } else if (commands.includes('MASSIVE_VOLUME')) {
@@ -39,6 +41,108 @@ class AXL_CUDA_ImageGenerator {
         this.addAXLMetadata('Standard AXL');
         return this.canvas.toDataURL();
     }
+    
+    private generateSuperResolutionComparison(): string {
+        const centerX = this.width / 2;
+        const centerY = this.height / 2;
+    
+        // Draw the "Before" side (left)
+        this.ctx.save();
+        this.ctx.filter = 'blur(6px) brightness(0.7)';
+        this.drawComplexCellStructures(centerX, centerY, 1800, false);
+        this.ctx.restore();
+    
+        // Draw the "After" side (right), clipped
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.rect(centerX, 0, centerX, this.height);
+        this.ctx.clip();
+        this.drawComplexCellStructures(centerX, centerY, 1800, true);
+        this.ctx.restore();
+    
+        // Draw the dividing line and labels
+        this.ctx.strokeStyle = '#00FFFF';
+        this.ctx.lineWidth = 8;
+        this.ctx.shadowColor = '#00FFFF';
+        this.ctx.shadowBlur = 20;
+        this.ctx.beginPath();
+        this.ctx.moveTo(centerX, 0);
+        this.ctx.lineTo(centerX, this.height);
+        this.ctx.stroke();
+        this.ctx.shadowBlur = 0;
+    
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(centerX - 300, 100, 250, 60);
+        this.ctx.fillRect(centerX + 50, 100, 250, 60);
+    
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = 'bold 36px Arial';
+        this.ctx.textAlign = 'center';
+    
+        this.ctx.fillText('Original', centerX - 175, 140);
+        this.ctx.fillText('SRDTrans 4x', centerX + 175, 140);
+        
+        this.addGPUStats('Super-Resolution', '4x Upscale', 'SRDTrans Model');
+        return this.canvas.toDataURL();
+    }
+    
+    private drawComplexCellStructures(x: number, y: number, areaRadius: number, highDetail: boolean) {
+        for (let i = 0; i < 30; i++) {
+            // Use a seed for positioning to ensure both sides are identical
+            const seed = i / 30;
+            const angle = seed * Math.PI * 5;
+            const dist = seed * areaRadius * 1.5;
+            const cellX = x + Math.cos(angle) * dist;
+            const cellY = y + Math.sin(angle) * dist;
+            const radius = 80 + seed * 100;
+            this.drawSingleComplexCell(cellX, cellY, radius, highDetail);
+        }
+    }
+    
+    private drawSingleComplexCell(x: number, y: number, radius: number, highDetail: boolean) {
+        const brightness = highDetail ? 1.0 : 0.7;
+        const nucleusColor = `rgba(75, 10, 255, ${0.9 * brightness})`;
+        const cytoplasmColor = `rgba(0, 255, 0, ${0.4 * brightness})`;
+        const mitoColor = `rgba(255, 20, 20, ${0.6 * brightness})`;
+
+        // Cytoplasm
+        this.ctx.fillStyle = cytoplasmColor;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Nucleus
+        const nucleusRadius = radius * 0.4;
+        const nucleusGrad = this.ctx.createRadialGradient(x, y, 0, x, y, nucleusRadius);
+        nucleusGrad.addColorStop(0, `rgba(75, 10, 255, ${0.9 * brightness})`);
+        nucleusGrad.addColorStop(1, `rgba(120, 80, 255, ${0.3 * brightness})`);
+        this.ctx.fillStyle = nucleusGrad;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, nucleusRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        if (highDetail) {
+             this.ctx.strokeStyle = `rgba(200, 255, 200, 0.6)`;
+             this.ctx.lineWidth = 2;
+             this.ctx.stroke();
+        }
+
+        // Mitochondria / Internal Structures
+        const numMito = highDetail ? 15 : 5;
+        for (let i = 0; i < numMito; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * radius * 0.7;
+            const mitoX = x + Math.cos(angle) * dist;
+            const mitoY = y + Math.sin(angle) * dist;
+            const mitoLength = highDetail ? 15 : 10;
+            const mitoWidth = highDetail ? 5 : 4;
+            this.ctx.fillStyle = mitoColor;
+            this.ctx.beginPath();
+            this.ctx.ellipse(mitoX, mitoY, mitoLength, mitoWidth, Math.random() * Math.PI, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+    }
+
 
     private generateRealtimeDeconvolution(): string {
         const cellSize = 1200;
@@ -322,7 +426,7 @@ export class MicroscopyImageGenerator {
 
     public generateFromCube(cubeCommand: string): string {
         const commands = cubeCommand.toUpperCase();
-        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT'];
+        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS'];
 
         if (axlKeywords.some(kw => commands.includes(kw))) {
             if (typeof document !== 'undefined' && typeof document.createElement === 'function') {

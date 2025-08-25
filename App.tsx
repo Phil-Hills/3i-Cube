@@ -73,8 +73,14 @@ const App: React.FC = () => {
   
   useEffect(() => {
     const loadImages = async () => {
-      const images = await galleryService.getImages();
-      setGalleryImages(images);
+      try {
+        const images = await galleryService.getImages();
+        setGalleryImages(images);
+      } catch (error) {
+        console.error("Failed to load gallery images:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Could not load images.';
+        setToast({ message: `Gallery error: ${errorMessage}`, type: 'error' });
+      }
     };
     loadImages();
   }, []);
@@ -113,7 +119,7 @@ const App: React.FC = () => {
         }
       }
       
-      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\|/i.test(cubeScript)) {
+      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\||ENHANCE/i.test(cubeScript)) {
           const newImageUrl = imageGenerator.generateFromCube(cubeScript);
           setSimulatedImageUrl(newImageUrl);
       }

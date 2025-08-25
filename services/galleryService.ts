@@ -1,4 +1,3 @@
-
 import type { GalleryImage } from '../types';
 
 const DB_NAME = 'CubeGalleryDB';
@@ -10,6 +9,10 @@ let dbPromise: Promise<IDBDatabase> | null = null;
 const initDB = (): Promise<IDBDatabase> => {
   if (dbPromise) {
     return dbPromise;
+  }
+  
+  if (typeof indexedDB === 'undefined') {
+    return Promise.reject(new Error('IndexedDB is not supported by this browser.'));
   }
 
   dbPromise = new Promise((resolve, reject) => {
@@ -49,7 +52,8 @@ const parseCubeScriptForTags = (script: string): { system: string, technique: st
         'LATTICE': 'Lattice', 'CLEARED': 'Cleared Tissue', 'LIVE_CELL': 'Live Cell', 
         'DECONVOLVE': 'Deconvolution', 'AI_SEGMENT': 'AI Segmentation', 'REALTIME_DECONV': 'Deconvolution',
         'CONFOCAL': 'Confocal', 'SORA': 'Super-Resolution', 'FRAP': 'FRAP',
-        'MULTIVIEW_FUSION': 'Multiview Fusion', 'MASSIVE_VOLUME': 'Volume Imaging', 'LIVE_PROCESS': 'Live Processing'
+        'MULTIVIEW_FUSION': 'Multiview Fusion', 'MASSIVE_VOLUME': 'Volume Imaging', 'LIVE_PROCESS': 'Live Processing',
+        'SUPER_RES': 'Super-Resolution', 'SRDTRANS': 'Super-Resolution'
     };
     const foundTechnique = Object.keys(techniques).find(t => upperScript.includes(t)) || 'Standard';
 
