@@ -17,6 +17,7 @@ import { ImagePreview } from './components/ImagePreview';
 import { ImageModal } from './components/ImageModal';
 import { GalleryView } from './components/GalleryView';
 import * as galleryService from './services/galleryService';
+import { XMarkIcon } from './components/icons';
 
 const getInitialScript = (): string => {
   if (
@@ -28,6 +29,28 @@ const getInitialScript = (): string => {
     return METHOD_SCRIPTS[0].scripts[0].script;
   }
   return '';
+};
+
+const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () => void }> = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const baseClasses = "fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center px-4 py-3 rounded-lg shadow-2xl text-white z-[100] animate-fade-in";
+  const typeClasses = {
+    success: "bg-green-600/90 backdrop-blur-sm border border-green-500",
+    error: "bg-red-600/90 backdrop-blur-sm border border-red-500",
+  };
+
+  return (
+    <div className={`${baseClasses} ${typeClasses[type]}`}>
+      <p className="text-sm font-medium">{message}</p>
+      <button onClick={onClose} className="ml-4 -mr-2 p-1 rounded-full hover:bg-white/20 transition-colors">
+        <XMarkIcon className="w-4 h-4" />
+      </button>
+    </div>
+  );
 };
 
 const App: React.FC = () => {
@@ -45,6 +68,7 @@ const App: React.FC = () => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{imageUrl: string; cubeScript: string; id?: number} | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   
   useEffect(() => {
     const loadImages = async () => {
@@ -118,18 +142,32 @@ const App: React.FC = () => {
 
   const handleSaveToGallery = async () => {
     if (simulatedImageUrl) {
-        await galleryService.saveImage(simulatedImageUrl, cubeScript);
-        const images = await galleryService.getImages();
-        setGalleryImages(images);
+        try {
+            await galleryService.saveImage(simulatedImageUrl, cubeScript);
+            const images = await galleryService.getImages();
+            setGalleryImages(images);
+            setToast({ message: 'Image saved to gallery!', type: 'success' });
+        } catch(error) {
+            console.error("Failed to save image:", error);
+            const errorMessage = error instanceof Error ? error.message : 'Could not save image.';
+            setToast({ message: `Save failed: ${errorMessage}`, type: 'error' });
+        }
     }
   };
   
   const handleDeleteFromGallery = async (id: number) => {
-    await galleryService.deleteImage(id);
-    const images = await galleryService.getImages();
-    setGalleryImages(images);
-    setIsImageModalOpen(false);
-    setSelectedImage(null);
+    try {
+        await galleryService.deleteImage(id);
+        const images = await galleryService.getImages();
+        setGalleryImages(images);
+        setIsImageModalOpen(false);
+        setSelectedImage(null);
+        setToast({ message: 'Image deleted from gallery.', type: 'success' });
+    } catch (error) {
+        console.error("Failed to delete image:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Could not delete image.';
+        setToast({ message: `Delete failed: ${errorMessage}`, type: 'error' });
+    }
   };
   
   const renderView = () => {
@@ -193,6 +231,7 @@ const App: React.FC = () => {
           onDelete={handleDeleteFromGallery}
         />
       )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

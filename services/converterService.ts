@@ -1,3 +1,4 @@
+
 import type { ConversionMetrics } from '../types';
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
@@ -54,6 +55,13 @@ const generateCubeHash = async (data: string): Promise<string> => {
 
 
 export const compressDataToCube = async (currentInput: string): Promise<{ outputCubeCells: string[][][]; outputCode: string; metrics: ConversionMetrics; }> => {
+    if (!window.CompressionStream) {
+        throw new Error('Browser Not Supported: This feature requires the Compression Streams API, which is unavailable in your current browser.');
+    }
+    if (!window.crypto || !window.crypto.subtle) {
+        throw new Error('Insecure Context: The Crypto API for hashing requires a secure context (HTTPS or localhost).');
+    }
+
     const encoder = new TextEncoder();
     const dataBytes = encoder.encode(currentInput);
     const original_size_bytes = dataBytes.length;

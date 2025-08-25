@@ -1,3 +1,4 @@
+
 import type { GalleryImage } from '../types';
 
 const DB_NAME = 'CubeGalleryDB';
@@ -15,9 +16,9 @@ const initDB = (): Promise<IDBDatabase> => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
-        console.error('Error opening IndexedDB');
+        console.error('Error opening IndexedDB', request.error);
         dbPromise = null; // Reset promise on error to allow retries
-        reject('Error opening IndexedDB');
+        reject(new Error(`IndexedDB error: ${request.error?.message}`));
     };
     
     request.onsuccess = (event) => {
@@ -74,7 +75,7 @@ export const saveImage = async (imageUrl: string, cubeScript: string): Promise<v
     return new Promise((resolve, reject) => {
         const request = store.add(image);
         request.onsuccess = () => resolve();
-        request.onerror = () => reject('Error saving image');
+        request.onerror = () => reject(new Error(`Error saving image: ${request.error?.message}`));
     });
 };
 
@@ -89,7 +90,7 @@ export const getImages = async (): Promise<GalleryImage[]> => {
             const sorted = request.result.sort((a, b) => b.id - a.id);
             resolve(sorted);
         };
-        request.onerror = () => reject('Error fetching images');
+        request.onerror = () => reject(new Error(`Error fetching images: ${request.error?.message}`));
     });
 };
 
@@ -101,6 +102,6 @@ export const deleteImage = async (id: number): Promise<void> => {
     return new Promise((resolve, reject) => {
         const request = store.delete(id);
         request.onsuccess = () => resolve();
-        request.onerror = () => reject('Error deleting image');
+        request.onerror = () => reject(new Error(`Error deleting image: ${request.error?.message}`));
     });
 };

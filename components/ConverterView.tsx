@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { generateCubeFromNaturalLanguage, convertCodeToCube } from '../services/geminiService';
 import { compressDataToCube } from '../services/converterService';
 import { CODE_CONVERTER_EXAMPLES, NATURAL_LANGUAGE_EXAMPLES, DATA_COMPRESSION_EXAMPLES } from '../constants';
 import type { ConversionMetrics, ConverterMode } from '../types';
-import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ShareIcon, ChatBubbleBottomCenterTextIcon, CircleStackIcon, ArrowPathIcon } from './icons';
+import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ShareIcon, ChatBubbleBottomCenterTextIcon, CircleStackIcon, ArrowPathIcon, CheckCircleIcon, XCircleIcon } from './icons';
 import { Remarkable } from 'remarkable';
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics | null }> = ({ metrics }) => {
@@ -89,8 +90,8 @@ export const ConverterView: React.FC = () => {
   const [metrics, setMetrics] = useState<ConversionMetrics | null>(null);
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState('');
-  const [shareSuccess, setShareSuccess] = useState('');
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [shareStatus, setShareStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [selectedExample, setSelectedExample] = useState('');
 
   const handleModeChange = (newMode: ConverterMode) => {
@@ -151,20 +152,25 @@ export const ConverterView: React.FC = () => {
   };
 
 
-  const handleCopy = () => {
-    if (!outputCode) return;
+  const handleCopy = async () => {
+    if (!outputCode || copyStatus !== 'idle') return;
     let textToCopy = outputCode;
     if (mode === 'data' && outputCubeCells) {
         textToCopy += `\n\n--- CUBE DATA ---\n${outputCubeCells.flat(2).join('')}`;
     }
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      setCopySuccess('Copied!');
-      setTimeout(() => setCopySuccess(''), 2000);
-    });
+    try {
+        await navigator.clipboard.writeText(textToCopy);
+        setCopyStatus('success');
+    } catch (err) {
+        setCopyStatus('error');
+        console.error('Failed to copy text: ', err);
+    } finally {
+        setTimeout(() => setCopyStatus('idle'), 2000);
+    }
   };
   
-  const handleShare = () => {
-     if (!outputCode || !metrics) return;
+  const handleShare = async () => {
+    if (!outputCode || !metrics || shareStatus !== 'idle') return;
     let textToShare = '';
     if (mode === 'code' && metrics.original_lines && metrics.cube_lines) {
         textToShare = `I compressed ${metrics.original_lines} lines of code to ${metrics.cube_lines} lines with CUBE Protocol!\n\n${outputCode}`;
@@ -174,11 +180,16 @@ export const ConverterView: React.FC = () => {
         textToShare = `I compressed ${metrics.original_size_bytes} bytes down to ${metrics.compressed_size_bytes} bytes (${metrics.compression_ratio} ratio) using the CUBE String-Cube protocol!\n\n${outputCode}`;
     }
     
-    if(textToShare) {
-        navigator.clipboard.writeText(textToShare).then(() => {
-            setShareSuccess('Shared!');
-            setTimeout(() => setShareSuccess(''), 2000);
-        });
+    if (textToShare) {
+        try {
+            await navigator.clipboard.writeText(textToShare);
+            setShareStatus('success');
+        } catch (err) {
+            setShareStatus('error');
+            console.error('Failed to share text: ', err);
+        } finally {
+            setTimeout(() => setShareStatus('idle'), 2000);
+        }
     }
   };
 
@@ -205,6 +216,22 @@ export const ConverterView: React.FC = () => {
         </button>
     );
   };
+  
+  const CopyButtonContent = () => {
+    switch(copyStatus) {
+      case 'success': return <><CheckCircleIcon className="w-4 h-4 mr-1.5 text-green-400" /> Copied!</>
+      case 'error': return <><XCircleIcon className="w-4 h-4 mr-1.5 text-red-400" /> Failed!</>
+      default: return <><ClipboardIcon className="w-4 h-4 mr-1.5"/> Copy</>
+    }
+  }
+
+  const ShareButtonContent = () => {
+    switch(shareStatus) {
+      case 'success': return <><CheckCircleIcon className="w-4 h-4 mr-1.5 text-green-400" /> Copied!</>
+      case 'error': return <><XCircleIcon className="w-4 h-4 mr-1.5 text-red-400" /> Failed!</>
+      default: return <><ShareIcon className="w-4 h-4 mr-1.5"/> Share</>
+    }
+  }
 
   return (
     <div className="flex flex-col flex-grow pt-6 overflow-hidden gap-6">
@@ -269,13 +296,11 @@ export const ConverterView: React.FC = () => {
               <h2 className="text-lg font-semibold text-slate-100">CUBE Protocol Output</h2>
             </div>
              <div className="flex items-center space-x-1">
-                <button onClick={handleCopy} title="Copy" disabled={!outputCode} className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-50 transition-colors text-sm flex items-center">
-                  <ClipboardIcon className="w-4 h-4 mr-1"/>
-                  {copySuccess || ''}
+                <button onClick={handleCopy} title="Copy" disabled={!outputCode || copyStatus !== 'idle'} className="p-1.5 w-24 text-center justify-center rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-50 transition-colors text-sm flex items-center">
+                  <CopyButtonContent/>
                 </button>
-                 <button onClick={handleShare} title="Share" disabled={!outputCode || !metrics} className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-50 transition-colors text-sm flex items-center">
-                  <ShareIcon className="w-4 h-4 mr-1"/>
-                   {shareSuccess || ''}
+                 <button onClick={handleShare} title="Share to Clipboard" disabled={!outputCode || !metrics || shareStatus !== 'idle'} className="p-1.5 w-24 text-center justify-center rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-50 transition-colors text-sm flex items-center">
+                   <ShareButtonContent />
                 </button>
             </div>
           </div>
