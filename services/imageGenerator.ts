@@ -54,112 +54,147 @@ class AXL_CUDA_ImageGenerator {
     private async generateVideoPreview(cubeCommand: string): Promise<string> {
         return new Promise((resolve, reject) => {
             if (typeof MediaRecorder === 'undefined' || !this.canvas.captureStream) {
-                // Fallback for unsupported browsers
                 this.ctx.fillStyle = 'black';
                 this.ctx.fillRect(0, 0, this.width, this.height);
                 this.ctx.fillStyle = 'white';
-                this.ctx.font = '48px Arial';
+                this.ctx.font = 'bold 48px Arial';
                 this.ctx.textAlign = 'center';
-                this.ctx.fillText('Video Generation Simulation', this.width / 2, this.height / 2 - 50);
+                this.ctx.fillText('Video Generation Failed', this.width / 2, this.height / 2 - 50);
+                this.ctx.fillStyle = '#ffcc00';
                 this.ctx.font = '32px Arial';
-                this.ctx.fillText('(MediaRecorder API not supported in this browser)', this.width / 2, this.height / 2 + 50);
+                this.ctx.fillText('MediaRecorder API not supported in your browser.', this.width / 2, this.height / 2 + 50);
                 resolve(this.canvas.toDataURL());
                 return;
             }
-            const promptMatch = cubeCommand.match(/VIDEO\[(.*?)\]/i);
-            const prompt = promptMatch ? promptMatch[1] : 'Generated Video';
 
-            const stream = this.canvas.captureStream(30);
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
-            const chunks: Blob[] = [];
-            
-            recorder.ondataavailable = (e) => chunks.push(e.data);
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
-                resolve(url);
-            };
-            recorder.onerror = (e) => {
-                console.error("MediaRecorder error:", e);
-                reject(new Error('Failed to record video preview.'));
-            };
+            try {
+                const MimeTypes = [
+                    'video/webm; codecs=vp9',
+                    'video/webm; codecs=vp8',
+                    'video/webm',
+                ];
+                const supportedMimeType = MimeTypes.find(type => MediaRecorder.isTypeSupported(type));
 
-            interface SimCell {
-                id: number; x: number; y: number; radius: number; targetRadius: number;
-                vx: number; vy: number; color: string; timeToDivide: number;
-            }
-            const cells: SimCell[] = [];
-            const MAX_CELLS = 150;
-            const colors = ['#00ff00', '#ff00ff', '#00ffff', '#ffff00'];
-            let nextCellId = 0;
-
-            const createCell = (x?: number, y?: number, parentRadius?: number) => {
-                const radius = parentRadius ? parentRadius * 0.8 : 30 + Math.random() * 20;
-                cells.push({
-                    id: nextCellId++, x: x ?? Math.random() * this.width, y: y ?? Math.random() * this.height,
-                    radius: 0, targetRadius: radius, vx: (Math.random() - 0.5) * 1, vy: (Math.random() - 0.5) * 1,
-                    color: colors[Math.floor(Math.random() * colors.length)], timeToDivide: 100 + Math.random() * 100,
-                });
-            };
-            for (let i = 0; i < 15; i++) createCell();
-
-            let frame = 0;
-            const duration = 150; // 5 seconds at 30fps
-
-            const animate = () => {
-                if (frame >= duration) {
-                    recorder.stop();
+                if (!supportedMimeType) {
+                    console.warn("No supported video MIME type found for MediaRecorder.");
+                    this.ctx.fillStyle = 'black';
+                    this.ctx.fillRect(0, 0, this.width, this.height);
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = 'bold 48px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Video Generation Failed', this.width / 2, this.height / 2 - 50);
+                    this.ctx.fillStyle = '#ffcc00';
+                    this.ctx.font = '32px Arial';
+                    this.ctx.fillText('No supported video formats for recording.', this.width / 2, this.height / 2 + 50);
+                    resolve(this.canvas.toDataURL());
                     return;
                 }
+
+                const promptMatch = cubeCommand.match(/VIDEO\[(.*?)\]/i);
+                const prompt = promptMatch ? promptMatch[1] : 'Generated Video';
+
+                const stream = this.canvas.captureStream(30);
+                const recorder = new MediaRecorder(stream, { mimeType: supportedMimeType });
+                const chunks: Blob[] = [];
                 
-                this.ctx.fillStyle = '#000000';
-                this.ctx.fillRect(0, 0, this.width, this.height);
-                this.ctx.globalCompositeOperation = 'lighter';
-
-                const newCells: SimCell[] = [];
-                cells.forEach(cell => {
-                    cell.x += cell.vx; cell.y += cell.vy;
-                    cell.vx += (Math.random() - 0.5) * 0.2; cell.vy += (Math.random() - 0.5) * 0.2;
-                    if (cell.x < 0 || cell.x > this.width) cell.vx *= -1;
-                    if (cell.y < 0 || cell.y > this.height) cell.vy *= -1;
-                    cell.vx = Math.max(-1.5, Math.min(1.5, cell.vx)); cell.vy = Math.max(-1.5, Math.min(1.5, cell.vy));
-                    if (cell.radius < cell.targetRadius) cell.radius += 0.5;
-
-                    cell.timeToDivide--;
-                    if (cell.timeToDivide <= 0 && cells.length + newCells.length < MAX_CELLS) {
-                        cell.targetRadius *= 0.8; cell.radius = Math.min(cell.radius, cell.targetRadius);
-                        cell.timeToDivide = 100 + Math.random() * 100;
-                        const daughterCell: SimCell = {
-                            id: nextCellId++, x: cell.x + (Math.random() - 0.5) * cell.radius * 2,
-                            y: cell.y + (Math.random() - 0.5) * cell.radius * 2, radius: 0,
-                            targetRadius: cell.targetRadius, vx: -cell.vx + (Math.random() - 0.5),
-                            vy: -cell.vy + (Math.random() - 0.5), color: cell.color, timeToDivide: 100 + Math.random() * 100,
-                        };
-                        newCells.push(daughterCell);
+                recorder.ondataavailable = (e) => chunks.push(e.data);
+                recorder.onstop = () => {
+                    if (chunks.length === 0) {
+                        console.error("Video recording stopped but no data was generated.");
+                        reject(new Error('Video recording produced an empty file.'));
+                        return;
                     }
+                    const blob = new Blob(chunks, { type: supportedMimeType });
+                    const url = URL.createObjectURL(blob);
+                    resolve(url);
+                };
+                recorder.onerror = (e) => {
+                    console.error("MediaRecorder error:", e);
+                    reject(new Error('A recording error occurred.'));
+                };
 
-                    const gradient = this.ctx.createRadialGradient(cell.x, cell.y, 0, cell.x, cell.y, cell.radius);
-                    gradient.addColorStop(0, `${cell.color}ff`);
-                    gradient.addColorStop(0.5, `${cell.color}80`);
-                    gradient.addColorStop(1, `${cell.color}00`);
-                    this.ctx.fillStyle = gradient;
-                    this.ctx.beginPath(); this.ctx.arc(cell.x, cell.y, cell.radius, 0, Math.PI * 2); this.ctx.fill();
-                });
-                cells.push(...newCells);
+                interface SimCell {
+                    id: number; x: number; y: number; radius: number; targetRadius: number;
+                    vx: number; vy: number; color: string; timeToDivide: number;
+                }
+                const cells: SimCell[] = [];
+                const MAX_CELLS = 150;
+                const colors = ['#00ff00', '#ff00ff', '#00ffff', '#ffff00'];
+                let nextCellId = 0;
 
-                this.ctx.globalCompositeOperation = 'source-over';
-                this.ctx.fillStyle = 'rgba(0,0,0,0.6)'; this.ctx.fillRect(0, this.height - 150, this.width, 150);
-                this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 32px Arial'; this.ctx.textAlign = 'left';
-                this.ctx.fillText(`VEO AI Simulation: "${prompt}"`, 50, this.height - 80);
-                this.ctx.font = '24px Arial'; this.ctx.fillText(`CUBE Protocol | Phil Hills`, 50, this.height - 40);
-                this.addGPUIndicator();
+                const createCell = (x?: number, y?: number, parentRadius?: number) => {
+                    const radius = parentRadius ? parentRadius * 0.8 : 30 + Math.random() * 20;
+                    cells.push({
+                        id: nextCellId++, x: x ?? Math.random() * this.width, y: y ?? Math.random() * this.height,
+                        radius: 0, targetRadius: radius, vx: (Math.random() - 0.5) * 1, vy: (Math.random() - 0.5) * 1,
+                        color: colors[Math.floor(Math.random() * colors.length)], timeToDivide: 100 + Math.random() * 100,
+                    });
+                };
+                for (let i = 0; i < 15; i++) createCell();
 
-                frame++;
-                requestAnimationFrame(animate);
-            };
-            
-            recorder.start();
-            animate();
+                let frame = 0;
+                const duration = 150; // 5 seconds at 30fps
+
+                const animate = () => {
+                    if (frame >= duration) {
+                        if (recorder.state === 'recording') {
+                            recorder.stop();
+                        }
+                        return;
+                    }
+                    
+                    this.ctx.fillStyle = '#000000';
+                    this.ctx.fillRect(0, 0, this.width, this.height);
+                    this.ctx.globalCompositeOperation = 'lighter';
+
+                    const newCells: SimCell[] = [];
+                    cells.forEach(cell => {
+                        cell.x += cell.vx; cell.y += cell.vy;
+                        cell.vx += (Math.random() - 0.5) * 0.2; cell.vy += (Math.random() - 0.5) * 0.2;
+                        if (cell.x < 0 || cell.x > this.width) cell.vx *= -1;
+                        if (cell.y < 0 || cell.y > this.height) cell.vy *= -1;
+                        cell.vx = Math.max(-1.5, Math.min(1.5, cell.vx)); cell.vy = Math.max(-1.5, Math.min(1.5, cell.vy));
+                        if (cell.radius < cell.targetRadius) cell.radius += 0.5;
+
+                        cell.timeToDivide--;
+                        if (cell.timeToDivide <= 0 && cells.length + newCells.length < MAX_CELLS) {
+                            cell.targetRadius *= 0.8; cell.radius = Math.min(cell.radius, cell.targetRadius);
+                            cell.timeToDivide = 100 + Math.random() * 100;
+                            const daughterCell: SimCell = {
+                                id: nextCellId++, x: cell.x + (Math.random() - 0.5) * cell.radius * 2,
+                                y: cell.y + (Math.random() - 0.5) * cell.radius * 2, radius: 0,
+                                targetRadius: cell.targetRadius, vx: -cell.vx + (Math.random() - 0.5),
+                                vy: -cell.vy + (Math.random() - 0.5), color: cell.color, timeToDivide: 100 + Math.random() * 100,
+                            };
+                            newCells.push(daughterCell);
+                        }
+
+                        const gradient = this.ctx.createRadialGradient(cell.x, cell.y, 0, cell.x, cell.y, cell.radius);
+                        gradient.addColorStop(0, `${cell.color}ff`);
+                        gradient.addColorStop(0.5, `${cell.color}80`);
+                        gradient.addColorStop(1, `${cell.color}00`);
+                        this.ctx.fillStyle = gradient;
+                        this.ctx.beginPath(); this.ctx.arc(cell.x, cell.y, cell.radius, 0, Math.PI * 2); this.ctx.fill();
+                    });
+                    cells.push(...newCells);
+
+                    this.ctx.globalCompositeOperation = 'source-over';
+                    this.ctx.fillStyle = 'rgba(0,0,0,0.6)'; this.ctx.fillRect(0, this.height - 150, this.width, 150);
+                    this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 32px Arial'; this.ctx.textAlign = 'left';
+                    this.ctx.fillText(`VEO AI Simulation: "${prompt}"`, 50, this.height - 80);
+                    this.ctx.font = '24px Arial'; this.ctx.fillText(`CUBE Protocol | Phil Hills`, 50, this.height - 40);
+                    this.addGPUIndicator();
+
+                    frame++;
+                    requestAnimationFrame(animate);
+                };
+                
+                recorder.start();
+                animate();
+            } catch (e) {
+                console.error("Error setting up video recording:", e);
+                reject(e);
+            }
         });
     }
     
