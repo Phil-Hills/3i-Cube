@@ -29,6 +29,9 @@ export interface ConversionMetrics {
     // For data compression
     original_size_bytes?: number;
     compressed_size_bytes?: number;
+    hash?: string;
+    dimensions?: [number, number, number];
+    cells_used?: number;
 
     // Common
     compression_ratio: string;

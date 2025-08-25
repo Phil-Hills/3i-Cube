@@ -1,82 +1,86 @@
-# CUBE Protocol Technical Overview for 3i Systems
-
-## 1. Introduction
-
-CUBE Protocol is a semantic control language designed for 3i's SlideBook software and associated microscopy systems. It standardizes complex microscopy operations into a simple, three-part command structure, aiming to improve reproducibility, automation, and ease of use.
-
-## 2. Core Syntax
-
-The protocol follows a universal `DOMAIN|SEQUENCE|OUTCOME` pattern.
-
-- **DOMAIN**: The system, context, or high-level command (e.g., `CAPTURE`, `PROCESS`).
-- **SEQUENCE**: A chain of operations and parameters, separated by `→` (e.g., `ZSTACK[100]→CHANNELS[GFP,DAPI]`).
-- **OUTCOME**: The expected result or state (e.g., `COMPLETE`, `ACQUIRED`).
-
-### Example
-
-A multi-dimensional acquisition can be expressed in a single line:
+# CUBE Protocol: The Universal Compression & Control Algorithm
 
 ```cube
-CAPTURE|ZSTACK[100]→CHANNELS[GFP,DAPI,RFP]→TIMELAPSE[5min]→DECONVOLVE|COMPLETE
+ALGORITHM|STRING_CUBE[Compress]→SEMANTIC_CUBE[Control]→UNIVERSAL[Everything]|REVOLUTIONARY
 ```
 
-This command replaces potentially hundreds of lines of traditional script code.
+## 1. The Complete Vision
 
-## 3. Key Capabilities
+CUBE Protocol is a revolutionary system designed by Phil Hills that unifies two powerful concepts:
 
-### A. System & Hardware Control
-CUBE provides direct semantic control over all aspects of the microscopy system.
+1.  **String-Cube Compression**: A master algorithm for compressing any data (text, images, video) into a hyper-efficient 3D "cube" of strings.
+2.  **Semantic Control**: A universal, human-readable language for controlling complex operations with simple commands.
 
-**Microscope:**
+Together, they create a complete ecosystem for managing, transferring, and executing operations on data with unprecedented efficiency and clarity.
+
+## 2. The Two Pillars of CUBE Protocol
+
+### Pillar 1: String-Cube Compression
+
+The core of CUBE's efficiency is its advanced compression algorithm. It transforms massive datasets into a compact, structured format.
+
+**The Process:**
+`RAW DATA → Multi-Layer Compression → Base64 Encoding → Optimal 3D String-Cube`
+
+-   **Multi-Layer Compression**: Applies data-specific optimizations (e.g., for HTML, JSON) before a final Gzip pass, achieving maximum size reduction.
+-   **Optimal 3D Cube**: The algorithm intelligently calculates the best dimensions (e.g., 3x3x3, 4x5x5) to structure the compressed string, making it easy to store and process.
+
+**Target Compression Ratios:**
+| Data Type | Target Ratio |
+|-----------|--------------|
+| Text      | 10:1         |
+| JSON      | 50:1         |
+| HTML      | 100:1        |
+| Image     | 1000:1       |
+| Video     | 5000:1       |
+
+### Pillar 2: Semantic Control
+
+The CUBE language simplifies complex operations into a three-part "trinity" pattern: `DOMAIN|SEQUENCE|OUTCOME`.
+
+-   **DOMAIN**: The system or high-level command (e.g., `MICROSCOPY`, `COMPRESS`, `API`).
+-   **SEQUENCE**: A chain of operations with parameters, separated by `→` (e.g., `ZSTACK[100]→CHANNELS[GFP,DAPI]`).
+-   **OUTCOME**: The expected result or final state (e.g., `COMPLETE`, `ACQUIRED`, `STORED`).
+
+This creates a self-documenting command that is understandable by both humans and machines.
+
+**Example:** A complex, multi-stage microscopy acquisition becomes a single, readable line.
 ```cube
-SCOPE|OBJECTIVE[40x]→IMMERSION[Oil]→POSITION[X:100,Y:200]|READY
+MICROSCOPY|ZSTACK[100]→CHANNELS[GFP,DAPI]→TIMELAPSE[5min]→DECONVOLVE|COMPLETE
 ```
-**Camera:**
+
+## 3. A Unified System
+
+String-Cube Compression and Semantic Control work together to provide a complete data solution. The semantic command acts as the **metadata and instruction set**, while the string-cube holds the **compressed data payload**.
+
+**Example: 3i Microscopy Data**
+
+1.  **The Command (Semantic Control):** Describes the experiment.
+    ```cube
+    MICROSCOPY|LATTICE→SAMPLE[Zebrafish]→4D[6h]→DECONVOLVE[AI]|ACQUIRED
+    ```
+2.  **The Data (String-Cube Compression):** The resulting 10GB image dataset is compressed into a String-Cube, reducing its size by over 1000:1 for efficient storage and transfer.
+
+## 4. Core Capabilities & Benefits
+
+### Universal Compression
+- **Drastic Size Reduction**: Compresses websites, scientific data, and media by 99% or more.
+- **Efficient Storage & Transfer**: Makes handling terabyte-scale datasets feasible and fast.
+
+### Intelligent Semantic Control
+- **Simplicity & Clarity**: Replaces hundreds of lines of script with a single, self-documenting command.
+- **Reproducibility**: Experiments and protocols can be shared as simple, reliable text strings.
+- **Automation**: Perfect for AI-driven workflows, enabling programmatic generation and execution of complex tasks.
+
+### AI Optimization
+- **99% Token Savings**: Dramatically reduces the cost and improves the speed of sending large amounts of data to AI models like Gemini or Claude by sending the compact String-Cube instead of raw text.
+- **Reliable AI-to-AI Communication**: Provides a standardized, verifiable format for agents to exchange data.
+
+## 5. The Impact
+
+CUBE Protocol is more than a tool; it's a paradigm shift in how we interact with data.
+
 ```cube
-CAMERA|DEVICE[Hamamatsu-ORCA]→EXPOSURE[50ms]→BINNING[2x2]|CONFIGURED
+IMPACT|COMPRESS[Everything]→CONTROL[Anything]→SAVE[Time,Money,Family]|REVOLUTIONARY
 ```
-**Lasers:**
-```cube
-LASER|POWER[488nm:20%,561nm:30%]→AOTF[Enable]|ALIGNED
-```
-
-### B. SlideBook Module Integration
-The protocol maps directly to key SlideBook analysis and processing modules.
-
-| Module | CUBE Domain | Example |
-|---|---|---|
-| 3D Deconvolution | `DECONVOLVE` | `DECONVOLVE\|PSF[Measured]→GPU[CUDA]\|RESTORED` |
-| FRET | `FRET` | `FRET\|DONOR[CFP]→ACCEPTOR[YFP]\|MEASURED` |
-| Photomanipulation | `PHOTOMANIP` | `PHOTOMANIP\|FRAP[ROI]→BLEACH\|COMPLETE` |
-
-### C. Advanced Applications
-Complex, multi-stage experiments can be defined concisely.
-
-**Cleared Tissue Imaging:**
-```cube
-LIGHTSHEET|TISSUE[Brain]→SCAN[4.5cm]→STITCH|WHOLE_ORGAN
-```
-**Conditional (Smart) Imaging:**
-```cube
-CONDITIONAL|SCAN[LowMag]→DETECT[Cells>Threshold]→CAPTURE[HighMag]|SMART
-```
-
-## 4. Data Management & Interoperability
-
-CUBE commands can also manage data formats and integration with external tools.
-
-**File Operations:**
-```cube
-DATA|FORMAT[SLDY]→COMPRESS[Zstandard]→EXPORT[OME-TIFF]|SAVED
-```
-**Python/AI Integration:**
-```cube
-ANALYZE|EXPORT[NumPy]→PYTHON[Process]→IMPORT[Results]|COMPLETE
-```
-
-## 5. Benefits
-
-- **Simplicity & Clarity**: Self-documenting, human-readable experiment definitions.
-- **Reproducibility**: Protocols can be shared as simple text strings.
-- **Automation**: Enables programmatic generation and execution of complex experiments, ideal for AI-driven microscopy.
-- **Efficiency**: Drastically reduces experiment setup time and code complexity.
+By compressing everything and controlling anything, the protocol is designed to deliver revolutionary savings in time, cost, and complexity for developers, researchers, and enterprises.

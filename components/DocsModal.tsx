@@ -36,11 +36,19 @@ const renderers = {
   hr: ({...props}) => <hr className="border-gray-700 my-8" {...props} />,
 };
 
-type DocFile = 'README.md' | 'SLIDEBOOK.md';
+type DocFile = 'ALGORITHM.md' | 'RECURSION.md' | 'README.md' | 'SLIDEBOOK.md';
 
 const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
+    'ALGORITHM.md': {
+        title: 'The CUBE Algorithm',
+        subtitle: 'The complete implementation and theory behind the CUBE Protocol.'
+    },
+    'RECURSION.md': {
+        title: 'Recursive Breakthrough',
+        subtitle: 'The algorithm that contains itself—the inception cube.'
+    },
     'README.md': {
-        title: 'Why CUBE is Revolutionary',
+        title: 'Protocol Overview',
         subtitle: 'The core philosophy and paradigm shifts behind the CUBE Protocol.'
     },
     'SLIDEBOOK.md': {
@@ -52,7 +60,7 @@ const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
 
 export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [markdown, setMarkdown] = useState('');
-  const [activeDoc, setActiveDoc] = useState<DocFile>('README.md');
+  const [activeDoc, setActiveDoc] = useState<DocFile>('ALGORITHM.md');
 
   useEffect(() => {
     setMarkdown('');
@@ -120,6 +128,8 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         
         <div className="px-6 border-b border-white/10 flex-shrink-0">
             <nav className="-mb-px flex space-x-6">
+                <TabButton doc="ALGORITHM.md" />
+                <TabButton doc="RECURSION.md" />
                 <TabButton doc="README.md" />
                 <TabButton doc="SLIDEBOOK.md" />
             </nav>
