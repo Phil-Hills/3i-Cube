@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CpuChipIcon, CubeIcon, PlayIcon } from './icons';
+import { CpuChipIcon, CubeIcon, PlayIcon, CircleStackIcon, BeakerIcon, ArrowDownTrayIcon } from './icons';
 import type { View } from '../types';
 
 type DataSource = 'live' | 'gallery' | 'imagenet';
@@ -163,7 +163,3 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
     </div>
   );
 };
-// Add placeholder icons if they don't exist in icons.tsx
-const BeakerIcon = ({ className = '' }) => <svg className={className} />;
-const CircleStackIcon = ({ className = '' }) => <svg className={className} />;
-const ArrowDownTrayIcon = ({ className = '' }) => <svg className={className} />;
