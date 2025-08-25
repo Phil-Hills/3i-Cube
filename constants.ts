@@ -1,4 +1,3 @@
-
 import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
@@ -251,4 +250,32 @@ for channel in channels:
         images.append(core.getImage())
     tifffile.imwrite(f'{channel}_stack.tif', numpy.array(images))`
   }
+];
+
+export const NATURAL_LANGUAGE_EXAMPLES: { name: string, description: string, prompt: string }[] = [
+  {
+    name: "Live Cell Division",
+    description: "Track dividing cells over a day with environmental control.",
+    prompt: "I want to do a 24-hour time-lapse of live cells dividing. I need to keep them at 37 degrees C with 5% CO2. I want to see two colors, GFP and RFP. It's important to keep them in focus the whole time."
+  },
+  {
+    name: "Zebrafish Embryo Development",
+    description: "Gentle 4D imaging of a whole zebrafish embryo.",
+    prompt: "Image a developing zebrafish embryo for 6 hours using a lattice light sheet microscope. I need a full 3D volume every 30 seconds. The key is to be very gentle to not damage the sample. After capture, deconvolve it with AI and make a 3D movie."
+  },
+  {
+    name: "Whole Mouse Brain Section",
+    description: "Scan and stitch a large, cleared tissue sample.",
+    prompt: "I need to image an entire cleared mouse brain section. It's about 10 by 10 millimeters. I need to see two channels, one for DAPI and one for GFP. I'll need to scan it as a grid of tiles and then stitch them together into one big volume."
+  },
+  {
+    name: "Super-Resolution of Cytoskeleton",
+    description: "Achieve sub-120nm resolution on fixed cells.",
+    prompt: "Use SoRa super-resolution to image the cytoskeleton in fixed cells. I'm looking for 120 nanometer resolution. I've stained them for actin with a 488 dye and tubulin with a 561 dye."
+  },
+  {
+    name: "Targeted Photobleaching (FRAP)",
+    description: "Bleach a specific region and monitor its recovery.",
+    prompt: "Perform a FRAP experiment. I want to target a small, specific region of interest inside a cell with a 405 nanometer laser at full power to bleach it. Then, I need to monitor the fluorescence recovery in that spot over time."
+  },
 ];

@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ConversionMetrics } from '../types';
 
@@ -181,5 +180,104 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
     console.error("Error during CUBE conversion with Gemini API:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     throw new Error(`AI Conversion Failed: The model could not process the provided code. ${errorMessage}`);
+  }
+};
+
+/**
+ * Generates CUBE script from a natural language description using the Gemini API.
+ * @param description The natural language description of the experiment.
+ * @returns A promise that resolves to the converted CUBE code and calculated metrics.
+ */
+export const generateCubeFromNaturalLanguage = async (description: string): Promise<{ cube_code: string; metrics: ConversionMetrics; }> => {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    const systemInstruction = `You are an expert microscopist and a master of the CUBE Protocol, a semantic language for controlling microscopes in the format: DOMAIN|SEQUENCE|OUTCOME. Your task is to convert a user's natural language description of a scientific experiment into a concise, elegant, and syntactically correct CUBE Protocol script. You must also provide a brief analysis and estimate how many lines of traditional code (e.g., Python, MATLAB) this script would replace.`;
+
+    const responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        cube_script: {
+          type: Type.STRING,
+          description: "The fully converted CUBE Protocol script. Each logical operation should be a single line. Must follow DOMAIN|SEQUENCE|OUTCOME format."
+        },
+        analysis: {
+          type: Type.STRING,
+          description: "A brief, one-sentence analysis of the experimental goal."
+        },
+        estimated_lines_saved: {
+          type: Type.NUMBER,
+          description: "An integer estimate of how many lines of traditional code (like Python or MATLAB) this CUBE script would replace."
+        }
+      },
+      required: ["cube_script", "analysis", "estimated_lines_saved"],
+    };
+
+    const prompt = `
+      **CRITICAL TASK: Convert the user's experimental description into a CUBE Protocol script, provide an analysis, and estimate the lines of code saved.**
+
+      **High-Quality Examples:**
+
+      *User Description:* "I want to do a 24-hour time-lapse of live cells, keeping them at 37C and 5% CO2. I'm using GFP and RFP channels and need autofocus."
+      *Correct Response JSON:*
+      {
+        "cube_script": "MARIANAS|LIVE_CELL→TEMP[37C]→CO2[5%]→OBJECTIVE[60x_Oil]|READY\\nTIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUNNING\\nANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE",
+        "analysis": "This experiment involves long-term live-cell imaging with environmental control and subsequent analysis.",
+        "estimated_lines_saved": 75
+      }
+      
+      *User Description:* "Scan a whole cleared mouse brain section for DAPI and GFP using tiles and stitch it."
+      *Correct Response JSON:*
+      {
+        "cube_script": "AXL|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY\\nSCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING\\nSTITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE",
+        "analysis": "This protocol describes a large-volume tile-scanning experiment on a cleared tissue sample.",
+        "estimated_lines_saved": 150
+      }
+
+      Now, apply this logic to the user's request.
+
+      **User's Experimental Description:**
+      "${description}"
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+      },
+    });
+
+    const jsonStr = response.text.trim();
+    const result = JSON.parse(jsonStr);
+    
+    const cube_lines = result.cube_script.split('\n').filter((l: string) => l.trim().length > 0 && !l.trim().startsWith('#')).length;
+    
+    const original_lines = result.estimated_lines_saved;
+
+    const cube_code_with_header = [
+      `# Generated from Natural Language with Gemini`,
+      `# By Phil Hills - Seattle Developer`,
+      `# Analysis: ${result.analysis}`,
+      `# Estimated code lines replaced: ${original_lines}\n`,
+      result.cube_script,
+    ].join('\n');
+    
+    const metrics: ConversionMetrics = {
+        original_lines,
+        cube_lines,
+        compression_ratio: 'N/A', // Not applicable for NL
+        savings_percent: 0, // Not applicable for NL
+        time_saved_minutes: Math.round(original_lines * 1.5)
+    };
+    
+    return { cube_code: cube_code_with_header, metrics };
+
+  } catch (error) {
+    console.error("Error during CUBE generation with Gemini API:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    throw new Error(`AI Generation Failed: The model could not process the description. ${errorMessage}`);
   }
 };
