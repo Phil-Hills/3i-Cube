@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CpuChipIcon, CubeIcon, PlayIcon, CircleStackIcon, BeakerIcon, ArrowDownTrayIcon, SparklesIcon } from './icons';
+import { CpuChipIcon, CubeIcon, PlayIcon, CircleStackIcon, BeakerIcon, ArrowDownTrayIcon, SparklesIcon, LightBulbIcon } from './icons';
 
 type DataSource = 'live' | 'gallery' | 'simulated';
 type Model = 'unet' | 'stardist' | 'custom';
@@ -31,6 +31,36 @@ const PipelineConnector: React.FC = () => (
     </svg>
   </div>
 );
+
+const MLAdvisor: React.FC<{ model: Model, imageCount: number }> = ({ model, imageCount }) => {
+    const recommendations = {
+        unet: { min: 5000, prod: 20000, task: "Segmentation" },
+        stardist: { min: 2000, prod: 10000, task: "Object Detection" },
+        custom: { min: 10000, prod: 50000, task: "Custom Model" },
+    };
+    const rec = recommendations[model];
+    
+    let advice = `For a ${rec.task} task using ${model.toUpperCase()}, we recommend at least ${rec.min.toLocaleString()} images for good results. For production-quality, aim for ${rec.prod.toLocaleString()}+.`;
+    
+    let statusColor = 'text-yellow-300';
+    if(imageCount >= rec.prod) {
+        statusColor = 'text-green-300';
+    } else if (imageCount < rec.min) {
+        statusColor = 'text-red-400';
+    }
+
+    return (
+        <div className="mt-4 p-3 bg-slate-900/50 border border-yellow-400/20 rounded-lg flex items-start gap-3">
+            <LightBulbIcon className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
+            <div>
+                <h4 className="font-semibold text-yellow-200">ML Advisor</h4>
+                <p className="text-sm text-slate-300">
+                    {advice} Your current count is <span className={`font-bold ${statusColor}`}>{imageCount.toLocaleString()}</span>.
+                </p>
+            </div>
+        </div>
+    );
+};
 
 export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }) => {
   const [dataSource, setDataSource] = useState<DataSource>('simulated');
@@ -155,6 +185,7 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
             <option value="stardist">StarDist 3D (Tracking)</option>
             <option value="custom">Custom Model</option>
           </SelectInput>
+           {dataSource === 'simulated' && <MLAdvisor model={model} imageCount={simImageCount} />}
         </PipelineNode>
 
         <PipelineConnector />

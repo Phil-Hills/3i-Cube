@@ -16,32 +16,129 @@ class AXL_CUDA_ImageGenerator {
         this.ctx = context;
     }
 
-    public generateAXLCudaImage(cubeCommand: string): string {
+    public async generateAXLCudaMedia(cubeCommand: string): Promise<{url: string, type: 'image' | 'video'}> {
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(0, 0, 4096, 4096);
         this.addGPUIndicator();
 
         const commands = cubeCommand.toUpperCase();
         
-        if (commands.includes('SIMULATE')) {
-            return this.generateSimulatedTrainingDataComparison();
-        } else if (commands.includes('REALTIME_DECONV')) {
-            return this.generateRealtimeDeconvolution();
-        } else if (commands.includes('SUPER_RES') || commands.includes('SRDTRANS')) {
-            return this.generateSuperResolutionComparison();
-        } else if (commands.includes('AI_SEGMENT') || commands.includes('SEGMENT') || commands.includes('U-NET') || commands.includes('STARDIST')) {
-            return this.generateAISegmentation();
-        } else if (commands.includes('MASSIVE_VOLUME')) {
-            return this.generateMassiveVolume();
-        } else if (commands.includes('MULTIVIEW_FUSION')) {
-            return this.generateMultiviewFusion();
-        } else if (commands.includes('LIVE_PROCESS')) {
-            return this.generateLiveProcessing();
+        if (commands.includes('GENERATE|VIDEO')) {
+            const url = await this.generateVideoPreview(cubeCommand);
+            return { url, type: 'video' };
         }
         
-        this.generateStandardAXLCuda(cubeCommand);
-        this.addAXLMetadata('Standard AXL');
-        return this.canvas.toDataURL();
+        let url: string;
+        if (commands.includes('SIMULATE')) {
+            url = this.generateSimulatedTrainingDataComparison();
+        } else if (commands.includes('REALTIME_DECONV')) {
+            url = this.generateRealtimeDeconvolution();
+        } else if (commands.includes('SUPER_RES') || commands.includes('SRDTRANS')) {
+            url = this.generateSuperResolutionComparison();
+        } else if (commands.includes('AI_SEGMENT') || commands.includes('SEGMENT') || commands.includes('U-NET') || commands.includes('STARDIST')) {
+            url = this.generateAISegmentation();
+        } else if (commands.includes('MASSIVE_VOLUME')) {
+            url = this.generateMassiveVolume();
+        } else if (commands.includes('MULTIVIEW_FUSION')) {
+            url = this.generateMultiviewFusion();
+        } else if (commands.includes('LIVE_PROCESS')) {
+            url = this.generateLiveProcessing();
+        } else {
+          this.generateStandardAXLCuda(cubeCommand);
+          this.addAXLMetadata('Standard AXL');
+          url = this.canvas.toDataURL();
+        }
+        return { url, type: 'image' };
+    }
+
+    private async generateVideoPreview(cubeCommand: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            if (typeof MediaRecorder === 'undefined' || !this.canvas.captureStream) {
+                // Fallback for unsupported browsers
+                this.ctx.fillStyle = 'black';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '48px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Video Generation Simulation', this.width / 2, this.height / 2 - 50);
+                this.ctx.font = '32px Arial';
+                this.ctx.fillText('(MediaRecorder API not supported in this browser)', this.width / 2, this.height / 2 + 50);
+                resolve(this.canvas.toDataURL());
+                return;
+            }
+            const promptMatch = cubeCommand.match(/VIDEO\[(.*?)\]/i);
+            const prompt = promptMatch ? promptMatch[1] : 'Generated Video';
+
+            const stream = this.canvas.captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+            const chunks: Blob[] = [];
+            
+            recorder.ondataavailable = (e) => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                resolve(url);
+            };
+            recorder.onerror = (e) => {
+                console.error("MediaRecorder error:", e);
+                reject(new Error('Failed to record video preview.'));
+            };
+
+            const particles: any[] = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * this.width,
+                    y: Math.random() * this.height,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    size: Math.random() * 5 + 2,
+                    color: `hsl(${Math.random() * 60 + 200}, 100%, 70%)`
+                });
+            }
+
+            let frame = 0;
+            const duration = 150; // 5 seconds at 30fps
+
+            const animate = () => {
+                if (frame >= duration) {
+                    recorder.stop();
+                    return;
+                }
+                
+                this.ctx.fillStyle = '#020617';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > this.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > this.height) p.vy *= -1;
+
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+
+                this.ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                this.ctx.fillRect(0, this.height - 150, this.width, 150);
+
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.font = 'bold 32px Arial';
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(`VEO AI Simulation: "${prompt}"`, 50, this.height - 80);
+                this.ctx.font = '24px Arial';
+                this.ctx.fillText(`CUBE Protocol | Phil Hills`, 50, this.height - 40);
+
+                this.addGPUIndicator();
+
+                frame++;
+                requestAnimationFrame(animate);
+            };
+            
+            recorder.start();
+            animate();
+        });
     }
     
     private generateSimulatedTrainingDataComparison(): string {
@@ -552,26 +649,29 @@ export class MicroscopyImageGenerator {
         return '';
     }
 
-    public generateFromCube(cubeCommand: string): string {
+    public async generateFromCube(cubeCommand: string): Promise<{url: string, type: 'image' | 'video'}> {
         const commands = cubeCommand.toUpperCase();
-        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS', 'SIMULATE'];
+        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS', 'SIMULATE', 'GENERATE|VIDEO'];
 
         if (axlKeywords.some(kw => commands.includes(kw))) {
             if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
                 try {
                     const axlGenerator = new AXL_CUDA_ImageGenerator();
-                    return axlGenerator.generateAXLCudaImage(cubeCommand);
+                    return await axlGenerator.generateAXLCudaMedia(cubeCommand);
                 } catch (e) {
-                    console.error("Error during AXL CUDA image generation:", e);
-                    return this.getErrorPlaceholder(4096, 4096);
+                    console.error("Error during AXL CUDA media generation:", e);
+                    const url = this.getErrorPlaceholder(4096, 4096);
+                    return { url, type: 'image' };
                 }
             }
-            return this.getErrorPlaceholder(4096, 4096);
+            const url = this.getErrorPlaceholder(4096, 4096);
+            return { url, type: 'image' };
         }
         
         if (!this.ctx || !this.canvas) {
             console.error("Canvas context is not available for image generation.");
-            return this.getErrorPlaceholder();
+            const url = this.getErrorPlaceholder();
+            return { url, type: 'image' };
         }
 
         try {
@@ -599,11 +699,13 @@ export class MicroscopyImageGenerator {
             this.applyPhotobleaching();
 
             this.addScientificOverlay(params);
-            return this.canvas.toDataURL('image/png');
+            const url = this.canvas.toDataURL('image/png');
+            return { url, type: 'image' };
 
         } catch (e) {
             console.error("Error during canvas drawing:", e);
-            return this.getErrorPlaceholder();
+            const url = this.getErrorPlaceholder();
+            return { url, type: 'image' };
         }
     }
 

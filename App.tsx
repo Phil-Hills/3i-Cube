@@ -19,6 +19,7 @@ import * as galleryService from './services/galleryService';
 import { XMarkIcon } from './components/icons';
 import { DashboardView } from './components/DashboardView';
 import { MLBuilderView } from './components/MLBuilderView';
+import { VideoBuilderView } from './components/VideoBuilderView';
 
 const getInitialScript = (): string => {
   if (
@@ -61,13 +62,13 @@ const App: React.FC = () => {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
-  const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(null);
+  const [simulatedMedia, setSimulatedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [view, setView] = useState<View>('dashboard');
 
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{imageUrl: string; cubeScript: string; id?: number} | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{url: string; cubeScript: string; type: 'image' | 'video'; id?: number} | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   
@@ -97,16 +98,16 @@ const App: React.FC = () => {
       
       let status: MicroscopeStatus = 'IDLE';
       if (cubeScript.includes('CONNECT|')) status = 'CONNECTED';
-      let imageGeneratedInLog = false;
+      let mediaGeneratedInLog = false;
 
       for (const log of generatedLogs) {
         await new Promise(resolve => setTimeout(resolve, 75));
 
-        if (log.includes('[IMAGE_GENERATED]')) {
-            imageGeneratedInLog = true;
-            const newImageUrl = imageGenerator.generateFromCube(cubeScript);
-            setSimulatedImageUrl(newImageUrl);
-            const cleanLog = log.replace('[IMAGE_GENERATED]', '').trim();
+        if (log.includes('[MEDIA_GENERATED]')) {
+            mediaGeneratedInLog = true;
+            const newMedia = await imageGenerator.generateFromCube(cubeScript);
+            setSimulatedMedia(newMedia);
+            const cleanLog = log.replace('[MEDIA_GENERATED]', '').trim();
              if(cleanLog) {
                 setLogEntries(prev => [...prev, { type: 'INFO', message: cleanLog, timestamp: new Date() }]);
              }
@@ -119,9 +120,9 @@ const App: React.FC = () => {
         }
       }
       
-      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\||ENHANCE/i.test(cubeScript)) {
-          const newImageUrl = imageGenerator.generateFromCube(cubeScript);
-          setSimulatedImageUrl(newImageUrl);
+      if (!mediaGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\||ENHANCE|GENERATE/i.test(cubeScript)) {
+          const newMedia = await imageGenerator.generateFromCube(cubeScript);
+          setSimulatedMedia(newMedia);
       }
 
       setMicroscopeStatus(status);
@@ -139,24 +140,24 @@ const App: React.FC = () => {
   const selectScript = (script: string) => {
     setCubeScript(script);
     setLogEntries([]);
-    setSimulatedImageUrl(null);
+    setSimulatedMedia(null);
   };
 
-  const handleOpenImageModal = (image: {imageUrl: string; cubeScript: string; id?: number}) => {
-    setSelectedImage(image);
+  const handleOpenImageModal = (media: {url: string; cubeScript: string; type: 'image' | 'video'; id?: number}) => {
+    setSelectedMedia(media);
     setIsImageModalOpen(true);
   };
 
   const handleSaveToGallery = async () => {
-    if (simulatedImageUrl) {
+    if (simulatedMedia) {
         try {
-            await galleryService.saveImage(simulatedImageUrl, cubeScript);
+            await galleryService.saveImage(simulatedMedia.url, cubeScript, simulatedMedia.type);
             const images = await galleryService.getImages();
             setGalleryImages(images);
-            setToast({ message: 'Image saved to gallery!', type: 'success' });
+            setToast({ message: 'Media saved to gallery!', type: 'success' });
         } catch(error) {
-            console.error("Failed to save image:", error);
-            const errorMessage = error instanceof Error ? error.message : 'Could not save image.';
+            console.error("Failed to save media:", error);
+            const errorMessage = error instanceof Error ? error.message : 'Could not save media.';
             setToast({ message: `Save failed: ${errorMessage}`, type: 'error' });
         }
     }
@@ -168,11 +169,11 @@ const App: React.FC = () => {
         const images = await galleryService.getImages();
         setGalleryImages(images);
         setIsImageModalOpen(false);
-        setSelectedImage(null);
-        setToast({ message: 'Image deleted from gallery.', type: 'success' });
+        setSelectedMedia(null);
+        setToast({ message: 'Media deleted from gallery.', type: 'success' });
     } catch (error) {
-        console.error("Failed to delete image:", error);
-        const errorMessage = error instanceof Error ? error.message : 'Could not delete image.';
+        console.error("Failed to delete media:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Could not delete media.';
         setToast({ message: `Delete failed: ${errorMessage}`, type: 'error' });
     }
   };
@@ -181,7 +182,7 @@ const App: React.FC = () => {
     setCubeScript(script);
     setView('executor');
     setLogEntries([]);
-    setSimulatedImageUrl(null);
+    setSimulatedMedia(null);
   };
 
   const renderView = () => {
@@ -205,8 +206,8 @@ const App: React.FC = () => {
             <div className="md:col-span-4 grid grid-rows-2 gap-6 overflow-hidden">
               <div className="row-span-1 overflow-hidden">
                 <ImagePreview 
-                  imageUrl={simulatedImageUrl} 
-                  onImageClick={() => simulatedImageUrl && handleOpenImageModal({imageUrl: simulatedImageUrl, cubeScript})}
+                  media={simulatedMedia} 
+                  onImageClick={() => simulatedMedia && handleOpenImageModal({...simulatedMedia, cubeScript})}
                   onSaveClick={handleSaveToGallery}
                 />
               </div>
@@ -219,9 +220,11 @@ const App: React.FC = () => {
       case 'converter':
         return <ConverterView />;
       case 'gallery':
-        return <GalleryView images={galleryImages} onImageSelect={handleOpenImageModal} />;
+        return <GalleryView images={galleryImages} onImageSelect={({ imageUrl, cubeScript, id, mediaType }) => handleOpenImageModal({ url: imageUrl, cubeScript, id, type: mediaType })} />;
       case 'ml_builder':
         return <MLBuilderView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
+      case 'video_builder':
+        return <VideoBuilderView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
       default:
         return null;
     }
@@ -242,9 +245,9 @@ const App: React.FC = () => {
       <StatusBar status={microscopeStatus} />
       {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
       {isDocsModalOpen && <DocsModal onClose={() => setIsDocsModalOpen(false)} />}
-      {isImageModalOpen && selectedImage && (
+      {isImageModalOpen && selectedMedia && (
         <ImageModal 
-          image={selectedImage} 
+          media={selectedMedia} 
           onClose={() => setIsImageModalOpen(false)}
           onDelete={handleDeleteFromGallery}
         />

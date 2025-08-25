@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, ChartPieIcon, CpuChipIcon } from './icons';
+import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, ChartPieIcon, CpuChipIcon, VideoCameraIcon } from './icons';
 import type { View } from '../types';
 
 interface ViewSwitcherProps {
@@ -29,12 +29,12 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
           <PlayIcon className="w-5 h-5 mr-2" />
           Executor
         </button>
-        <button
-          onClick={() => onViewChange('converter')}
-          className={`${baseClasses} ${currentView === 'converter' ? activeClasses : inactiveClasses}`}
+         <button
+          onClick={() => onViewChange('video_builder')}
+          className={`${baseClasses} ${currentView === 'video_builder' ? activeClasses : inactiveClasses}`}
         >
-          <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
-          CUBE Converter
+          <VideoCameraIcon className="w-5 h-5 mr-2" />
+          Video Builder
         </button>
         <button
           onClick={() => onViewChange('ml_builder')}
@@ -44,11 +44,18 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
           ML Builder
         </button>
         <button
+          onClick={() => onViewChange('converter')}
+          className={`${baseClasses} ${currentView === 'converter' ? activeClasses : inactiveClasses}`}
+        >
+          <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
+          CUBE Converter
+        </button>
+        <button
           onClick={() => onViewChange('gallery')}
           className={`${baseClasses} ${currentView === 'gallery' ? activeClasses : inactiveClasses}`}
         >
           <PhotoIcon className="w-5 h-5 mr-2" />
-          Image Gallery
+          Media Gallery
         </button>
       </div>
     </div>

@@ -19,7 +19,7 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
     'Created by Phil Hills - Seattle Developer',
     ''
   ];
-  let imageGenerated = false;
+  let mediaGenerated = false;
 
   for (const line of lines) {
     if (line.trim().startsWith('#') || !line.trim()) continue;
@@ -43,7 +43,20 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
         if (sequence.toUpperCase().includes('CO2')) logs.push(`     • CO2: 5.0%`);
     }
 
-    if (upperDomain.includes('ACQUIRE') || upperDomain.includes('CAPTURE') || upperDomain.includes('SCAN') || upperDomain.includes('TIMELAPSE')) {
+    if (upperDomain === 'GENERATE' && sequence.toUpperCase().includes('VIDEO')) {
+        logs.push('  -> Initializing VEO-3 Generative Video Model...');
+        logs.push('     • Parsing text prompt...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        logs.push('     • Generating keyframes from diffusion model...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        logs.push('     • Interpolating frames and upscaling...');
+        await new Promise(resolve => setTimeout(resolve, 600));
+        logs.push('     • Encoding video to MP4...');
+        if (!mediaGenerated) {
+            logs.push('[MEDIA_GENERATED]');
+            mediaGenerated = true;
+        }
+    } else if (upperDomain.includes('ACQUIRE') || upperDomain.includes('CAPTURE') || upperDomain.includes('SCAN') || upperDomain.includes('TIMELAPSE')) {
         logs.push('  -> ✓ Acquisition started');
         logs.push('     • Camera: Hamamatsu ORCA-Fusion BT');
         logs.push('     • Resolution: 2304 x 2304 pixels');
@@ -54,9 +67,9 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
             logs.push(`     • Channels: ${channelsMatch[1]}`);
         }
 
-        if (!imageGenerated) {
-            logs.push('[IMAGE_GENERATED]');
-            imageGenerated = true;
+        if (!mediaGenerated) {
+            logs.push('[MEDIA_GENERATED]');
+            mediaGenerated = true;
         }
     }
     

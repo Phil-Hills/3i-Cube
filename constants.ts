@@ -2,6 +2,17 @@ import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
   {
+    category: "AI Media Generation",
+    description: "Use generative AI models to create images and videos from text prompts.",
+    scripts: [
+        {
+            name: "VEO Video Generation",
+            description: "Generate a short, photorealistic video clip from a text prompt using a simulated VEO model.",
+            script: `GENERATE|VIDEO[A photorealistic video of a spaceship flying through a colorful nebula]→MODEL[veo-2.0-generate-001]|RENDERING`
+        }
+    ]
+  },
+  {
     category: "AXL with CUDA Acceleration",
     description: "GPU-accelerated workflows for real-time processing and AI.",
     scripts: [

@@ -50,11 +50,12 @@ export interface GalleryImage {
   imageUrl: string;
   cubeScript: string;
   createdAt: Date;
+  mediaType: 'image' | 'video';
   tags: {
     system: string;
     technique: string;
   };
 }
 
-export type View = 'executor' | 'converter' | 'gallery' | 'dashboard' | 'ml_builder';
+export type View = 'executor' | 'converter' | 'gallery' | 'dashboard' | 'ml_builder' | 'video_builder';
 export type ConverterMode = 'code' | 'text' | 'data';

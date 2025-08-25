@@ -42,11 +42,12 @@ const parseCubeScriptForTags = (script: string): { system: string, technique: st
     const upperScript = script.toUpperCase();
     
     // Systems
-    const systems = ['AXL', 'MARIANAS', 'SLIDEBOOK'];
+    const systems = ['AXL', 'MARIANAS', 'SLIDEBOOK', 'GENERATE'];
     const foundSystem = systems.find(s => upperScript.includes(s)) || 'Generic';
     
     // Techniques
     const techniques: { [key: string]: string } = {
+        'VIDEO': 'Video Generation',
         'LATTICE': 'Lattice', 'CLEARED': 'Cleared Tissue', 'LIVE_CELL': 'Live Cell', 
         'DECONVOLVE': 'Deconvolution', 'AI_SEGMENT': 'AI Segmentation', 'REALTIME_DECONV': 'Deconvolution',
         'CONFOCAL': 'Confocal', 'SORA': 'Super-Resolution', 'FRAP': 'FRAP',
@@ -61,7 +62,7 @@ const parseCubeScriptForTags = (script: string): { system: string, technique: st
     };
 };
 
-export const saveImage = async (imageUrl: string, cubeScript: string): Promise<void> => {
+export const saveImage = async (imageUrl: string, cubeScript: string, mediaType: 'image' | 'video'): Promise<void> => {
     const db = await initDB();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
@@ -71,13 +72,14 @@ export const saveImage = async (imageUrl: string, cubeScript: string): Promise<v
         imageUrl,
         cubeScript,
         createdAt: new Date(),
+        mediaType,
         tags: parseCubeScriptForTags(cubeScript)
     };
 
     return new Promise((resolve, reject) => {
         const request = store.add(image);
         request.onsuccess = () => resolve();
-        request.onerror = () => reject(new Error(`Error saving image: ${request.error?.message}`));
+        request.onerror = () => reject(new Error(`Error saving media: ${request.error?.message}`));
     });
 };
 
@@ -92,7 +94,7 @@ export const getImages = async (): Promise<GalleryImage[]> => {
             const sorted = request.result.sort((a, b) => b.id - a.id);
             resolve(sorted);
         };
-        request.onerror = () => reject(new Error(`Error fetching images: ${request.error?.message}`));
+        request.onerror = () => reject(new Error(`Error fetching media: ${request.error?.message}`));
     });
 };
 
@@ -104,6 +106,6 @@ export const deleteImage = async (id: number): Promise<void> => {
     return new Promise((resolve, reject) => {
         const request = store.delete(id);
         request.onsuccess = () => resolve();
-        request.onerror = () => reject(new Error(`Error deleting image: ${request.error?.message}`));
+        request.onerror = () => reject(new Error(`Error deleting media: ${request.error?.message}`));
     });
 };
