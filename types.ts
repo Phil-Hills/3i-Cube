@@ -57,5 +57,16 @@ export interface GalleryImage {
   };
 }
 
-export type View = 'executor' | 'converter' | 'gallery' | 'ml_builder' | 'video_builder';
+export interface Dataset {
+  id: string;
+  source: 'Zenodo' | 'FigShare' | 'Kaggle';
+  title: string;
+  description: string;
+  tags: string[];
+  size: string;
+  citation: string;
+  cubeScript: string;
+}
+
+export type View = 'executor' | 'converter' | 'gallery' | 'ml_builder' | 'video_builder' | 'data_hub';
 export type ConverterMode = 'code' | 'text' | 'data';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, CpuChipIcon, VideoCameraIcon } from './icons';
+import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, CpuChipIcon, VideoCameraIcon, CircleStackIcon } from './icons';
 import type { View } from '../types';
 
 interface ViewSwitcherProps {
@@ -35,6 +35,13 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
         >
           <CpuChipIcon className="w-5 h-5 mr-2" />
           ML Builder
+        </button>
+        <button
+          onClick={() => onViewChange('data_hub')}
+          className={`${baseClasses} ${currentView === 'data_hub' ? activeClasses : inactiveClasses}`}
+        >
+          <CircleStackIcon className="w-5 h-5 mr-2" />
+          Data Hub
         </button>
         <button
           onClick={() => onViewChange('converter')}

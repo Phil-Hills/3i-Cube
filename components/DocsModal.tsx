@@ -36,7 +36,7 @@ const renderers = {
   hr: ({...props}) => <hr className="border-gray-700 my-8" {...props} />,
 };
 
-type DocFile = 'ALGORITHM.md' | 'CASE_STUDIES.md' | 'README.md' | 'SLIDEBOOK.md' | 'TECHNICAL.md' | 'SRDTRANS.md';
+type DocFile = 'ALGORITHM.md' | 'CASE_STUDIES.md' | 'README.md' | 'SLIDEBOOK.md' | 'TECHNICAL.md' | 'SRDTRANS.md' | 'RECURSION.md';
 
 const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
     'ALGORITHM.md': {
@@ -62,6 +62,10 @@ const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
     'SRDTRANS.md': {
         title: 'SRDTrans',
         subtitle: 'Simplifying state-of-the-art AI super-resolution from 500+ lines to 1.'
+    },
+    'RECURSION.md': {
+        title: 'Recursion & Inception',
+        subtitle: 'The CUBE algorithm compressing itself: a self-contained system.'
     }
 };
 
@@ -142,6 +146,7 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <TabButton doc="README.md" />
                 <TabButton doc="SLIDEBOOK.md" />
                 <TabButton doc="TECHNICAL.md" />
+                <TabButton doc="RECURSION.md" />
             </nav>
         </div>
 

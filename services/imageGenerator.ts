@@ -43,6 +43,9 @@ class AXL_CUDA_ImageGenerator {
             url = this.generateMultiviewFusion();
         } else if (commands.includes('LIVE_PROCESS')) {
             url = this.generateLiveProcessing();
+        } else if (commands.includes('DATA|LOAD')) {
+            this.generateDatasetPreview(cubeCommand);
+            url = this.canvas.toDataURL();
         } else {
           this.generateStandardAXLCuda(cubeCommand);
           this.addAXLMetadata('Standard AXL');
@@ -50,6 +53,44 @@ class AXL_CUDA_ImageGenerator {
         }
         return { url, type: 'image' };
     }
+    
+    private generateDatasetPreview(cubeCommand: string): string {
+        this.ctx.fillStyle = '#050a1a';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        const datasetMatch = cubeCommand.match(/LOAD\[(.*?):(.*?)\]/i);
+        const source = datasetMatch ? datasetMatch[1] : 'Unknown Source';
+        const id = datasetMatch ? datasetMatch[2] : 'Unknown ID';
+
+        // Draw a grid of placeholder images
+        const grid_size = 5;
+        const cell_size = (this.width - 200) / grid_size;
+        for(let i=0; i<grid_size; i++) {
+            for(let j=0; j<grid_size; j++) {
+                const x = 100 + i * cell_size;
+                const y = 100 + j * cell_size;
+                this.ctx.fillStyle = `rgba(0, 255, 128, ${Math.random() * 0.1 + 0.05})`;
+                this.ctx.fillRect(x + 10, y + 10, cell_size - 20, cell_size - 20);
+                this.drawSingleComplexCell(x + cell_size/2, y + cell_size/2, cell_size * 0.3, Math.random() > 0.5);
+            }
+        }
+        
+        this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        this.ctx.fillRect(0, this.height / 2 - 200, this.width, 400);
+
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = 'bold 96px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('Loading Scientific Dataset', this.width/2, this.height/2 - 50);
+
+        this.ctx.fillStyle = '#00FFFF';
+        this.ctx.font = '64px "Courier New", monospace';
+        this.ctx.fillText(`${source}: ${id}`, this.width/2, this.height/2 + 80);
+        
+        this.addGPUStats('Data Loading', 'Preparing for ML', `Source: ${source}`);
+        return this.canvas.toDataURL();
+    }
+
 
     private async generateVideoPreview(cubeCommand: string): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -708,7 +749,7 @@ export class MicroscopyImageGenerator {
 
     public async generateFromCube(cubeCommand: string): Promise<{url: string, type: 'image' | 'video'}> {
         const commands = cubeCommand.toUpperCase();
-        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS', 'SIMULATE', 'GENERATE|VIDEO'];
+        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS', 'SIMULATE', 'GENERATE|VIDEO', 'DATA|LOAD'];
 
         if (axlKeywords.some(kw => commands.includes(kw))) {
             if (typeof document !== 'undefined' && typeof document.createElement === 'function') {

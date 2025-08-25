@@ -19,6 +19,7 @@ import * as galleryService from './services/galleryService';
 import { XMarkIcon } from './components/icons';
 import { MLBuilderView } from './components/MLBuilderView';
 import { VideoBuilderView } from './components/VideoBuilderView';
+import { DataHubView } from './components/DataHubView';
 
 const getInitialScript = (): string => {
   if (
@@ -119,7 +120,7 @@ const App: React.FC = () => {
         }
       }
       
-      if (!mediaGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\||ENHANCE|GENERATE/i.test(cubeScript)) {
+      if (!mediaGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\||ENHANCE|GENERATE|DATA\|LOAD/i.test(cubeScript)) {
           const newMedia = await imageGenerator.generateFromCube(cubeScript);
           setSimulatedMedia(newMedia);
       }
@@ -220,6 +221,8 @@ const App: React.FC = () => {
         return <GalleryView images={galleryImages} onImageSelect={({ imageUrl, cubeScript, id, mediaType }) => handleOpenImageModal({ url: imageUrl, cubeScript, id, type: mediaType })} />;
       case 'ml_builder':
         return <MLBuilderView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
+       case 'data_hub':
+        return <DataHubView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
       case 'video_builder':
         return <VideoBuilderView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
       default:
