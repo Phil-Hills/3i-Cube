@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import type { LogEntry } from '../types';
 import { TerminalIcon, CheckCircleIcon, XCircleIcon, InformationCircleIcon } from './icons';
@@ -56,7 +55,7 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries }) => {
       </div>
       
       <div className="p-2 bg-blue-900/20 text-center text-xs text-blue-200 flex-shrink-0 border-b border-white/10">
-        ⚡️ <strong>Demo Mode:</strong> Simulating commands for real 3i hardware.
+        ⚡️ <strong>Demo Mode:</strong> Simulating commands for real microscope hardware.
       </div>
 
       <div ref={logContainerRef} className="flex-grow p-4 font-mono text-sm space-y-3 overflow-y-auto bg-slate-900">

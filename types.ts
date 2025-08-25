@@ -1,4 +1,3 @@
-
 export type MicroscopeStatus = 'DISCONNECTED' | 'CONNECTED' | 'EXECUTING' | 'IDLE' | 'ERROR';
 
 export type LogType = 'INFO' | 'SUCCESS' | 'ERROR' | 'SYSTEM';
@@ -69,7 +68,7 @@ export interface Dataset {
   cubeScript: string;
 }
 
-export type Brand = '3i' | 'zeiss' | 'nikon' | 'leica' | 'olympus' | 'generic';
+export type Brand = 'zeiss' | 'nikon' | 'leica' | 'olympus' | 'generic';
 
 export interface BrandConfig {
   name: string;

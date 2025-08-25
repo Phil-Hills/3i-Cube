@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { CpuChipIcon, CubeIcon, PlayIcon, CircleStackIcon, BeakerIcon, ArrowDownTrayIcon, SparklesIcon, LightBulbIcon } from './icons';
+import { CpuChipIcon, CubeIcon, PlayIcon, CircleStackIcon, BeakerIcon, ArrowDownTrayIcon, SparklesIcon, LightBulbIcon, PhotoIcon, LoaderIcon } from './icons';
+import { generateSyntheticData } from '../services/syntheticDataService';
+import type { SyntheticDataParams } from '../services/syntheticDataService';
 
-type DataSource = 'live' | 'gallery' | 'simulated';
+type DataSource = 'simulated';
 type Model = 'unet' | 'stardist' | 'custom';
 type LossFunction = 'bce' | 'tversky' | 'dice' | 'focal';
 type OutputAction = 'apply' | 'save' | 'export';
-type SimCellType = 'HeLa' | 'Neurons' | 'Tissue';
-type SimArtifact = 'PSF_Blur' | 'Poisson_Noise' | 'Photobleaching';
+export type SimCellType = 'HeLa' | 'Neurons' | 'Tissue';
+export type SimArtifact = 'PSF_Blur' | 'Poisson_Noise' | 'Uneven_Illumination';
 
 interface MLBuilderViewProps {
   onLoadInExecutor: (script: string) => void;
@@ -32,34 +34,17 @@ const PipelineConnector: React.FC = () => (
   </div>
 );
 
-const MLAdvisor: React.FC<{ model: Model, imageCount: number }> = ({ model, imageCount }) => {
-    const recommendations = {
-        unet: { min: 5000, prod: 20000, task: "Segmentation" },
-        stardist: { min: 2000, prod: 10000, task: "Object Detection" },
-        custom: { min: 10000, prod: 50000, task: "Custom Model" },
-    };
-    const rec = recommendations[model];
-    
-    let advice = `For a ${rec.task} task using ${model.toUpperCase()}, we recommend at least ${rec.min.toLocaleString()} images for good results. For production-quality, aim for ${rec.prod.toLocaleString()}+.`;
-    
-    let statusColor = 'text-yellow-300';
-    if(imageCount >= rec.prod) {
-        statusColor = 'text-green-300';
-    } else if (imageCount < rec.min) {
-        statusColor = 'text-red-400';
-    }
-
-    return (
-        <div className="mt-4 p-3 bg-slate-900/50 border border-yellow-400/20 rounded-lg flex items-start gap-3">
-            <LightBulbIcon className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
-            <div>
-                <h4 className="font-semibold text-yellow-200">ML Advisor</h4>
-                <p className="text-sm text-slate-300">
-                    {advice} Your current count is <span className={`font-bold ${statusColor}`}>{imageCount.toLocaleString()}</span>.
-                </p>
-            </div>
-        </div>
-    );
+const ImageWithLabelToggle: React.FC<{ image: string, label: string }> = ({ image, label }) => {
+  const [showLabel, setShowLabel] = useState(false);
+  return (
+    <div className="relative aspect-square bg-black rounded-lg overflow-hidden border-2 border-slate-700" onMouseEnter={() => setShowLabel(true)} onMouseLeave={() => setShowLabel(false)}>
+      <img src={image} alt="Generated synthetic data" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${showLabel ? 'opacity-0' : 'opacity-100'}`} />
+      <img src={label} alt="Segmentation mask" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${showLabel ? 'opacity-100' : 'opacity-0'}`} />
+      <div className="absolute top-1 right-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
+        {showLabel ? 'Label' : 'Image'}
+      </div>
+    </div>
+  );
 };
 
 export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }) => {
@@ -71,22 +56,18 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
   const [outputAction, setOutputAction] = useState<OutputAction>('apply');
   const [generatedScript, setGeneratedScript] = useState('');
   
-  // Simulation-specific state
   const [simCellType, setSimCellType] = useState<SimCellType>('HeLa');
   const [simImageCount, setSimImageCount] = useState(1000);
   const [simArtifacts, setSimArtifacts] = useState<Set<SimArtifact>>(new Set(['PSF_Blur', 'Poisson_Noise']));
+  
+  const [previewImages, setPreviewImages] = useState<{image: string, label: string}[] | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     let dataStr = '';
     if (dataSource === 'simulated') {
         const artifactsStr = Array.from(simArtifacts).join(',');
-        dataStr = `SIMULATE|CELLS[${simCellType}:${simImageCount}]→ARTIFACTS[${artifactsStr}]|DATASET`;
-    } else {
-        const dataMap = {
-            'live': 'DATA[Live_Feed]',
-            'gallery': 'DATA[From_Gallery]',
-        };
-        dataStr = dataMap[dataSource];
+        dataStr = `GENERATE|CELLS[Type:${simCellType},Count:${simImageCount}]→VARY[All]→AUGMENT[Flip,Contrast,Brightness]→ARTIFACTS[${artifactsStr}]|DATASET`;
     }
 
     const modelMap = {
@@ -105,20 +86,35 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
     };
     const outputStr = outputMap[outputAction];
 
-    const script = `${dataStr}\nML|DATA[Generated]→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
+    const script = `ML|${dataStr}\nML|DATA[Generated]→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
     setGeneratedScript(script);
   }, [dataSource, model, epochs, learningRate, lossFunction, outputAction, simCellType, simImageCount, simArtifacts]);
 
   const toggleArtifact = (artifact: SimArtifact) => {
     setSimArtifacts(prev => {
         const next = new Set(prev);
-        if (next.has(artifact)) {
-            next.delete(artifact);
-        } else {
-            next.add(artifact);
-        }
+        if (next.has(artifact)) next.delete(artifact);
+        else next.add(artifact);
         return next;
     });
+  };
+  
+  const handleGeneratePreview = async () => {
+    setIsGenerating(true);
+    setPreviewImages(null);
+    try {
+        const params: SyntheticDataParams = {
+            count: 9,
+            cellType: simCellType,
+            artifacts: Array.from(simArtifacts)
+        };
+        const generated = await generateSyntheticData(params);
+        setPreviewImages(generated);
+    } catch(e) {
+        console.error("Failed to generate preview images", e);
+    } finally {
+        setIsGenerating(false);
+    }
   };
 
   const SelectInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; children: React.ReactNode }> = ({ label, value, onChange, children }) => (
@@ -142,56 +138,41 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <CpuChipIcon className="w-8 h-8 mr-3 text-cyan-400" />
-          Visual ML Pipeline Builder
+          Synthetic Data ML Builder
         </h1>
-        <p className="mt-2 text-slate-400">Construct a machine learning workflow and generate the CUBE script automatically.</p>
+        <p className="mt-2 text-slate-400 max-w-2xl mx-auto">Generate unlimited, scientifically-plausible training data with zero API cost, then build the CUBE script to train your model.</p>
       </header>
 
       <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4">
-        <PipelineNode title="1. Data Source" icon={CircleStackIcon}>
-          <SelectInput label="Source" value={dataSource} onChange={e => setDataSource(e.target.value as DataSource)}>
-            <option value="simulated">Simulated Data</option>
-            <option value="live">Live Microscope Feed</option>
-            <option value="gallery">From Gallery</option>
+        <PipelineNode title="1. Synthetic Data Generation" icon={CircleStackIcon}>
+          <SelectInput label="Cell Type" value={simCellType} onChange={e => setSimCellType(e.target.value as SimCellType)}>
+            <option value="HeLa">HeLa Cells</option>
+            <option value="Neurons">Neurons</option>
+            <option value="Tissue">Tissue Section</option>
           </SelectInput>
-          {dataSource === 'simulated' && (
-            <div className="mt-3 pt-3 border-t border-white/10 space-y-2 animate-fade-in">
-              <SelectInput label="Cell Type" value={simCellType} onChange={e => setSimCellType(e.target.value as SimCellType)}>
-                <option value="HeLa">HeLa Cells</option>
-                <option value="Neurons">Neurons</option>
-                <option value="Tissue">Tissue Section</option>
-              </SelectInput>
-              <NumberInput label="Image Count" value={simImageCount} onChange={e => setSimImageCount(parseInt(e.target.value, 10) || 0)} step={100} />
-              <div>
-                <label className="text-sm text-slate-400 block mb-2">Artifacts</label>
-                <div className="space-y-1">
-                  {(['PSF_Blur', 'Poisson_Noise', 'Photobleaching'] as SimArtifact[]).map(artifact => (
-                    <label key={artifact} className="flex items-center text-sm text-slate-300">
-                      <input type="checkbox" checked={simArtifacts.has(artifact)} onChange={() => toggleArtifact(artifact)} className="mr-2 h-4 w-4 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600"/>
-                      {artifact.replace('_', ' ')}
-                    </label>
-                  ))}
-                </div>
-              </div>
+          <NumberInput label="Total Image Count" value={simImageCount} onChange={e => setSimImageCount(parseInt(e.target.value, 10) || 0)} step={100} />
+          <div>
+            <label className="text-sm text-slate-400 block mb-2">Microscopy Artifacts</label>
+            <div className="space-y-1">
+              {(['PSF_Blur', 'Poisson_Noise', 'Uneven_Illumination'] as SimArtifact[]).map(artifact => (
+                <label key={artifact} className="flex items-center text-sm text-slate-300 cursor-pointer">
+                  <input type="checkbox" checked={simArtifacts.has(artifact)} onChange={() => toggleArtifact(artifact)} className="mr-2 h-4 w-4 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600"/>
+                  {artifact.replace(/_/g, ' ')}
+                </label>
+              ))}
             </div>
-          )}
+          </div>
         </PipelineNode>
         
         <PipelineConnector />
 
-        <PipelineNode title="2. ML Model" icon={CpuChipIcon}>
+        <PipelineNode title="2. ML Model Training" icon={BeakerIcon}>
           <SelectInput label="Model Architecture" value={model} onChange={e => setModel(e.target.value as Model)}>
             <option value="unet">U-Net (Segmentation)</option>
-            <option value="stardist">StarDist 3D (Tracking)</option>
+            <option value="stardist">StarDist 3D (Object Detection)</option>
             <option value="custom">Custom Model</option>
           </SelectInput>
-           {dataSource === 'simulated' && <MLAdvisor model={model} imageCount={simImageCount} />}
-        </PipelineNode>
-
-        <PipelineConnector />
-
-        <PipelineNode title="3. Training" icon={BeakerIcon}>
-          <div className="grid grid-cols-2 gap-2">
+           <div className="grid grid-cols-2 gap-2">
             <NumberInput label="Epochs" value={epochs} onChange={e => setEpochs(parseInt(e.target.value, 10) || 0)} />
             <div>
               <label className="text-sm text-slate-400 block mb-1">Learning Rate</label>
@@ -208,32 +189,70 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
 
         <PipelineConnector />
 
-        <PipelineNode title="4. Output" icon={ArrowDownTrayIcon}>
-          <SelectInput label="Action" value={outputAction} onChange={e => setOutputAction(e.target.value as OutputAction)}>
-            <option value="apply">Apply to Live View</option>
-            <option value="save">Save Trained Model</option>
+        <PipelineNode title="3. Output & Deployment" icon={ArrowDownTrayIcon}>
+          <SelectInput label="Action on Completion" value={outputAction} onChange={e => setOutputAction(e.target.value as OutputAction)}>
+            <option value="apply">Apply Model to Live View</option>
+            <option value="save">Save Trained Model File</option>
             <option value="export">Export Segmented Image</option>
           </SelectInput>
         </PipelineNode>
       </div>
 
-      <div className="bg-slate-900/50 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-4 mt-4">
+      <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div className="bg-slate-800/50 p-4 rounded-lg">
+            <h3 className="text-lg font-bold text-slate-100 mb-2">Cost & Time Savings</h3>
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="bg-red-900/30 p-2 rounded">
+                <p className="text-sm font-semibold text-red-300">Traditional API</p>
+                <p className="text-xl font-bold text-white">${((simImageCount * 0.02).toFixed(2))}</p>
+                <p className="text-xs text-slate-400">~10 min (rate limits)</p>
+              </div>
+              <div className="bg-green-900/30 p-2 rounded">
+                <p className="text-sm font-semibold text-green-300">CUBE Protocol</p>
+                <p className="text-xl font-bold text-white">$0.00</p>
+                <p className="text-xs text-slate-400">~10 sec (local)</p>
+              </div>
+            </div>
+          </div>
+          <div className="text-center md:text-left">
+            <button
+                onClick={handleGeneratePreview}
+                disabled={isGenerating}
+                className="w-full md:w-auto flex items-center justify-center p-3 bg-white/10 text-white font-bold rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                {isGenerating ? <><LoaderIcon className="w-5 h-5 mr-2 animate-spin" /> Generating...</> : <><SparklesIcon className="w-5 h-5 mr-2" /> Generate Data Preview</>}
+            </button>
+          </div>
+        </div>
+        
+        {previewImages && (
+            <div className="mt-4 animate-fade-in">
+                <h3 className="text-md font-semibold text-slate-200 mb-2">Generated Data Preview (Hover to see labels)</h3>
+                <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
+                    {previewImages.map((p, i) => <ImageWithLabelToggle key={i} image={p.image} label={p.label} />)}
+                </div>
+            </div>
+        )}
+      </div>
+
+      <div className="bg-slate-900/50 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-4">
         <div className="flex items-center mb-2">
           <CubeIcon className="w-5 h-5 text-cyan-400 mr-2" />
-          <h3 className="text-lg font-semibold text-slate-100">Generated CUBE Script</h3>
+          <h3 className="text-lg font-semibold text-slate-100">Final CUBE Training Script</h3>
         </div>
         <pre className="w-full bg-black/50 p-3 rounded-md text-cyan-300 font-mono text-sm overflow-x-auto">
           <code>{generatedScript}</code>
         </pre>
+        <button
+          onClick={() => onLoadInExecutor(generatedScript)}
+          className="mt-4 w-full flex items-center justify-center p-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-lg hover:brightness-110 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-500/50 shadow-lg shadow-purple-500/20"
+        >
+          <PlayIcon className="w-5 h-5 mr-3" />
+          Load in Executor & Run Full Training Simulation
+        </button>
       </div>
 
-      <button
-        onClick={() => onLoadInExecutor(generatedScript)}
-        className="mt-2 w-full flex items-center justify-center p-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-lg hover:brightness-110 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-500/50 shadow-2xl shadow-purple-500/20 transform hover:-translate-y-1"
-      >
-        <PlayIcon className="w-6 h-6 mr-3" />
-        Load in Executor & Run Simulation
-      </button>
     </div>
   );
 };

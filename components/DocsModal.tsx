@@ -39,29 +39,29 @@ const renderers = {
 type DocFile = 'ALGORITHM.md' | 'CASE_STUDIES.md' | 'README.md' | 'SLIDEBOOK.md' | 'TECHNICAL.md' | 'SRDTRANS.md' | 'RECURSION.md';
 
 const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
-    'ALGORITHM.md': {
-        title: 'The CUBE Algorithm',
-        subtitle: 'The complete implementation and theory behind the CUBE Protocol.'
-    },
-    'CASE_STUDIES.md': {
-        title: 'Case Studies',
-        subtitle: 'Real-world 3i workflows compressed at a 91:1 ratio.'
-    },
     'README.md': {
         title: 'Protocol Overview',
         subtitle: 'The core philosophy and paradigm shifts behind the CUBE Protocol.'
     },
-    'SLIDEBOOK.md': {
-        title: 'SlideBook Integration',
-        subtitle: 'Mapping complex SlideBook/3i microscopy operations to simple CUBE commands.'
-    },
-    'TECHNICAL.md': {
-        title: 'Technical Workflows',
-        subtitle: 'Real-world 3i technical answers mapped to CUBE commands.'
+    'CASE_STUDIES.md': {
+        title: 'Case Studies',
+        subtitle: 'Real-world workflows compressed at an average 91:1 ratio.'
     },
     'SRDTRANS.md': {
-        title: 'SRDTrans',
+        title: 'AI Model Integration',
         subtitle: 'Simplifying state-of-the-art AI super-resolution from 500+ lines to 1.'
+    },
+    'ALGORITHM.md': {
+        title: 'The CUBE Algorithm',
+        subtitle: 'The complete implementation and theory behind the CUBE Protocol.'
+    },
+    'SLIDEBOOK.md': {
+        title: 'Vendor Integration (Example)',
+        subtitle: 'Mapping complex operations from specific vendor software to simple CUBE commands.'
+    },
+    'TECHNICAL.md': {
+        title: 'Technical Workflows (Example)',
+        subtitle: 'Real-world technical answers and workflows mapped to CUBE commands.'
     },
     'RECURSION.md': {
         title: 'Recursion & Inception',
@@ -72,7 +72,7 @@ const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
 
 export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [markdown, setMarkdown] = useState('');
-  const [activeDoc, setActiveDoc] = useState<DocFile>('CASE_STUDIES.md');
+  const [activeDoc, setActiveDoc] = useState<DocFile>('README.md');
 
   useEffect(() => {
     setMarkdown('');
@@ -129,7 +129,7 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <div className="flex items-center">
             <BookOpenIcon className="w-7 h-7 text-cyan-400 mr-3" />
             <div>
-              <h2 className="text-xl font-bold text-white">3i CUBE Protocol Documentation</h2>
+              <h2 className="text-xl font-bold text-white">CUBE Protocol Documentation</h2>
                <p className="text-sm text-gray-400">{docMeta[activeDoc].subtitle}</p>
             </div>
           </div>
@@ -140,13 +140,13 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         
         <div className="px-6 border-b border-white/10 flex-shrink-0">
             <nav className="-mb-px flex space-x-6 overflow-x-auto">
+                <TabButton doc="README.md" />
                 <TabButton doc="CASE_STUDIES.md" />
                 <TabButton doc="SRDTRANS.md" />
                 <TabButton doc="ALGORITHM.md" />
-                <TabButton doc="README.md" />
+                <TabButton doc="RECURSION.md" />
                 <TabButton doc="SLIDEBOOK.md" />
                 <TabButton doc="TECHNICAL.md" />
-                <TabButton doc="RECURSION.md" />
             </nav>
         </div>
 

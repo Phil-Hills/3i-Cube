@@ -1,9 +1,7 @@
-
 import type { ExampleScriptCategory, ConverterExample, Brand, BrandConfig } from './types';
 
 export const BRAND_CONFIGS: Record<Brand, BrandConfig> = {
   'generic': { name: 'CUBE Protocol', appName: 'Universal CUBE Protocol' },
-  '3i': { name: '3i', appName: 'CUBE Protocol for 3i' },
   'zeiss': { name: 'Zeiss', appName: 'ZEN CUBE Protocol' },
   'nikon': { name: 'Nikon', appName: 'NIS CUBE Protocol' },
   'leica': { name: 'Leica Microsystems', appName: 'LAS X CUBE' },
@@ -61,6 +59,22 @@ SAVE|FORMAT[H265]→COMPRESS[GPU]→BITRATE[100Mbps]|EFFICIENT`
       description: "Fundamental and commonly used imaging protocols.",
       scripts: [
         {
+          name: "Live Cell Tracking",
+          description: "Track cell division over 24 hours with temperature and CO2 control.",
+          script: `# Live cell imaging with environmental control
+SETUP|LIVE_CELL→TEMP[37C]→CO2[5%]|READY
+ACQUIRE|TIMELAPSE[24h:5min]→CHANNELS[GFP,RFP]→FOCUS[PFS]|RUNNING
+ANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE`
+        },
+        {
+          name: "Lattice Light Sheet",
+          description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution.",
+          script: `# 4D Lattice light sheet with GPU acceleration
+SETUP|LATTICE→SAMPLE[Zebrafish_Embryo]→GENTLE[Low_Power]|CONFIGURED
+ACQUIRE|4D→VOLUME[500x500x200um]→TIME[6h]→INTERVAL[30s]|CAPTURING
+PROCESS|DECONVOLVE[AI]→GPU[ACCELERATED]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
+        },
+        {
           name: "Spinning Disk Confocal",
           description: "High-speed Z-stack acquisition with deconvolution for clarity.",
           script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
@@ -76,30 +90,6 @@ SAVE|FORMAT[H265]→COMPRESS[GPU]→BITRATE[100Mbps]|EFFICIENT`
           script: `SCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING
 STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
         }
-      ]
-    },
-  ],
-  '3i': [
-     {
-      category: "3i-Specific Workflows",
-      description: "End-to-end examples of complex experiments on 3i systems.",
-      scripts: [
-        {
-          name: "Marianas Confocal - Live Cell",
-          description: "Track cell division over 24 hours with temperature and CO2 control.",
-          script: `# Live cell imaging with 3i Marianas
-MARIANAS|LIVE_CELL→TEMP[37C]→CO2[5%]→OBJECTIVE[60x_Oil]|READY
-TIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUNNING
-ANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE`
-        },
-        {
-          name: "Lattice Light Sheet",
-          description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution.",
-          script: `# 4D Lattice light sheet with AXL GPU acceleration
-AXL|LATTICE→SAMPLE[Zebrafish_Embryo]→GENTLE[Low_Power]|CONFIGURED
-ACQUIRE|4D→VOLUME[500x500x200um]→TIME[6h]→INTERVAL[30s]|CAPTURING
-PROCESS|DECONVOLVE[AI]→PROJECT[MIP]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
-        },
       ]
     },
   ],
