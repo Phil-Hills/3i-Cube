@@ -17,7 +17,6 @@ import { ImageModal } from './components/ImageModal';
 import { GalleryView } from './components/GalleryView';
 import * as galleryService from './services/galleryService';
 import { XMarkIcon } from './components/icons';
-import { DashboardView } from './components/DashboardView';
 import { MLBuilderView } from './components/MLBuilderView';
 import { VideoBuilderView } from './components/VideoBuilderView';
 
@@ -65,7 +64,7 @@ const App: React.FC = () => {
   const [simulatedMedia, setSimulatedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
-  const [view, setView] = useState<View>('dashboard');
+  const [view, setView] = useState<View>('executor');
 
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{url: string; cubeScript: string; type: 'image' | 'video'; id?: number} | null>(null);
@@ -187,8 +186,6 @@ const App: React.FC = () => {
 
   const renderView = () => {
     switch(view) {
-      case 'dashboard':
-        return <DashboardView onViewChange={setView} />;
       case 'executor':
         return (
            <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6 overflow-hidden">

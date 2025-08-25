@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, ChartPieIcon, CpuChipIcon, VideoCameraIcon } from './icons';
+import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, CpuChipIcon, VideoCameraIcon } from './icons';
 import type { View } from '../types';
 
 interface ViewSwitcherProps {
@@ -15,13 +15,6 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
   return (
     <div className="flex justify-center mb-0">
       <div className="flex space-x-2 bg-gray-950/40 backdrop-blur-2xl p-1 rounded-lg border border-white/10">
-        <button
-          onClick={() => onViewChange('dashboard')}
-          className={`${baseClasses} ${currentView === 'dashboard' ? activeClasses : inactiveClasses}`}
-        >
-          <ChartPieIcon className="w-5 h-5 mr-2" />
-          Dashboard
-        </button>
         <button
           onClick={() => onViewChange('executor')}
           className={`${baseClasses} ${currentView === 'executor' ? activeClasses : inactiveClasses}`}

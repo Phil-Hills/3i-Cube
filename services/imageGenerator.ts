@@ -84,17 +84,24 @@ class AXL_CUDA_ImageGenerator {
                 reject(new Error('Failed to record video preview.'));
             };
 
-            const particles: any[] = [];
-            for (let i = 0; i < 100; i++) {
-                particles.push({
-                    x: Math.random() * this.width,
-                    y: Math.random() * this.height,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    size: Math.random() * 5 + 2,
-                    color: `hsl(${Math.random() * 60 + 200}, 100%, 70%)`
-                });
+            interface SimCell {
+                id: number; x: number; y: number; radius: number; targetRadius: number;
+                vx: number; vy: number; color: string; timeToDivide: number;
             }
+            const cells: SimCell[] = [];
+            const MAX_CELLS = 150;
+            const colors = ['#00ff00', '#ff00ff', '#00ffff', '#ffff00'];
+            let nextCellId = 0;
+
+            const createCell = (x?: number, y?: number, parentRadius?: number) => {
+                const radius = parentRadius ? parentRadius * 0.8 : 30 + Math.random() * 20;
+                cells.push({
+                    id: nextCellId++, x: x ?? Math.random() * this.width, y: y ?? Math.random() * this.height,
+                    radius: 0, targetRadius: radius, vx: (Math.random() - 0.5) * 1, vy: (Math.random() - 0.5) * 1,
+                    color: colors[Math.floor(Math.random() * colors.length)], timeToDivide: 100 + Math.random() * 100,
+                });
+            };
+            for (let i = 0; i < 15; i++) createCell();
 
             let frame = 0;
             const duration = 150; // 5 seconds at 30fps
@@ -105,31 +112,46 @@ class AXL_CUDA_ImageGenerator {
                     return;
                 }
                 
-                this.ctx.fillStyle = '#020617';
+                this.ctx.fillStyle = '#000000';
                 this.ctx.fillRect(0, 0, this.width, this.height);
+                this.ctx.globalCompositeOperation = 'lighter';
 
-                particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0 || p.x > this.width) p.vx *= -1;
-                    if (p.y < 0 || p.y > this.height) p.vy *= -1;
+                const newCells: SimCell[] = [];
+                cells.forEach(cell => {
+                    cell.x += cell.vx; cell.y += cell.vy;
+                    cell.vx += (Math.random() - 0.5) * 0.2; cell.vy += (Math.random() - 0.5) * 0.2;
+                    if (cell.x < 0 || cell.x > this.width) cell.vx *= -1;
+                    if (cell.y < 0 || cell.y > this.height) cell.vy *= -1;
+                    cell.vx = Math.max(-1.5, Math.min(1.5, cell.vx)); cell.vy = Math.max(-1.5, Math.min(1.5, cell.vy));
+                    if (cell.radius < cell.targetRadius) cell.radius += 0.5;
 
-                    this.ctx.fillStyle = p.color;
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fill();
+                    cell.timeToDivide--;
+                    if (cell.timeToDivide <= 0 && cells.length + newCells.length < MAX_CELLS) {
+                        cell.targetRadius *= 0.8; cell.radius = Math.min(cell.radius, cell.targetRadius);
+                        cell.timeToDivide = 100 + Math.random() * 100;
+                        const daughterCell: SimCell = {
+                            id: nextCellId++, x: cell.x + (Math.random() - 0.5) * cell.radius * 2,
+                            y: cell.y + (Math.random() - 0.5) * cell.radius * 2, radius: 0,
+                            targetRadius: cell.targetRadius, vx: -cell.vx + (Math.random() - 0.5),
+                            vy: -cell.vy + (Math.random() - 0.5), color: cell.color, timeToDivide: 100 + Math.random() * 100,
+                        };
+                        newCells.push(daughterCell);
+                    }
+
+                    const gradient = this.ctx.createRadialGradient(cell.x, cell.y, 0, cell.x, cell.y, cell.radius);
+                    gradient.addColorStop(0, `${cell.color}ff`);
+                    gradient.addColorStop(0.5, `${cell.color}80`);
+                    gradient.addColorStop(1, `${cell.color}00`);
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath(); this.ctx.arc(cell.x, cell.y, cell.radius, 0, Math.PI * 2); this.ctx.fill();
                 });
+                cells.push(...newCells);
 
-                this.ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                this.ctx.fillRect(0, this.height - 150, this.width, 150);
-
-                this.ctx.fillStyle = '#FFFFFF';
-                this.ctx.font = 'bold 32px Arial';
-                this.ctx.textAlign = 'left';
+                this.ctx.globalCompositeOperation = 'source-over';
+                this.ctx.fillStyle = 'rgba(0,0,0,0.6)'; this.ctx.fillRect(0, this.height - 150, this.width, 150);
+                this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 32px Arial'; this.ctx.textAlign = 'left';
                 this.ctx.fillText(`VEO AI Simulation: "${prompt}"`, 50, this.height - 80);
-                this.ctx.font = '24px Arial';
-                this.ctx.fillText(`CUBE Protocol | Phil Hills`, 50, this.height - 40);
-
+                this.ctx.font = '24px Arial'; this.ctx.fillText(`CUBE Protocol | Phil Hills`, 50, this.height - 40);
                 this.addGPUIndicator();
 
                 frame++;

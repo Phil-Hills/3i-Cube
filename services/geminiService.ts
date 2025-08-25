@@ -44,7 +44,7 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
     }
 
     if (upperDomain === 'GENERATE' && sequence.toUpperCase().includes('VIDEO')) {
-        logs.push('  -> Initializing VEO-3 Generative Video Model...');
+        logs.push('  -> Initializing VEO 2.0 Generative Video Model...');
         logs.push('     • Parsing text prompt...');
         await new Promise(resolve => setTimeout(resolve, 500));
         logs.push('     • Generating keyframes from diffusion model...');

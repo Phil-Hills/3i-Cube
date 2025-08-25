@@ -6,7 +6,7 @@ interface VideoBuilderViewProps {
 }
 
 export const VideoBuilderView: React.FC<VideoBuilderViewProps> = ({ onLoadInExecutor }) => {
-  const [prompt, setPrompt] = useState('A photorealistic video of a spaceship flying through a colorful nebula');
+  const [prompt, setPrompt] = useState('A cinematic 3D rendering of a zebrafish embryo developing over 24 hours, showing fluorescent cells dividing and migrating.');
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [generatedScript, setGeneratedScript] = useState('');
 
@@ -36,7 +36,7 @@ export const VideoBuilderView: React.FC<VideoBuilderViewProps> = ({ onLoadInExec
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="w-full h-24 bg-slate-900 text-slate-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-y border border-white/10 text-sm"
-                placeholder="e.g., A cat wearing sunglasses driving a convertible..."
+                placeholder="e.g., A 3D animation of a T-cell attacking a cancer cell..."
             />
         </div>
         

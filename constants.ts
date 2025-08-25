@@ -8,7 +8,7 @@ export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
         {
             name: "VEO Video Generation",
             description: "Generate a short, photorealistic video clip from a text prompt using a simulated VEO model.",
-            script: `GENERATE|VIDEO[A photorealistic video of a spaceship flying through a colorful nebula]→MODEL[veo-2.0-generate-001]|RENDERING`
+            script: `GENERATE|VIDEO[A cinematic 3D rendering of a zebrafish embryo developing over 24 hours, showing fluorescent cells dividing and migrating.]→MODEL[veo-2.0-generate-001]|RENDERING`
         }
     ]
   },
