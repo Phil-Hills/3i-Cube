@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { CommandPalette } from './components/CommandPalette';
@@ -5,8 +6,8 @@ import { Editor } from './components/Editor';
 import { OutputLog } from './components/OutputLog';
 import { StatusBar } from './components/StatusBar';
 import { interpretCubeScript } from './services/geminiService';
-import type { LogEntry, MicroscopeStatus, View, GalleryImage } from './types';
-import { METHOD_SCRIPTS } from './constants';
+import type { LogEntry, MicroscopeStatus, View, GalleryImage, Brand } from './types';
+import { BRANDED_METHOD_SCRIPTS } from './constants';
 import { AboutModal } from './components/AboutModal';
 import { DocsModal } from './components/DocsModal';
 import { ViewSwitcher } from './components/ViewSwitcher';
@@ -20,15 +21,17 @@ import { XMarkIcon } from './components/icons';
 import { MLBuilderView } from './components/MLBuilderView';
 import { VideoBuilderView } from './components/VideoBuilderView';
 import { DataHubView } from './components/DataHubView';
+import { DashboardView } from './components/DashboardView';
 
-const getInitialScript = (): string => {
+const getInitialScript = (brand: Brand): string => {
+  const scripts = BRANDED_METHOD_SCRIPTS[brand];
   if (
-    METHOD_SCRIPTS &&
-    METHOD_SCRIPTS.length > 0 &&
-    METHOD_SCRIPTS[0].scripts &&
-    METHOD_SCRIPTS[0].scripts.length > 0
+    scripts &&
+    scripts.length > 0 &&
+    scripts[0].scripts &&
+    scripts[0].scripts.length > 0
   ) {
-    return METHOD_SCRIPTS[0].scripts[0].script;
+    return scripts[0].scripts[0].script;
   }
   return '';
 };
@@ -57,20 +60,26 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
+  const initialBrand: Brand = '3i';
 
-  const [cubeScript, setCubeScript] = useState<string>(getInitialScript());
+  const [brand, setBrand] = useState<Brand>(initialBrand);
+  const [cubeScript, setCubeScript] = useState<string>(getInitialScript(initialBrand));
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
   const [simulatedMedia, setSimulatedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
-  const [view, setView] = useState<View>('executor');
+  const [view, setView] = useState<View>('dashboard');
 
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{url: string; cubeScript: string; type: 'image' | 'video'; id?: number} | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  
+  useEffect(() => {
+    document.documentElement.dataset.theme = brand;
+  }, [brand]);
   
   useEffect(() => {
     const loadImages = async () => {
@@ -143,6 +152,11 @@ const App: React.FC = () => {
     setSimulatedMedia(null);
   };
 
+  const handleBrandChange = (newBrand: Brand) => {
+    setBrand(newBrand);
+    selectScript(getInitialScript(newBrand));
+  };
+
   const handleOpenImageModal = (media: {url: string; cubeScript: string; type: 'image' | 'video'; id?: number}) => {
     setSelectedMedia(media);
     setIsImageModalOpen(true);
@@ -187,11 +201,13 @@ const App: React.FC = () => {
 
   const renderView = () => {
     switch(view) {
+      case 'dashboard':
+        return <DashboardView onViewChange={setView} />;
       case 'executor':
         return (
            <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6 overflow-hidden">
             <div className="md:col-span-3 flex flex-col gap-6 overflow-y-auto">
-              <CommandPalette onSelectScript={selectScript} />
+              <CommandPalette onSelectScript={selectScript} scriptCategories={BRANDED_METHOD_SCRIPTS[brand]} />
             </div>
             <div className="md:col-span-5 flex flex-col gap-6 overflow-hidden">
               <Editor
@@ -233,6 +249,8 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-transparent text-slate-200 font-sans">
       <Header 
+        brand={brand}
+        onBrandChange={handleBrandChange}
         onAboutClick={() => setIsAboutModalOpen(true)}
         onDocsClick={() => setIsDocsModalOpen(true)}
       />

@@ -1,117 +1,228 @@
-import type { ExampleScriptCategory, ConverterExample } from './types';
 
-export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
-  {
-    category: "AI Media Generation",
-    description: "Use generative AI models to create images and videos from text prompts.",
-    scripts: [
+import type { ExampleScriptCategory, ConverterExample, Brand, BrandConfig } from './types';
+
+export const BRAND_CONFIGS: Record<Brand, BrandConfig> = {
+  '3i': { name: '3i (Intelligent Imaging Innovations)', appName: 'CUBE Protocol for 3i Microscopes' },
+  'zeiss': { name: 'Zeiss', appName: 'ZEN CUBE Protocol' },
+  'nikon': { name: 'Nikon', appName: 'NIS CUBE Protocol' },
+  'leica': { name: 'Leica Microsystems', appName: 'LAS X CUBE' },
+  'olympus': { name: 'Olympus (Evident Scientific)', appName: 'cellSens CUBE' },
+  'generic': { name: 'Generic', appName: 'Universal CUBE Protocol' },
+};
+
+export const BRANDED_METHOD_SCRIPTS: Record<Brand, ExampleScriptCategory[]> = {
+  '3i': [
+    {
+      category: "AI Media Generation",
+      description: "Use generative AI models to create images and videos from text prompts.",
+      scripts: [
+          {
+              name: "VEO Video Generation",
+              description: "Generate a short, photorealistic video clip from a text prompt using a simulated VEO model.",
+              script: `GENERATE|VIDEO[A cinematic 3D rendering of a zebrafish embryo developing over 24 hours, showing fluorescent cells dividing and migrating.]→MODEL[veo-2.0-generate-001]|RENDERING`
+          }
+      ]
+    },
+    {
+      category: "AXL with CUDA Acceleration",
+      description: "GPU-accelerated workflows for real-time processing and AI.",
+      scripts: [
         {
-            name: "VEO Video Generation",
-            description: "Generate a short, photorealistic video clip from a text prompt using a simulated VEO model.",
-            script: `GENERATE|VIDEO[A cinematic 3D rendering of a zebrafish embryo developing over 24 hours, showing fluorescent cells dividing and migrating.]→MODEL[veo-2.0-generate-001]|RENDERING`
-        }
-    ]
-  },
-  {
-    category: "AXL with CUDA Acceleration",
-    description: "GPU-accelerated workflows for real-time processing and AI.",
-    scripts: [
-      {
-        name: "SRDTrans Super-Resolution",
-        description: "Apply a state-of-the-art Dense Transformer model (SRDTrans) for 4x super-resolution.",
-        script: `# SRDTrans: 500+ lines of Python -> 1 CUBE command
+          name: "SRDTrans Super-Resolution",
+          description: "Apply a state-of-the-art Dense Transformer model (SRDTrans) for 4x super-resolution.",
+          script: `# SRDTrans: 500+ lines of Python -> 1 CUBE command
 ENHANCE|IMAGE[input.tif]→SUPER_RES[SRDTrans:4x]→DENOISE→SAVE|HD`
-      },
-      {
-        name: "U-Net Nuclei Segmentation",
-        description: "Run a U-Net model on the GPU to segment and label nuclei in an image.",
-        script: `# AI segmentation with CUDA acceleration
+        },
+        {
+          name: "U-Net Nuclei Segmentation",
+          description: "Run a U-Net model on the GPU to segment and label nuclei in an image.",
+          script: `# AI segmentation with CUDA acceleration
 AXL|AI[U-Net_Nuclei]→GPU[RTX_4090]→SEGMENT|INTELLIGENT
 PROCESS|IMAGE[Input]→INFERENCE[25ms]→MASK[Instance]→LABEL[Unique_IDs]|FAST
 ANALYZE|COUNT[Nuclei]→MEASURE[Area,Shape]→EXPORT[CSV]|COMPLETE`
-      },
-      {
-        name: "StarDist 3D Cell Tracking",
-        description: "Use StarDist 3D for high-accuracy object detection and tracking in a volume over time.",
-        script: `# 3D tracking with StarDist
+        },
+        {
+          name: "StarDist 3D Cell Tracking",
+          description: "Use StarDist 3D for high-accuracy object detection and tracking in a volume over time.",
+          script: `# 3D tracking with StarDist
 AXL|AI[StarDist_3D]→GPU[RTX_4090]→TRACK[4D_Volume]|PRECISE
 PROCESS|TIMESERIES[100_Volumes]→DETECT[Cells]→LINK[Trajectories]|ACCURATE
 VISUALIZE|RENDER[3D_Tracks]→COLOR[Time]→EXPORT[Movie]|DYNAMIC`
-      },
-      {
-        name: "Real-time Deconvolution",
-        description: "Process a 4K video stream live with GPU-accelerated deconvolution.",
-        script: `# GPU-accelerated deconvolution with AXL
+        },
+        {
+          name: "Real-time Deconvolution",
+          description: "Process a 4K video stream live with GPU-accelerated deconvolution.",
+          script: `# GPU-accelerated deconvolution with AXL
 AXL|GPU[RTX_4090]→DECONVOLVE[REALTIME_DECONV]→CUDA[ACCELERATED]|INSTANT
 PROCESS|STREAM[4K_Video]→DECONV[Live]→DISPLAY[120fps]→LATENCY[8ms]|SMOOTH
 SAVE|FORMAT[H265]→COMPRESS[GPU]→BITRATE[100Mbps]|EFFICIENT`
-      },
-    ]
-  },
-  {
-    category: "Real 3i Workflows",
-    description: "End-to-end examples of complex experiments on 3i systems.",
-    scripts: [
-      {
-        name: "Marianas Confocal - Live Cell",
-        description: "Track cell division over 24 hours with temperature and CO2 control.",
-        script: `# Live cell imaging with 3i Marianas
+        },
+      ]
+    },
+    {
+      category: "Real 3i Workflows",
+      description: "End-to-end examples of complex experiments on 3i systems.",
+      scripts: [
+        {
+          name: "Marianas Confocal - Live Cell",
+          description: "Track cell division over 24 hours with temperature and CO2 control.",
+          script: `# Live cell imaging with 3i Marianas
 MARIANAS|LIVE_CELL→TEMP[37C]→CO2[5%]→OBJECTIVE[60x_Oil]|READY
 TIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUNNING
 ANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE`
-      },
-      {
-        name: "AXL Lattice Light Sheet",
-        description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution.",
-        script: `# 4D Lattice light sheet with AXL
+        },
+        {
+          name: "AXL Lattice Light Sheet",
+          description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution.",
+          script: `# 4D Lattice light sheet with AXL
 AXL|LATTICE→SAMPLE[Zebrafish_Embryo]→GENTLE[Low_Power]|CONFIGURED
 ACQUIRE|4D→VOLUME[500x500x200um]→TIME[6h]→INTERVAL[30s]|CAPTURING
 PROCESS|DECONVOLVE[AI]→PROJECT[MIP]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
-      },
-      {
-        name: "Cleared Tissue Imaging",
-        description: "Image an entire mouse brain section by scanning and stitching large tiles.",
-        script: `# Cleared tissue with 3i AXL
+        },
+        {
+          name: "Cleared Tissue Imaging",
+          description: "Image an entire mouse brain section by scanning and stitching large tiles.",
+          script: `# Cleared tissue with 3i AXL
 AXL|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY
 SCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING
 STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
-      }
-    ]
-  },
-  {
-    category: "Core Techniques",
-    description: "Fundamental and commonly used 3i imaging protocols.",
-    scripts: [
-      {
-        name: "Spinning Disk Confocal",
-        description: "High-speed Z-stack acquisition with deconvolution for clarity.",
-        script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
-      },
-      {
-        name: "Live Cell Perfect Focus",
-        description: "Long-term imaging with hardware autofocus to maintain stability.",
-        script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
-      },
-    ]
-  },
-  {
-    category: "Advanced Applications",
-    description: "Cutting-edge methods for super-resolution and photomanipulation.",
-    scripts: [
-      {
-        name: "SoRa Super-Resolution",
-        description: "Achieve 120nm resolution for seeing subcellular details.",
-        script: `ACQUIRE|SORA[Super_Res]→CHANNELS[488,561]→RESOLUTION[120nm]→RECONSTRUCT|ENHANCED`
-      },
-      {
-        name: "Vector FRAP",
-        description: "Targeted laser bleaching and recovery monitoring using Vector photomanipulation.",
-        script: `VECTOR|TARGET[ROI]→LASER[405nm,100%]→BLEACH→MONITOR[Recovery]|FRAP`
-      }
-    ]
-  }
-];
-
+        }
+      ]
+    },
+  ],
+  'zeiss': [
+    {
+        category: "Zeiss Specific Features",
+        description: "Commands tailored for Zeiss ZEN software and hardware.",
+        scripts: [
+            {
+                name: "Airyscan Super-Resolution",
+                description: "Perform a 2x super-resolution scan with a Zeiss Airyscan detector.",
+                script: `ZEISS|AIRYSCAN[2x]→MODE[FAST]→PROCESS→SAVE|ENHANCED`
+            },
+            {
+                name: "LSM 980 Spectral Unmixing",
+                description: "Use the LSM 980 to spectrally separate two overlapping fluorophores.",
+                script: `ZEISS|LSM[980]→SPECTRAL[490-600nm]→UNMIX[GFP,YFP]|SEPARATED`
+            },
+            {
+                name: "Apotome Optical Sectioning",
+                description: "Acquire an optically sectioned image using structured illumination.",
+                script: `ZEISS|APOTOME→GRID[3_Phase]→ACQUIRE[ZStack]→RECONSTRUCT|SECTIONED`
+            }
+        ]
+    },
+    {
+      category: "Universal Techniques",
+      description: "Core techniques applicable to any microscope.",
+      scripts: [
+        {
+          name: "Spinning Disk Confocal",
+          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
+          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
+        },
+        {
+          name: "Live Cell Imaging",
+          description: "Long-term imaging with hardware autofocus to maintain stability.",
+          script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
+        },
+      ]
+    },
+  ],
+  'nikon': [
+    {
+        category: "Nikon Specific Features",
+        description: "Commands designed for Nikon NIS-Elements software and hardware.",
+        scripts: [
+            {
+                name: "Perfect Focus System (PFS)",
+                description: "Maintain perfect focus over a long time-lapse experiment.",
+                script: `NIKON|PERFECT_FOCUS[ON]→MAINTAIN→CAPTURE[24h:5min]|STABLE`
+            },
+            {
+                name: "STORM Super-Resolution",
+                description: "Perform 3D Stochastic Optical Reconstruction Microscopy.",
+                script: `NIKON|STORM[3D]→LOCALIZE[High_Precision]→RECONSTRUCT|SUPER_RES`
+            },
+            {
+                name: "JOBS Experiment Designer",
+                description: "Execute a pre-programmed JOBS sequence for automated imaging.",
+                script: `NIKON|JOBS[Load:My_Experiment.job]→EXECUTE|COMPLETE`
+            }
+        ]
+    },
+    {
+      category: "Universal Techniques",
+      description: "Core techniques applicable to any microscope.",
+      scripts: [
+        {
+          name: "Spinning Disk Confocal",
+          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
+          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
+        },
+        {
+          name: "Live Cell Imaging",
+          description: "Long-term imaging with hardware autofocus to maintain stability.",
+          script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
+        },
+      ]
+    },
+  ],
+  'leica': [
+    {
+      category: "Leica Specific Features",
+      description: "Commands for Leica LAS X software and STELLARIS platform.",
+      scripts: [
+        {
+            name: "STELLARIS TauSense",
+            description: "Utilize fluorescence lifetime information for contrast.",
+            script: `LEICA|STELLARIS[TauSense]→LIFETIME[Contrast]→UNMIX[Autofluorescence]|CLEAN`
+        },
+        {
+            name: "LIGHTNING Deconvolution",
+            description: "Apply real-time LIGHTNING computational clearing.",
+            script: `LEICA|LIGHTNING[ON]→ACQUIRE[Live]→SUPER_RES[120nm]|ENHANCED`
+        }
+      ]
+    }
+  ],
+  'olympus': [
+    {
+      category: "Olympus Specific Features",
+      description: "Commands for Olympus cellSens and FV3000 systems.",
+      scripts: [
+        {
+            name: "FV3000 TruSpectral",
+            description: "High-precision spectral unmixing with variable bandwidth.",
+            script: `OLYMPUS|FV3000[TruSpectral]→DETECTION[Band:2nm]→UNMIX|PRECISE`
+        },
+        {
+            name: "SpinSR Super Resolution",
+            description: "Acquire super-resolution images using the spinning disk system.",
+            script: `OLYMPUS|SpinSR[10]→MODE[Live]→RESOLUTION[120nm]|ACHIEVED`
+        }
+      ]
+    }
+  ],
+  'generic': [
+    {
+      category: "Core Techniques",
+      description: "Fundamental and commonly used imaging protocols.",
+      scripts: [
+        {
+          name: "Spinning Disk Confocal",
+          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
+          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
+        },
+        {
+          name: "Live Cell Perfect Focus",
+          description: "Long-term imaging with hardware autofocus to maintain stability.",
+          script: `LIVE|CELLS[37C,CO2]→TIMELAPSE[24h]→FOCUS[Auto_Correct]→TRACK|STABLE`
+        },
+      ]
+    },
+  ]
+};
 
 export const CODE_CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
   {

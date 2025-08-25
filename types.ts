@@ -1,3 +1,4 @@
+
 export type MicroscopeStatus = 'DISCONNECTED' | 'CONNECTED' | 'EXECUTING' | 'IDLE' | 'ERROR';
 
 export type LogType = 'INFO' | 'SUCCESS' | 'ERROR' | 'SYSTEM';
@@ -68,5 +69,12 @@ export interface Dataset {
   cubeScript: string;
 }
 
-export type View = 'executor' | 'converter' | 'gallery' | 'ml_builder' | 'video_builder' | 'data_hub';
+export type Brand = '3i' | 'zeiss' | 'nikon' | 'leica' | 'olympus' | 'generic';
+
+export interface BrandConfig {
+  name: string;
+  appName: string;
+}
+
+export type View = 'dashboard' | 'executor' | 'converter' | 'gallery' | 'ml_builder' | 'video_builder' | 'data_hub';
 export type ConverterMode = 'code' | 'text' | 'data';
