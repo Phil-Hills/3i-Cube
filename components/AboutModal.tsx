@@ -16,7 +16,7 @@ const AdaptiveOpticsShowcase: React.FC = () => (
 [nZern, Z2C, dm] = Init_Deformable_Mirror();
 dm.Reset();
 
-p = polyfit(Spherical_calibration, Defocus_corection, 1);
+p = polyfit(Spherical_calibration, Defocus_correction, 1);
 
 for i = Zernike_index
   for j = 1:length(ZernikeAmplitude) 
