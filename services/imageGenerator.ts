@@ -1,4 +1,3 @@
-
 // AXL with NVIDIA CUDA acceleration by Phil Hills - Seattle Developer
 class AXL_CUDA_ImageGenerator {
     private canvas: HTMLCanvasElement;
@@ -281,236 +280,350 @@ class AXL_CUDA_ImageGenerator {
 
 
 export class MicroscopyImageGenerator {
-  private canvas: HTMLCanvasElement | null;
-  private ctx: CanvasRenderingContext2D | null;
-  private width = 2048;
-  private height = 2048;
+    private canvas: HTMLCanvasElement | null;
+    private ctx: CanvasRenderingContext2D | null;
+    private width = 2048;
+    private height = 2048;
+    private pixelSize = 0.065; // μm/pixel (typical for 100x objective)
+    private NA = 1.4; // Numerical aperture
 
-  constructor() {
-    if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
-      this.canvas = document.createElement('canvas');
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
-      this.ctx = this.canvas.getContext('2d');
-    } else {
-      this.canvas = null;
-      this.ctx = null;
-    }
-  }
-
-  private getErrorPlaceholder(width: number = this.width, height: number = this.height): string {
-    const errorText = 'Image generation failed.';
-    const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/><text x="50%" y="50%" fill="#f87171" font-family="sans-serif" font-size="24" text-anchor="middle" dy=".3em">${errorText}</text></svg>`;
-    if (typeof btoa === 'function') {
-        return `data:image/svg+xml;base64,${btoa(svg)}`;
-    }
-    return '';
-  }
-
-  public generateFromCube(cubeCommand: string): string {
-    const commands = cubeCommand.toUpperCase();
-    const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS'];
-
-    if (axlKeywords.some(kw => commands.includes(kw))) {
+    constructor() {
         if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
-            try {
-                const axlGenerator = new AXL_CUDA_ImageGenerator();
-                return axlGenerator.generateAXLCudaImage(cubeCommand);
-            } catch (e) {
-                console.error("Error during AXL CUDA image generation:", e);
-                return this.getErrorPlaceholder(4096, 4096);
+            this.canvas = document.createElement('canvas');
+            this.canvas.width = this.width;
+            this.canvas.height = this.height;
+            this.ctx = this.canvas.getContext('2d');
+        } else {
+            this.canvas = null;
+            this.ctx = null;
+        }
+    }
+
+    private getErrorPlaceholder(width: number = this.width, height: number = this.height): string {
+        const errorText = 'Image generation failed.';
+        const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/><text x="50%" y="50%" fill="#f87171" font-family="sans-serif" font-size="24" text-anchor="middle" dy=".3em">${errorText}</text></svg>`;
+        if (typeof btoa === 'function') {
+            return `data:image/svg+xml;base64,${btoa(svg)}`;
+        }
+        return '';
+    }
+
+    public generateFromCube(cubeCommand: string): string {
+        const commands = cubeCommand.toUpperCase();
+        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS'];
+
+        if (axlKeywords.some(kw => commands.includes(kw))) {
+            if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+                try {
+                    const axlGenerator = new AXL_CUDA_ImageGenerator();
+                    return axlGenerator.generateAXLCudaImage(cubeCommand);
+                } catch (e) {
+                    console.error("Error during AXL CUDA image generation:", e);
+                    return this.getErrorPlaceholder(4096, 4096);
+                }
+            }
+            return this.getErrorPlaceholder(4096, 4096);
+        }
+        
+        if (!this.ctx || !this.canvas) {
+            console.error("Canvas context is not available for image generation.");
+            return this.getErrorPlaceholder();
+        }
+
+        try {
+            const params = this.parseCubeCommand(commands);
+
+            this.ctx.fillStyle = '#000000';
+            this.ctx.fillRect(0, 0, this.width, this.height);
+            this.ctx.globalCompositeOperation = 'screen';
+
+            if (params.includes('CELL')) {
+                this.generateCellularStructures(params);
+            } else if (params.includes('TISSUE')) {
+                this.generateTissueSection(params);
+            } else if (params.includes('NEURON')) {
+                this.generateNeuronalNetwork(params);
+            } else {
+                this.generateCellularStructures(params);
+            }
+            
+            this.ctx.globalCompositeOperation = 'source-over';
+            
+            this.applyPointSpreadFunction();
+            this.addPoissonNoise();
+            this.addSystematicNoise();
+            this.applyPhotobleaching();
+
+            this.addScientificOverlay(params);
+            return this.canvas.toDataURL('image/png');
+
+        } catch (e) {
+            console.error("Error during canvas drawing:", e);
+            return this.getErrorPlaceholder();
+        }
+    }
+
+    private parseCubeCommand(command: string): string {
+        return command.toUpperCase();
+    }
+
+    private extractChannels(params: string): string[] {
+        const channels: string[] = [];
+        if (params.includes('DAPI') || params.includes('405')) channels.push('DAPI');
+        if (params.includes('GFP') || params.includes('488')) channels.push('GFP');
+        if (params.includes('RFP') || params.includes('CHERRY') || params.includes('561')) channels.push('RFP');
+        if (params.includes('CY5') || params.includes('647')) channels.push('Cy5');
+        if (channels.length === 0) channels.push('GFP');
+        return channels;
+    }
+    
+    private perlinNoise(x: number): number {
+        return Math.sin(x * 2) * 0.5 + Math.sin(x * 3.7) * 0.3 + Math.sin(x * 7.3) * 0.2;
+    }
+
+    private generateCellularStructures(params: string) {
+        if(!this.ctx) return;
+        const numCells = 15 + Math.floor(Math.random() * 10);
+        for (let i = 0; i < numCells; i++) {
+            this.generateRealisticCell(
+                Math.random() * this.width,
+                Math.random() * this.height,
+                params
+            );
+        }
+    }
+    
+    private generateTissueSection(params: string) {
+        if(!this.ctx) return;
+        const numCells = 50 + Math.floor(Math.random() * 20);
+        for (let i = 0; i < numCells; i++) {
+            this.generateRealisticCell(
+                Math.random() * this.width,
+                Math.random() * this.height,
+                params,
+                0.7 // smaller cells
+            );
+        }
+    }
+
+    private generateNeuronalNetwork(params: string) {
+        if(!this.ctx) return;
+        const numNeurons = 5 + Math.floor(Math.random() * 3);
+        const neuronPositions: {x: number, y: number}[] = [];
+        for (let i = 0; i < numNeurons; i++) {
+            const x = Math.random() * this.width;
+            const y = Math.random() * this.height;
+            neuronPositions.push({x, y});
+            this.generateRealisticCell(x, y, params, 0.5); // Soma
+        }
+        
+        this.ctx.strokeStyle = 'rgba(0, 255, 0, 0.4)';
+        this.ctx.lineWidth = 1.5;
+        neuronPositions.forEach(startNeuron => {
+            const endNeuron = neuronPositions[Math.floor(Math.random() * numNeurons)];
+            if(startNeuron === endNeuron) return;
+            
+            this.ctx.beginPath();
+            this.ctx.moveTo(startNeuron.x, startNeuron.y);
+            const cp1x = startNeuron.x + (Math.random() - 0.5) * 400;
+            const cp1y = startNeuron.y + (Math.random() - 0.5) * 400;
+            const cp2x = endNeuron.x + (Math.random() - 0.5) * 400;
+            const cp2y = endNeuron.y + (Math.random() - 0.5) * 400;
+            this.ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endNeuron.x, endNeuron.y);
+            this.ctx.stroke();
+        });
+    }
+
+    private generateRealisticCell(x: number, y: number, params: string, scale: number = 1) {
+        if (!this.ctx) return;
+        const cellRadius = (30 + Math.random() * 20) * scale * (this.width / 512);
+        const channels = this.extractChannels(params);
+
+        this.ctx.save();
+        this.ctx.translate(x, y);
+
+        // Create irregular cell shape using Perlin noise
+        this.ctx.beginPath();
+        for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
+            const noiseRadius = cellRadius * (1 + this.perlinNoise(angle * 2) * 0.2);
+            const px = Math.cos(angle) * noiseRadius;
+            const py = Math.sin(angle) * noiseRadius;
+            
+            if (angle === 0) this.ctx.moveTo(px, py);
+            else this.ctx.lineTo(px, py);
+        }
+        this.ctx.closePath();
+        
+        if (channels.includes('GFP')) {
+            const gradient = this.ctx.createRadialGradient(0, 0, cellRadius * 0.8, 0, 0, cellRadius * 1.2);
+            gradient.addColorStop(0, 'rgba(0, 255, 0, 0)');
+            gradient.addColorStop(0.85, 'rgba(0, 255, 0, 0.3)');
+            gradient.addColorStop(0.95, 'rgba(0, 255, 0, 0.8)');
+            gradient.addColorStop(1, 'rgba(0, 255, 0, 0.2)');
+            this.ctx.fillStyle = gradient;
+            this.ctx.fill();
+            this.ctx.strokeStyle = 'rgba(0, 255, 0, 0.6)';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+        }
+        
+        if (channels.includes('RFP')) this.generateMitochondria(cellRadius);
+        if (channels.includes('Cy5')) this.generateActinFilaments(cellRadius);
+        if (channels.includes('DAPI')) this.generateNucleus(0, 0, cellRadius * 0.4);
+
+        this.ctx.restore();
+    }
+
+    private generateNucleus(x: number, y: number, radius: number) {
+        if (!this.ctx) return;
+        const nucleusGradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
+        nucleusGradient.addColorStop(0, 'rgba(0, 100, 255, 0.9)');
+        nucleusGradient.addColorStop(0.5, 'rgba(0, 80, 255, 0.7)');
+        nucleusGradient.addColorStop(1, 'rgba(0, 50, 255, 0.3)');
+        this.ctx.fillStyle = nucleusGradient;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        for (let i = 0; i < 5; i++) {
+            const spotX = x + (Math.random() - 0.5) * radius;
+            const spotY = y + (Math.random() - 0.5) * radius;
+            const spotRadius = radius * 0.1;
+            const spotGradient = this.ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotRadius);
+            spotGradient.addColorStop(0, 'rgba(0, 120, 255, 1)');
+            spotGradient.addColorStop(1, 'rgba(0, 100, 255, 0)');
+            this.ctx.fillStyle = spotGradient;
+            this.ctx.beginPath();
+            this.ctx.arc(spotX, spotY, spotRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+    }
+
+    private generateMitochondria(cellRadius: number) {
+        if (!this.ctx) return;
+        const numMito = 20 + Math.floor(Math.random() * 15);
+        for (let i = 0; i < numMito; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * cellRadius * 0.7;
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+
+            this.ctx.save();
+            this.ctx.translate(x, y);
+            this.ctx.rotate(Math.random() * Math.PI);
+            const mitoLength = 8 + Math.random() * 12;
+            const mitoWidth = 3 + Math.random() * 2;
+            const gradient = this.ctx.createLinearGradient(-mitoLength/2, 0, mitoLength/2, 0);
+            gradient.addColorStop(0, 'rgba(255, 0, 0, 0.2)');
+            gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 0, 0, 0.2)');
+            this.ctx.fillStyle = gradient;
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, 0, mitoLength/2, mitoWidth/2, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        }
+    }
+    
+    private generateActinFilaments(cellRadius: number) {
+        if (!this.ctx) return;
+        this.ctx.strokeStyle = 'rgba(255, 0, 255, 0.3)';
+        this.ctx.lineWidth = 1;
+        for (let i = 0; i < 10; i++) {
+            this.ctx.beginPath();
+            const startAngle = Math.random() * Math.PI * 2;
+            const endAngle = startAngle + (Math.random() - 0.5) * Math.PI;
+            const startDist = cellRadius * (0.3 + Math.random() * 0.4);
+            const endDist = cellRadius * (0.3 + Math.random() * 0.4);
+            const startX = Math.cos(startAngle) * startDist;
+            const startY = Math.sin(startAngle) * startDist;
+            const endX = Math.cos(endAngle) * endDist;
+            const endY = Math.sin(endAngle) * endDist;
+            const controlX = (startX + endX) / 2 + (Math.random() - 0.5) * 20;
+            const controlY = (startY + endY) / 2 + (Math.random() - 0.5) * 20;
+            this.ctx.moveTo(startX, startY);
+            this.ctx.quadraticCurveTo(controlX, controlY, endX, endY);
+            this.ctx.stroke();
+        }
+    }
+
+    private applyPointSpreadFunction() {
+        if (!this.ctx || !this.canvas) return;
+        this.ctx.save();
+        this.ctx.filter = 'blur(1px)';
+        this.ctx.drawImage(this.canvas, 0, 0);
+        this.ctx.restore();
+    }
+
+    private addPoissonNoise() {
+        if (!this.ctx) return;
+        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const signal = (data[i] + data[i+1] + data[i+2])/3;
+            if (signal > 0) {
+                const noise = Math.sqrt(signal) * (Math.random() - 0.5) * 2;
+                data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
+                data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
             }
         }
-        return this.getErrorPlaceholder(4096, 4096);
+        this.ctx.putImageData(imageData, 0, 0);
     }
     
-    if (!this.ctx || !this.canvas) {
-      console.error("Canvas context is not available for image generation.");
-      return this.getErrorPlaceholder();
+    private addSystematicNoise() {
+        if (!this.ctx) return;
+        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+        const data = imageData.data;
+        const readNoise = 2;
+        const darkCurrent = 0.1;
+        for (let i = 0; i < data.length; i += 4) {
+            const noise = (Math.random() - 0.5) * readNoise * 2 + darkCurrent;
+            data[i] = Math.max(0, Math.min(255, data[i] + noise));
+            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+        }
+        this.ctx.putImageData(imageData, 0, 0);
     }
 
-    try {
-      this.ctx.fillStyle = '#000000';
-      this.ctx.fillRect(0, 0, this.width, this.height);
-      
-      if (commands.includes('CONFOCAL') || commands.includes('MARIANAS')) {
-        this.generateConfocalImage(commands);
-      } else if (commands.includes('LIGHTSHEET')) {
-        this.generateLightSheetImage(commands);
-      } else if (commands.includes('WIDEFIELD')) {
-        this.generateWidefieldImage(commands);
-      } else if (commands.includes('SIM') || commands.includes('SORA')) {
-        this.generateSuperResImage(commands);
-      } else {
-        this.generateConfocalImage(commands);
-      }
-
-      this.addMetadata(commands);
-      return this.canvas.toDataURL('image/png');
-
-    } catch (e) {
-      console.error("Error during canvas drawing:", e);
-      return this.getErrorPlaceholder();
+    private applyPhotobleaching() {
+        if (!this.ctx) return;
+        const gradient = this.ctx.createRadialGradient(this.width/2, this.height/2, 0, this.width/2, this.height/2, this.width * 0.7);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, this.width, this.height);
     }
-  }
-
-  private parseChannels(cubeCommand: string): string[] {
-    const channels: string[] = [];
-    if (cubeCommand.includes('DAPI') || cubeCommand.includes('405')) channels.push('405');
-    if (cubeCommand.includes('GFP') || cubeCommand.includes('488')) channels.push('488');
-    if (cubeCommand.includes('RFP') || cubeCommand.includes('CHERRY') || cubeCommand.includes('561')) channels.push('561');
-    if (cubeCommand.includes('CY5') || cubeCommand.includes('647')) channels.push('647');
-    if (channels.length === 0) channels.push('488');
-    return channels;
-  }
-
-  private generateConfocalImage(cubeCommand: string) {
-    const channels = this.parseChannels(cubeCommand);
-    this.generateConfocalCells(channels);
-  }
-
-  private generateWidefieldImage(cubeCommand: string) {
-    if (!this.ctx) return;
-    const channels = this.parseChannels(cubeCommand);
-    this.generateConfocalCells(channels);
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-    this.ctx.fillRect(0, 0, this.width, this.height);
-    this.addNoise(50);
-  }
-  
-  private generateConfocalCells(channels: string[]) {
-    if(!this.ctx) return;
-    const numCells = 5 + Math.floor(Math.random() * 10);
-    this.ctx.globalCompositeOperation = 'screen';
     
-    for (let i = 0; i < numCells; i++) {
-      const x = 200 + Math.random() * (this.width - 400);
-      const y = 200 + Math.random() * (this.height - 400);
-      const radius = 80 + Math.random() * 60;
+    private addScientificOverlay(params: string) {
+        if (!this.ctx) return;
+        const scaleBarLength = 100 * (this.width / 512);
+        const scaleBarMicrons = Math.round(scaleBarLength * this.pixelSize);
+        this.ctx.strokeStyle = '#FFFFFF';
+        this.ctx.lineWidth = 4;
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.width - scaleBarLength - 40, this.height - 50);
+        this.ctx.lineTo(this.width - 40, this.height - 50);
+        this.ctx.stroke();
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = '24px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`${scaleBarMicrons} µm`, this.width - scaleBarLength/2 - 40, this.height - 60);
 
-      if (channels.includes('488')) {
-        this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 3; 
-        this.ctx.beginPath(); this.ctx.arc(x, y, radius, 0, Math.PI * 2); this.ctx.stroke();
-        this.drawCellularStructure(x, y, radius, '#00FF00');
-      }
-      if (channels.includes('561')) {
-        this.ctx.strokeStyle = '#FFD700'; this.ctx.lineWidth = 3;
-        this.ctx.beginPath(); this.ctx.arc(x, y, radius * (0.8 + Math.random()*0.2), 0, Math.PI * 2); this.ctx.stroke();
-      }
-      if (channels.includes('647')) {
-        this.ctx.strokeStyle = '#FF0000'; this.ctx.lineWidth = 2;
-        this.ctx.beginPath(); this.ctx.arc(x, y, radius, 0, Math.PI * 2); this.ctx.stroke();
-      }
-      if (channels.includes('405')) {
-        const nucleusRadius = radius * 0.4;
-        this.ctx.beginPath(); this.ctx.arc(x, y, nucleusRadius, 0, Math.PI * 2);
-        this.ctx.fillStyle = '#4B0AFF'; this.ctx.fill();
-        this.drawChromatinTexture(x, y, nucleusRadius);
-      }
+        this.ctx.font = '20px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        const metadata = [
+            `Objective: 100x/${this.NA} NA`,
+            `Pixel size: ${this.pixelSize} µm`,
+            `Channels: ${this.extractChannels(params).join(', ')}`,
+            `CUBE Protocol | AI Generated`
+        ];
+        metadata.forEach((line, i) => {
+            this.ctx.fillText(line, 20, 30 + i * 25);
+        });
+        const now = new Date();
+        this.ctx.fillText(now.toISOString(), 20, this.height - 20);
     }
-    this.ctx.globalCompositeOperation = 'source-over';
-    this.addNoise(20);
-  }
-
-  private drawCellularStructure(x: number, y: number, radius: number, color: string) {
-    if(!this.ctx) return;
-    this.ctx.strokeStyle = color + '40'; this.ctx.lineWidth = 1;
-    for (let i = 0; i < 5; i++) {
-      const angle = (Math.PI * 2 * i) / 5;
-      const innerX = x + Math.cos(angle) * radius * 0.3;
-      const innerY = y + Math.sin(angle) * radius * 0.3;
-      this.ctx.beginPath(); this.ctx.arc(innerX, innerY, radius * 0.15, 0, Math.PI * 2); this.ctx.stroke();
-    }
-  }
-
-  private drawChromatinTexture(x: number, y: number, radius: number) {
-    if(!this.ctx) return;
-    const numSpeckles = 20;
-    for (let i = 0; i < numSpeckles; i++) {
-      const angle = Math.random() * Math.PI * 2; const r = Math.random() * radius * 0.8;
-      const speckleX = x + Math.cos(angle) * r; const speckleY = y + Math.sin(angle) * r;
-      this.ctx.beginPath(); this.ctx.arc(speckleX, speckleY, 3, 0, Math.PI * 2);
-      this.ctx.fillStyle = '#6B3AFF'; this.ctx.fill();
-    }
-  }
-
-  private generateLightSheetImage(cubeCommand: string) {
-    if (!this.ctx) return;
-    const depths = 10;
-    for (let d = 0; d < depths; d++) {
-      const alpha = 1 - (d / depths) * 0.7;
-      this.ctx.globalAlpha = alpha;
-      const numStructures = 3 + Math.floor(Math.random() * 5);
-      for (let i = 0; i < numStructures; i++) {
-        const x = Math.random() * this.width; const y = Math.random() * this.height;
-        const size = 50 + Math.random() * 100; const hue = (d / depths) * 240;
-        this.ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
-        this.ctx.beginPath(); this.ctx.ellipse(x, y, size, size * 0.7, Math.random() * Math.PI, 0, Math.PI * 2); this.ctx.fill();
-      }
-    }
-    this.ctx.globalAlpha = 1;
-  }
-
-  private generateSuperResImage(cubeCommand: string) {
-    if (!this.ctx) return;
-    const numStructures = 50 + Math.floor(Math.random() * 50);
-    for (let i = 0; i < numStructures; i++) {
-      const x = Math.random() * this.width; const y = Math.random() * this.height;
-      const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, 10);
-      gradient.addColorStop(0, '#00FF00FF'); gradient.addColorStop(0.5, '#00FF0080'); gradient.addColorStop(1, '#00FF0000');
-      this.ctx.fillStyle = gradient; this.ctx.fillRect(x - 10, y - 10, 20, 20);
-    }
-    this.drawMicrotubules();
-  }
-
-  private drawMicrotubules() {
-    if (!this.ctx) return;
-    this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 2;
-    for (let i = 0; i < 10; i++) {
-      this.ctx.beginPath();
-      let startX = Math.random() * this.width; let startY = Math.random() * this.height;
-      this.ctx.moveTo(startX, startY);
-      for (let j = 0; j < 5; j++) {
-        const cpX = startX + (Math.random() - 0.5) * 200; const cpY = startY + (Math.random() - 0.5) * 200;
-        const endX = startX + (Math.random() - 0.5) * 400; const endY = startY + (Math.random() - 0.5) * 400;
-        this.ctx.quadraticCurveTo(cpX, cpY, endX, endY);
-        startX = endX; startY = endY;
-      }
-      this.ctx.stroke();
-    }
-  }
-
-  private addNoise(amount: number) {
-    if (!this.ctx) return;
-    const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const noise = (Math.random() - 0.5) * amount;
-      data[i] = Math.max(0, Math.min(255, data[i] + noise));
-      data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
-      data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
-    }
-    this.ctx.putImageData(imageData, 0, 0);
-  }
-
-  private addMetadata(cubeCommand: string) {
-    if (!this.ctx) return;
-    this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 5;
-    this.ctx.beginPath();
-    const scaleBarLength = 200; const scaleBarMicrons = 10;
-    this.ctx.moveTo(this.width - scaleBarLength - 40, this.height - 50);
-    this.ctx.lineTo(this.width - 40, this.height - 50);
-    this.ctx.stroke();
-    this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '24px Arial';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(`${scaleBarMicrons} µm`, this.width - scaleBarLength/2 - 40, this.height - 60);
-    this.ctx.font = '18px Arial'; this.ctx.textAlign = 'left';
-    this.ctx.fillText('3i Marianas | CUBE Protocol', 20, 30);
-    this.ctx.fillText('AI Preview by Phil Hills', 20, 55);
-    let mode = 'Confocal';
-    if (cubeCommand.includes('LIGHTSHEET')) mode = 'Light Sheet';
-    if (cubeCommand.includes('SORA') || cubeCommand.includes('SIM')) mode = 'SIM Super-Resolution';
-    if (cubeCommand.includes('WIDEFIELD')) mode = 'Widefield';
-    this.ctx.fillText(`Mode: ${mode}`, 20, 80);
-  }
 }

@@ -1,22 +1,27 @@
-
 import type { GalleryImage } from '../types';
 
 const DB_NAME = 'CubeGalleryDB';
 const STORE_NAME = 'images';
 const DB_VERSION = 1;
 
-let db: IDBDatabase;
+let dbPromise: Promise<IDBDatabase> | null = null;
 
 const initDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    if (db) return resolve(db);
+  if (dbPromise) {
+    return dbPromise;
+  }
 
+  dbPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => reject('Error opening IndexedDB');
+    request.onerror = () => {
+        console.error('Error opening IndexedDB');
+        dbPromise = null; // Reset promise on error to allow retries
+        reject('Error opening IndexedDB');
+    };
     
     request.onsuccess = (event) => {
-      db = (event.target as IDBOpenDBRequest).result;
+      const db = (event.target as IDBOpenDBRequest).result;
       resolve(db);
     };
 
@@ -27,6 +32,8 @@ const initDB = (): Promise<IDBDatabase> => {
       }
     };
   });
+  
+  return dbPromise;
 };
 
 const parseCubeScriptForTags = (script: string): { system: string, technique: string } => {
