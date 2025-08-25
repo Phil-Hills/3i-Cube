@@ -323,3 +323,38 @@ CUBE Protocol is a semantic control language designed for 3i's SlideBook softwar
 The protocol follows a universal \`DOMAIN|SEQUENCE|OUTCOME\` pattern.`
   },
 ];
+
+export const SAMPLE_HTML_CONTENT = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3i Experiment Report: EXP-2024-08-15</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #ccc; background: #111; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: #222; padding: 20px; border-radius: 8px; }
+        h1 { color: #00ffff; border-bottom: 2px solid #00ffff; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border: 1px solid #444; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Experiment Report: Live Cell Division</h1>
+        <p><strong>Experiment ID:</strong> EXP-2024-08-15-LC</p>
+        <p><strong>System:</strong> 3i Marianas Spinning Disk Confocal</p>
+        
+        <h2>Acquisition Parameters</h2>
+        <table>
+            <tr><th>Parameter</th><th>Value</th></tr>
+            <tr><td>Objective</td><td>60x Oil, 1.4 NA</td></tr>
+            <tr><td>Channels</td><td>GFP (488nm), RFP (561nm)</td></tr>
+            <tr><td>Duration</td><td>24 Hours</td></tr>
+            <tr><td>Interval</td><td>5 Minutes</td></tr>
+            <tr><td>Z-Stack</td><td>25 slices, 0.5µm step</td></tr>
+        </table>
+
+        <h2>Summary</h2>
+        <p>The experiment successfully captured the process of mitosis over a 24-hour period. Environmental conditions remained stable throughout. Preliminary analysis shows an average cell cycle duration of 18.5 hours. Further segmentation and tracking are required.</p>
+    </div>
+</body>
+</html>`;

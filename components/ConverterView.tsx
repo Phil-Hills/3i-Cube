@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { generateCubeFromNaturalLanguage, convertCodeToCube } from '../services/geminiService';
 import { compressDataToCube } from '../services/converterService';
-import { CODE_CONVERTER_EXAMPLES, NATURAL_LANGUAGE_EXAMPLES, DATA_COMPRESSION_EXAMPLES } from '../constants';
+import { CODE_CONVERTER_EXAMPLES, NATURAL_LANGUAGE_EXAMPLES, DATA_COMPRESSION_EXAMPLES, SAMPLE_HTML_CONTENT } from '../constants';
 import type { ConversionMetrics, ConverterMode } from '../types';
-import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ShareIcon, ChatBubbleBottomCenterTextIcon, CircleStackIcon, ArrowPathIcon, CheckCircleIcon, XCircleIcon } from './icons';
+import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ShareIcon, ChatBubbleBottomCenterTextIcon, CircleStackIcon, ArrowPathIcon, CheckCircleIcon, XCircleIcon, GlobeAltIcon } from './icons';
 import { Remarkable } from 'remarkable';
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics | null }> = ({ metrics }) => {
@@ -151,6 +150,12 @@ export const ConverterView: React.FC = () => {
     }
   };
 
+  const handleLoadWebsiteAndConvert = async () => {
+    handleModeChange('data');
+    setInput(SAMPLE_HTML_CONTENT);
+    await handleConvert(SAMPLE_HTML_CONTENT);
+  };
+
 
   const handleCopy = async () => {
     if (!outputCode || copyStatus !== 'idle') return;
@@ -270,14 +275,24 @@ export const ConverterView: React.FC = () => {
                 ))}
               </select>
               {mode === 'data' && (
-                <button 
-                  onClick={handleCompressAlgorithm}
-                  className="flex-shrink-0 flex items-center gap-2 p-2 rounded-md bg-purple-600/50 text-purple-200 hover:bg-purple-600/70 border border-purple-500/50 transition-all text-sm font-semibold"
-                  title="Compress the CUBE Protocol algorithm with itself"
-                >
-                  <ArrowPathIcon className="w-4 h-4" />
-                  Compress CUBE Algorithm
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button 
+                    onClick={handleLoadWebsiteAndConvert}
+                    className="flex items-center gap-2 p-2 rounded-md bg-blue-600/50 text-blue-200 hover:bg-blue-600/70 border border-blue-500/50 transition-all text-sm font-semibold"
+                    title="Load a sample website's HTML to compress it"
+                  >
+                    <GlobeAltIcon className="w-4 h-4" />
+                    Load Sample Website
+                  </button>
+                  <button 
+                    onClick={handleCompressAlgorithm}
+                    className="flex items-center gap-2 p-2 rounded-md bg-purple-600/50 text-purple-200 hover:bg-purple-600/70 border border-purple-500/50 transition-all text-sm font-semibold"
+                    title="Compress the CUBE Protocol algorithm with itself"
+                  >
+                    <ArrowPathIcon className="w-4 h-4" />
+                    Compress CUBE Algorithm
+                  </button>
+                </div>
               )}
             </div>
           <textarea
