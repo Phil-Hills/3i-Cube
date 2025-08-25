@@ -94,7 +94,7 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           
            <div className="text-center border-t border-white/10 pt-6 mt-6">
               <h4 className="text-xl font-semibold text-slate-100 mb-2">Ready to Transform Your 3i Workflow?</h4>
-              <p className="text-slate-400 mb-4">Contact Colin Monks to bring CUBE Protocol to your lab.</p>
+              <p className="text-slate-400 mb-4">Bring the power of CUBE Protocol to your lab.</p>
               <div className="flex justify-center space-x-4">
                   <button className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-md hover:brightness-110 transition-all duration-300 shadow-lg shadow-purple-500/30">
                       Schedule Demo

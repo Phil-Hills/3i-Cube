@@ -6,6 +6,22 @@ export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
     description: "GPU-accelerated workflows for real-time processing and AI.",
     scripts: [
       {
+        name: "U-Net Nuclei Segmentation",
+        description: "Run a U-Net model on the GPU to segment and label nuclei in an image.",
+        script: `# AI segmentation with CUDA acceleration
+AXL|AI[U-Net_Nuclei]→GPU[RTX_4090]→SEGMENT|INTELLIGENT
+PROCESS|IMAGE[Input]→INFERENCE[25ms]→MASK[Instance]→LABEL[Unique_IDs]|FAST
+ANALYZE|COUNT[Nuclei]→MEASURE[Area,Shape]→EXPORT[CSV]|COMPLETE`
+      },
+      {
+        name: "StarDist 3D Cell Tracking",
+        description: "Use StarDist 3D for high-accuracy object detection and tracking in a volume over time.",
+        script: `# 3D tracking with StarDist
+AXL|AI[StarDist_3D]→GPU[RTX_4090]→TRACK[4D_Volume]|PRECISE
+PROCESS|TIMESERIES[100_Volumes]→DETECT[Cells]→LINK[Trajectories]|ACCURATE
+VISUALIZE|RENDER[3D_Tracks]→COLOR[Time]→EXPORT[Movie]|DYNAMIC`
+      },
+      {
         name: "Real-time Deconvolution",
         description: "Process a 4K video stream live with GPU-accelerated deconvolution.",
         script: `# GPU-accelerated deconvolution with AXL
@@ -13,38 +29,6 @@ AXL|GPU[RTX_4090]→DECONVOLVE[REALTIME_DECONV]→CUDA[ACCELERATED]|INSTANT
 PROCESS|STREAM[4K_Video]→DECONV[Live]→DISPLAY[120fps]→LATENCY[8ms]|SMOOTH
 SAVE|FORMAT[H265]→COMPRESS[GPU]→BITRATE[100Mbps]|EFFICIENT`
       },
-      {
-        name: "AI Cell Segmentation",
-        description: "Run a deep learning model on the GPU to segment and label cells in real-time.",
-        script: `# AI segmentation with CUDA acceleration
-AXL|AI[CellSegNet]→GPU[RTX_4090]→SEGMENT[AI_SEGMENT]|INTELLIGENT
-PROCESS|BATCH[100_Images]→INFERENCE[50ms/image]→LABEL[Unique_IDs]|FAST
-ANALYZE|COUNT[Cells]→MEASURE[Area,Shape]→CLASSIFY[Types]→EXPORT[CSV]|COMPLETE`
-      },
-      {
-        name: "Massive Volume Rendering",
-        description: "Render and interact with a 10GB+ cleared tissue dataset in real-time.",
-        script: `# Interactive volume rendering with CUDA
-AXL|VOLUME[MASSIVE_VOLUME]→GPU[Stream]→RENDER[Realtime]|MASSIVE
-INTERACT|ROTATE[360°]→ZOOM[1000x]→SLICE[Any_Plane]→FPS[60]|SMOOTH
-VISUALIZE|MIP[Maximum]→COLOR[Depth]→SHADOWS[Ambient]→EXPORT[4K]|BEAUTIFUL`
-      },
-      {
-        name: "Multiview Light Sheet Fusion",
-        description: "Acquire from 4 angles and fuse into a single high-res volume on the GPU.",
-        script: `# GPU-accelerated multiview fusion
-AXL|MULTIVIEW_FUSION[4_Angles]→ACQUIRE[Simultaneous]→GPU[Register]|ALIGNED
-FUSE|CUDA[Accelerated]→BLEND[Weighted]→RESOLUTION[Enhanced]→TIME[30s]|FAST
-OUTPUT|ISOTROPIC[Resolution]→ARTIFACTS[None]→QUALITY[Superior]|PERFECT`
-      },
-       {
-        name: "Live Processing Pipeline",
-        description: "Run a full analysis pipeline on live data with less than 50ms latency.",
-        script: `# Zero-lag live processing with CUDA
-AXL|LIVE_PROCESS[Acquisition]→GPU[Pipeline]→DISPLAY[Instant]|REALTIME
-PIPELINE|DENOISE→DECONVOLVE→TRACK→MEASURE→VISUALIZE|PARALLEL
-PERFORMANCE|LATENCY[<50ms]→THROUGHPUT[4K@120fps]→CUDA[Optimized]|BLAZING`
-      }
     ]
   },
   {
@@ -74,32 +58,6 @@ PROCESS|DECONVOLVE[AI]→PROJECT[MIP]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
 AXL|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY
 SCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING
 STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
-      }
-    ]
-  },
-  {
-    category: "AXL Extreme Light Microscopy",
-    description: "Cutting-edge techniques for the flagship 3i AXL system.",
-    scripts: [
-      {
-        name: "Lattice Light Sheet",
-        description: "Gentle, high-resolution 4D imaging of live samples over time.",
-        script: `AXL|LATTICE→SAMPLE[Live_Cells]→VOLUME[200x200x50um]→TIME[10min]→GENTLE|4D`
-      },
-      {
-        name: "Cleared Tissue Volume",
-        description: "Deep imaging of large, cleared samples like a mouse brain.",
-        script: `AXL|CLEARED[Mouse_Brain]→DEPTH[5mm]→CHANNELS[Neurons,Vessels]→TILE[10x10]|VOLUME`
-      },
-      {
-        name: "6-Color Live Cell Imaging",
-        description: "Simultaneous long-term imaging of 6 fluorescent channels with minimal photobleaching.",
-        script: `AXL|LIVE→CHANNELS[DAPI,GFP,RFP,iRFP,Cy5,Cy7]→TIMELAPSE[24h]→MINIMAL_BLEACH|MULTICOLOR`
-      },
-      {
-        name: "AI Deconvolution",
-        description: "Acquire raw data and use AI to dramatically enhance resolution and clarity.",
-        script: `AXL|ACQUIRE[Raw]→DECONVOLVE[AI]→ENHANCE[2x_Resolution]→DENOISE|CRYSTAL_CLEAR`
       }
     ]
   },
@@ -140,115 +98,145 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
 
 export const CODE_CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
   {
-    name: "AXL: Real-time Deconvolution (MATLAB)",
-    description: "Process massive datasets in real-time with GPU acceleration.",
-    code: `% Traditional deconvolution - 10+ minutes per frame
-for frame = 1:numFrames
-    raw_image = imread(sprintf('frame_%04d.tif', frame));
-    psf = generatePSF(NA, wavelength, pixelSize);
-    
-    % Slow CPU deconvolution
-    deconv_image = deconvlucy(raw_image, psf, iterations);
-    
-    % Wait for processing...
-    imwrite(deconv_image, sprintf('deconv_%04d.tif', frame));
-end`
-  },
-  {
-    name: "AXL: AI Cell Segmentation (MATLAB)",
-    description: "Deep learning segmentation on GPU",
-    code: `% Complex AI segmentation setup - 300+ lines
-model = loadTrainedNetwork('cellSegmentationNet.mat');
-gpu = gpuDevice(1);
-wait(gpu);
+    name: "3i Case Study 1: Multi-Well Plate Analysis",
+    description: "Original Lines: 1655, CUBE Commands: 11, Ratio: 150:1. A full high-content screening workflow.",
+    code: `# Full Python script includes extensive error handling, parallel processing setup (Dask/Ray), 
+# database logging, and custom visualization functions using libraries like NumPy, 
+# Pycro-Manager, SciPy, Scikit-Image, and a custom U-Net inference engine.
 
-for i = 1:numImages
-    img = imread(images{i});
-    img_gpu = gpuArray(img);
-    
-    % Preprocess
-    processed = preprocessForNetwork(img_gpu);
-    
-    % Run inference
-    segmentation = predict(model, processed);
-    
-    % Post-process
-    labeled = postprocessSegmentation(segmentation);
-    
-    % Transfer back from GPU
-    result = gather(labeled);
-end`
-  },
-  {
-    name: "AXL: Massive Volume Rendering (MATLAB)",
-    description: "Render TB-scale datasets interactively.",
-    code: `% Volume rendering - requires workstation with 128GB RAM
-volume_data = load_volume('mouse_brain_cleared.h5'); % 2TB file
-gpu_volume = gpuArray(volume_data);
-
-% Complex rendering pipeline
-for angle = 0:360
-    projection = maximum_intensity_projection(gpu_volume, angle);
-    % ... hundreds of lines of rendering code
-end`
-  },
-  {
-    name: "3i Adaptive Optics (MATLAB)",
-    description: "Convert a real, 200+ line AO script from MATLAB to CUBE.",
-    code: `%% This script performs indirect, image-based adaptive optics
-% ... (200+ lines of MATLAB code)
-% Complex initialization
-[nZern, Z2C, dm] = Init_ALPAO_DM();
-dm.Reset();
-
-% Calibration
-Spherical_calibration = [-3:1:3];
-Defocus_corection = [-10.1, -7, -3.3, 0, 1.3, 3.9, 6.8];
-p = polyfit(Spherical_calibration, Defocus_corection, 1);
-
-% Main optimization loop
-for i = Zernike_index
-  for j = 1:length(ZernikeAmplitude)
-    % Set DM pattern
-    [zernikeVector] = set_zernike_ALPAO_DM(...);
-    
-    % Acquire image
-    isRequestingFrame = 1;
-    while (isFrameReady == 0)
-      pause(0.1);
-    end
-    
-    % Calculate merit
-    [Total_Intensity(i,j), High_f_content(i,j)] = Calc_Merits(...);
-  end
-  
-  % Find optimal amplitude
-  [Maximal_zernike_Amp_fit_HF(i)] = Find_maximal_zernike(...);
-end
-
-% Apply optimal pattern
-dm.Send(zernikeVector * Z2C);
-% ... (more code for results and plotting)`
-  },
-  {
-    name: "Multi-Channel Z-Stack (Python)",
-    description: "Acquire a 3D stack across multiple fluorescent channels.",
-    code: `# 3i Multi-channel Z-stack
-import numpy
+import numpy as np
 from pycromanager import Core
-import tifffile
+from scipy.ndimage import gaussian_filter
+from skimage.restoration import richardson_lucy
+# ... dozens of other imports for database, parallelization, etc.
 
-channels = ['DAPI', 'GFP', 'RFP']
-z_start, z_end, z_step = -10, 10, 0.5
+class ExperimentManager:
+    def __init__(self, db_path, config_path):
+        # ... database connection setup ...
+        # ... load instrument configuration ...
+    
+    def run_plate(self, plate_id):
+        # ... load plate geometry from database ...
+        # ... initialize parallel worker pool ...
+        for well in self.get_wells(plate_id):
+            # ... submit job to worker: self.process_well(well) ...
 
-for channel in channels:
-    core.setConfig('Channel', channel)
-    images = []
-    for z in numpy.arange(z_start, z_end, z_step):
-        core.setPosition(z)
-        core.snapImage()
-        images.append(core.getImage())
-    tifffile.imwrite(f'{channel}_stack.tif', numpy.array(images))`
+    def process_well(self, well):
+        # ... move to well, run autofocus routine ...
+        raw_data_path = self.acquire_zstack(well)
+        decon_data_path = self.analysis_pipeline.deconvolve(raw_data_path)
+        segmentation_results = self.analysis_pipeline.segment(decon_data_path)
+        self.log_results_to_db(well, segmentation_results)
+        return True
+
+    def acquire_zstack(self, well):
+        # ... complex multi-channel Z-stack acquisition logic ...
+        # ... save data to distributed .sldy files with metadata ...
+        return path_to_data
+
+class AnalysisPipeline:
+    def __init__(self, psf_path, model_path):
+        # ... load PSF and U-Net model weights ...
+
+    def deconvolve(self, data_path):
+        # ... load raw data, measure PSF or load from file ...
+        # ... run Richardson-Lucy deconvolution on GPU ...
+        return path_to_decon_data
+    
+    def segment(self, deconvolved_data_path):
+        # ... load deconvolved data ...
+        # ... apply U-Net model for segmentation ...
+        # ... measure props (intensity, area) for each nucleus ...
+        return props
+
+# ... hundreds of lines for setup, execution, analysis, and teardown ...
+# Total original lines: 1655
+`
+  },
+  {
+    name: "3i Case Study 2: Adaptive Optics Correction",
+    description: "Original Lines: 473, CUBE Commands: 7, Ratio: 67:1. An iterative hardware optimization routine.",
+    code: `# This Python script performs indirect, image-based adaptive optics correction
+# by iterating through Zernike modes and optimizing a merit function.
+# It uses the ALPAO SDK and custom image quality metrics.
+
+import alpaodm
+import numpy as np
+from scipy.optimize import curve_fit
+# ... other imports for camera control and image analysis
+
+class AdaptiveOpticsController:
+    def __init__(self):
+        self.dm = alpaodm. डीएम() # Initialize ALPAO DM
+        # ... camera and device setup ...
+
+    def calculate_merit_function(self, image):
+        # ... calculate image sharpness using FFT high-pass filter ...
+        return sharpness_metric
+
+    def find_optimal_amplitudes(self, modes, amplitude_range):
+        # ... complex nested loops for each Zernike mode and amplitude ...
+        for mode in modes:
+            merit_values = []
+            for amplitude in amplitude_range:
+                # ... apply Zernike mode to DM ...
+                # ... acquire image from camera ...
+                merit = self.calculate_merit_function(image)
+                merit_values.append(merit)
+            # ... fit polynomial to find the amplitude with the peak merit value ...
+            self.optimal_shape[mode] = best_amplitude
+    
+    def apply_correction(self):
+        # ... combine all optimal Zernike modes into a final DM shape ...
+        self.dm.send_shape(self.optimal_shape)
+
+# ... main execution block with extensive setup, plotting, and result saving ...
+# Total original lines: 473
+`
+  },
+  {
+    name: "3i Case Study 3: Live Cell FRAP Experiment",
+    description: "Original Lines: 246, CUBE Commands: 8, Ratio: 30:1. A photomanipulation and recovery monitoring workflow.",
+    code: `# Python script to perform a multi-ROI FRAP experiment using a 3i Vector scanner.
+# Includes environmental control, precise timing, and kinetic analysis.
+
+import time
+import numpy as np
+from pycromanager import Core
+from skimage.draw import polygon
+from scipy.optimize import curve_fit
+
+class FrapExperiment:
+    def __init__(self, params):
+        self.core = Core()
+        # ... set temperature, CO2, and perfect focus ...
+
+    def load_rois_from_file(self, path):
+        # ... load ROI coordinates from a JSON or text file ...
+
+    def run_frap(self):
+        self.acquire_pre_bleach()
+        self.execute_bleach()
+        self.monitor_post_bleach()
+        self.analyze_recovery_kinetics()
+
+    def acquire_pre_bleach(self):
+        # ... capture N frames at low laser power for baseline ...
+
+    def execute_bleach(self):
+        # ... control Vector scanner to target ROIs ...
+        # ... set laser to high power, open shutter for specified duration ...
+    
+    def monitor_post_bleach(self):
+        # ... run high-speed time-lapse to capture recovery ...
+
+    def analyze_recovery_kinetics(self):
+        # ... measure mean intensity in ROIs over time ...
+        # ... fit exponential curve to data to calculate half-life ...
+
+# ... Main script logic to initialize and run the experiment ...
+# Total original lines: 246
+`
   }
 ];
 

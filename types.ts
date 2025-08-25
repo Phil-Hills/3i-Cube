@@ -56,5 +56,5 @@ export interface GalleryImage {
   };
 }
 
-export type View = 'executor' | 'converter' | 'gallery';
+export type View = 'executor' | 'converter' | 'gallery' | 'dashboard' | 'ml_builder';
 export type ConverterMode = 'code' | 'text' | 'data';

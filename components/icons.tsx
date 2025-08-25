@@ -161,3 +161,16 @@ export const ArrowPathIcon: React.FC<IconProps> = ({ className }) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 11.667 0l3.181-3.183m-4.991-2.696v4.992m0 0h-4.992m4.992 0-3.181-3.183a8.25 8.25 0 0 0-11.667 0l-3.181 3.183" />
     </svg>
 );
+
+export const ChartPieIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+  </svg>
+);
+
+export const CpuChipIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15M9 15l6-6m-1.5-6.75h-3m3 0a.75.75 0 0 1 .75.75v3m-3.75 0V3.75A.75.75 0 0 1 9 3h3m-3 18h3m-3 0a.75.75 0 0 0-.75.75v3m3.75 0V20.25a.75.75 0 0 0-.75-.75h-3m18-3v-3m0 3a.75.75 0 0 1-.75.75h-3m3.75 0H20.25a.75.75 0 0 1-.75-.75v-3m-18 3v-3m0 3a.75.75 0 0 0 .75.75h3M3.75 15H4.5a.75.75 0 0 0 .75-.75v-3" />
+    </svg>
+);

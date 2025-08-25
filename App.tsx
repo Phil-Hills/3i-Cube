@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { CommandPalette } from './components/CommandPalette';
@@ -18,6 +17,8 @@ import { ImageModal } from './components/ImageModal';
 import { GalleryView } from './components/GalleryView';
 import * as galleryService from './services/galleryService';
 import { XMarkIcon } from './components/icons';
+import { DashboardView } from './components/DashboardView';
+import { MLBuilderView } from './components/MLBuilderView';
 
 const getInitialScript = (): string => {
   if (
@@ -63,7 +64,7 @@ const App: React.FC = () => {
   const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
-  const [view, setView] = useState<View>('converter');
+  const [view, setView] = useState<View>('dashboard');
 
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{imageUrl: string; cubeScript: string; id?: number} | null>(null);
@@ -112,7 +113,7 @@ const App: React.FC = () => {
         }
       }
       
-      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS/i.test(cubeScript)) {
+      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\|/i.test(cubeScript)) {
           const newImageUrl = imageGenerator.generateFromCube(cubeScript);
           setSimulatedImageUrl(newImageUrl);
       }
@@ -170,8 +171,17 @@ const App: React.FC = () => {
     }
   };
   
+  const loadScriptAndSwitchToExecutor = (script: string) => {
+    setCubeScript(script);
+    setView('executor');
+    setLogEntries([]);
+    setSimulatedImageUrl(null);
+  };
+
   const renderView = () => {
     switch(view) {
+      case 'dashboard':
+        return <DashboardView onViewChange={setView} />;
       case 'executor':
         return (
            <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6 overflow-hidden">
@@ -204,6 +214,8 @@ const App: React.FC = () => {
         return <ConverterView />;
       case 'gallery':
         return <GalleryView images={galleryImages} onImageSelect={handleOpenImageModal} />;
+      case 'ml_builder':
+        return <MLBuilderView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
       default:
         return null;
     }

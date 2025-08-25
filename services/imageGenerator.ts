@@ -25,7 +25,7 @@ class AXL_CUDA_ImageGenerator {
         
         if (commands.includes('REALTIME_DECONV')) {
             return this.generateRealtimeDeconvolution();
-        } else if (commands.includes('AI_SEGMENT')) {
+        } else if (commands.includes('AI_SEGMENT') || commands.includes('SEGMENT') || commands.includes('U-NET') || commands.includes('STARDIST')) {
             return this.generateAISegmentation();
         } else if (commands.includes('MASSIVE_VOLUME')) {
             return this.generateMassiveVolume();
@@ -65,49 +65,61 @@ class AXL_CUDA_ImageGenerator {
     }
 
     private generateAISegmentation(): string {
-        // Original on left
+        // Draw the base cells first
         this.ctx.save();
-        this.ctx.translate(1024, 2048);
+        this.ctx.translate(2048, 2048);
+        const cells: {x: number, y: number, radius: number}[] = [];
         for (let i = 0; i < 50; i++) {
-            const x = (Math.random() - 0.5) * 1800;
-            const y = (Math.random() - 0.5) * 3600;
-            this.drawNucleus(x, y, 40 + Math.random() * 30);
+            const cell = {
+                x: (Math.random() - 0.5) * 3800,
+                y: (Math.random() - 0.5) * 3800,
+                radius: 100 + Math.random() * 80
+            };
+            cells.push(cell);
+            this.drawNucleus(cell.x, cell.y, cell.radius, 0.6);
         }
         this.ctx.restore();
 
-        // Segmented on right
+        // Draw the segmentation masks on top
         this.ctx.save();
-        this.ctx.translate(3072, 2048);
-        for (let i = 0; i < 50; i++) {
-            const x = (Math.random() - 0.5) * 1800;
-            const y = (Math.random() - 0.5) * 3600;
-            const hue = (i / 50) * 360;
-            this.ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.8)`;
-            this.ctx.strokeStyle = `hsl(${hue}, 70%, 70%)`;
-            this.ctx.lineWidth = 3;
+        this.ctx.translate(2048, 2048);
+        cells.forEach((cell, i) => {
+            const hue = (i / cells.length) * 360;
+            this.ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.4)`;
+            this.ctx.strokeStyle = `hsla(${hue}, 90%, 75%, 0.9)`;
+            this.ctx.lineWidth = 5;
+            
+            // Create a more organic mask shape
             this.ctx.beginPath();
-            this.ctx.arc(x, y, 50 + Math.random() * 30, 0, Math.PI * 2);
+            for (let angle = 0; angle < Math.PI * 2; angle += 0.2) {
+                const r = cell.radius * 1.1 * (1 + (Math.random() - 0.5) * 0.15);
+                const px = cell.x + Math.cos(angle) * r;
+                const py = cell.y + Math.sin(angle) * r;
+                if (angle === 0) { this.ctx.moveTo(px, py); } 
+                else { this.ctx.lineTo(px, py); }
+            }
+            this.ctx.closePath();
             this.ctx.fill();
             this.ctx.stroke();
+
             this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = '20px Arial';
-            this.ctx.fillText(`${i + 1}`, x - 10, y + 5);
-        }
+            this.ctx.font = 'bold 36px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(`${i + 1}`, cell.x, cell.y + 12);
+        });
         this.ctx.restore();
         
-        this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 4;
-        this.ctx.beginPath(); this.ctx.moveTo(2048, 0); this.ctx.lineTo(2048, 4096); this.ctx.stroke();
-        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '48px Arial'; this.ctx.textAlign = 'center';
-        this.ctx.fillText('Original', 1024, 100);
-        this.ctx.fillText('AI Segmented (CUDA)', 3072, 100);
-        this.addGPUStats('AI Segmentation', '50ms/frame', 'ResNet50 on RTX 4090');
+        this.addGPUStats('AI Segmentation (U-Net)', '25ms/frame', 'Instance Segmentation');
         return this.canvas.toDataURL();
     }
     
-    private drawNucleus(x: number, y: number, radius: number) {
+    private drawNucleus(x: number, y: number, radius: number, brightness: number = 1) {
+        const grad = this.ctx.createRadialGradient(x,y,0, x,y,radius);
+        grad.addColorStop(0, `rgba(75, 10, 255, ${0.9 * brightness})`);
+        grad.addColorStop(1, `rgba(120, 80, 255, ${0.3 * brightness})`);
+        this.ctx.fillStyle = grad;
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-        this.ctx.fillStyle = '#4B0AFF';
         this.ctx.fill();
     }
     
@@ -310,7 +322,7 @@ export class MicroscopyImageGenerator {
 
     public generateFromCube(cubeCommand: string): string {
         const commands = cubeCommand.toUpperCase();
-        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS'];
+        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT'];
 
         if (axlKeywords.some(kw => commands.includes(kw))) {
             if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
