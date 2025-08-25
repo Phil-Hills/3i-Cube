@@ -33,20 +33,11 @@ const getInitialScript = (): string => {
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
 
-  const initialScript = getInitialScript();
-  const [cubeScript, setCubeScript] = useState<string>(initialScript);
+  const [cubeScript, setCubeScript] = useState<string>(getInitialScript());
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
-  const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(() => {
-    if (!initialScript) return null;
-    try {
-      return imageGenerator.generateFromCube(initialScript);
-    } catch (e) {
-      console.error("Failed to generate initial image:", e);
-      return null;
-    }
-  });
+  const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [view, setView] = useState<View>('converter');
@@ -117,8 +108,7 @@ const App: React.FC = () => {
   const selectScript = (script: string) => {
     setCubeScript(script);
     setLogEntries([]);
-    const imageUrl = imageGenerator.generateFromCube(script);
-    setSimulatedImageUrl(imageUrl);
+    setSimulatedImageUrl(null);
   };
 
   const handleOpenImageModal = (image: {imageUrl: string; cubeScript: string; id?: number}) => {
