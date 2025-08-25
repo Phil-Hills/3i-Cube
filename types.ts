@@ -1,4 +1,3 @@
-
 export type MicroscopeStatus = 'DISCONNECTED' | 'CONNECTED' | 'EXECUTING' | 'IDLE' | 'ERROR';
 
 export type LogType = 'INFO' | 'SUCCESS' | 'ERROR' | 'SYSTEM';
@@ -22,12 +21,20 @@ export interface ExampleScriptCategory {
 }
 
 export interface ConversionMetrics {
-    original_lines: number;
-    cube_lines: number;
+    // For code/text conversion
+    original_lines?: number;
+    cube_lines?: number;
+    savings_percent?: number;
+
+    // For data compression
+    original_size_bytes?: number;
+    compressed_size_bytes?: number;
+
+    // Common
     compression_ratio: string;
-    savings_percent: number;
     time_saved_minutes: number;
 }
+
 
 export interface ConverterExample {
     name: string;
@@ -47,3 +54,4 @@ export interface GalleryImage {
 }
 
 export type View = 'executor' | 'converter' | 'gallery';
+export type ConverterMode = 'code' | 'text' | 'data';

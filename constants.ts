@@ -138,7 +138,7 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
 ];
 
 
-export const CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
+export const CODE_CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
   {
     name: "AXL: Real-time Deconvolution (MATLAB)",
     description: "Process massive datasets in real-time with GPU acceleration.",
@@ -277,5 +277,61 @@ export const NATURAL_LANGUAGE_EXAMPLES: { name: string, description: string, pro
     name: "Targeted Photobleaching (FRAP)",
     description: "Bleach a specific region and monitor its recovery.",
     prompt: "Perform a FRAP experiment. I want to target a small, specific region of interest inside a cell with a 405 nanometer laser at full power to bleach it. Then, I need to monitor the fluorescence recovery in that spot over time."
+  },
+];
+
+export const DATA_COMPRESSION_EXAMPLES: { name: string, description: string, data: string }[] = [
+  {
+    name: "Sample JSON Data",
+    description: "Compress a typical JSON payload from an API.",
+    data: JSON.stringify({
+      "experimentId": "EXP-2024-07-29-001",
+      "user": "phil_hills",
+      "system": "3i_AXL",
+      "parameters": {
+        "objective": "60x Oil",
+        "mode": "Lattice Light Sheet",
+        "channels": ["GFP", "RFP"],
+        "z_stack": {
+          "slices": 200,
+          "step_um": 0.5
+        },
+        "timelapse": {
+          "points": 120,
+          "interval_s": 30
+        }
+      },
+      "rawDataUri": "/data/raw/exp001.sldy"
+    }, null, 2)
+  },
+  {
+    name: "Sample HTML Document",
+    description: "Compress a small webpage, similar to AI token saving.",
+    data: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3i Experiment Report</title>
+</head>
+<body>
+    <h1>Experiment EXP-2024-07-29-001</h1>
+    <p>Conducted by: Phil Hills</p>
+    <p>System: 3i AXL</p>
+    <p>This report contains the preliminary findings from the live cell imaging session. Further analysis is pending.</p>
+</body>
+</html>`
+  },
+  {
+    name: "README.md Content",
+    description: "Compress a markdown document.",
+    data: `# CUBE Protocol Technical Overview for 3i Systems
+
+## 1. Introduction
+
+CUBE Protocol is a semantic control language designed for 3i's SlideBook software and associated microscopy systems. It standardizes complex microscopy operations into a simple, three-part command structure, aiming to improve reproducibility, automation, and ease of use.
+
+## 2. Core Syntax
+
+The protocol follows a universal \`DOMAIN|SEQUENCE|OUTCOME\` pattern.`
   },
 ];

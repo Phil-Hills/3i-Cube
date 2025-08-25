@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PlayIcon, SwitchHorizontalIcon, PhotoIcon } from './icons';
 import type { View } from '../types';
@@ -28,7 +27,7 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
           className={`${baseClasses} ${currentView === 'converter' ? activeClasses : inactiveClasses}`}
         >
           <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
-          Code to CUBE Converter
+          CUBE Converter
         </button>
         <button
           onClick={() => onViewChange('gallery')}
