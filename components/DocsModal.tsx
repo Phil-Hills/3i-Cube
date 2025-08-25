@@ -36,7 +36,7 @@ const renderers = {
   hr: ({...props}) => <hr className="border-gray-700 my-8" {...props} />,
 };
 
-type DocFile = 'ALGORITHM.md' | 'RECURSION.md' | 'README.md' | 'SLIDEBOOK.md';
+type DocFile = 'ALGORITHM.md' | 'RECURSION.md' | 'README.md' | 'SLIDEBOOK.md' | 'TECHNICAL.md';
 
 const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
     'ALGORITHM.md': {
@@ -54,6 +54,10 @@ const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
     'SLIDEBOOK.md': {
         title: 'SlideBook Integration',
         subtitle: 'Mapping complex SlideBook/3i microscopy operations to simple CUBE commands.'
+    },
+    'TECHNICAL.md': {
+        title: 'Technical Workflows',
+        subtitle: 'Real-world 3i technical answers mapped to CUBE commands.'
     }
 };
 
@@ -127,11 +131,12 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
         
         <div className="px-6 border-b border-white/10 flex-shrink-0">
-            <nav className="-mb-px flex space-x-6">
+            <nav className="-mb-px flex space-x-6 overflow-x-auto">
                 <TabButton doc="ALGORITHM.md" />
                 <TabButton doc="RECURSION.md" />
                 <TabButton doc="README.md" />
                 <TabButton doc="SLIDEBOOK.md" />
+                <TabButton doc="TECHNICAL.md" />
             </nav>
         </div>
 
