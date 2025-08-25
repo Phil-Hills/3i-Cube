@@ -1,0 +1,21 @@
+{
+  "short_name": "CUBE",
+  "name": "CUBE Protocol: Universal Microscopy Control",
+  "description": "An AI-powered simulator for the CUBE protocol, a universal language designed to simplify and compress complex microscopy workflows for any system.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0F172A",
+  "background_color": "#0F172A"
+}
