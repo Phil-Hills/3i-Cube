@@ -17,7 +17,7 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
     '🔬 CUBE Protocol Control System',
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
     'CUBE Protocol Execution Log',
-    'Created by Phil Hills - Seattle Developer',
+    'Created by EasyAI Chatbots',
     ''
   ];
   let mediaGenerated = false;
@@ -104,7 +104,7 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
 
     const original_lines = countMeaningfulLines(code);
     
-    const systemInstruction = `You are an expert at converting code to the CUBE Protocol, created by Phil Hills. Your highest priority is INTELLIGENT GROUPING. Group related lines of code (like a whole function, class, or API call) into a single, semantic CUBE command in the format: DOMAIN|SEQUENCE|OUTCOME. Do not convert line-by-line. Capture the overall purpose of a code block.`;
+    const systemInstruction = `You are an expert at converting code to the CUBE Protocol, from EasyAI Chatbots. Your highest priority is INTELLIGENT GROUPING. Group related lines of code (like a whole function, class, or API call) into a single, semantic CUBE command in the format: DOMAIN|SEQUENCE|OUTCOME. Do not convert line-by-line. Capture the overall purpose of a code block.`;
 
     const responseSchema = {
       type: Type.OBJECT,
@@ -172,7 +172,7 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
 
     const cube_code_with_header = [
       `# Converted to CUBE Protocol`,
-      `# By Phil Hills - Seattle Developer`,
+      `# By EasyAI Chatbots`,
       `# Analysis: ${result.analysis}`,
       `# Compression: ${original_lines}:${cube_lines} lines\n`,
       result.cube_script,
@@ -273,7 +273,7 @@ export const generateCubeFromNaturalLanguage = async (description: string): Prom
 
     const cube_code_with_header = [
       `# Generated from Natural Language with Gemini`,
-      `# By Phil Hills - Seattle Developer`,
+      `# By EasyAI Chatbots`,
       `# Analysis: ${result.analysis}`,
       `# Estimated code lines replaced: ${original_lines}\n`,
       result.cube_script,

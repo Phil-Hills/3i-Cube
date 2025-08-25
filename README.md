@@ -6,7 +6,7 @@ ALGORITHM|STRING_CUBE[Compress]→SEMANTIC_CUBE[Control]→UNIVERSAL[Everything]
 
 ## 1. The Complete Vision
 
-CUBE Protocol is a revolutionary system designed by Phil Hills that unifies two powerful concepts:
+CUBE Protocol is a revolutionary system from EasyAI Chatbots that unifies two powerful concepts:
 
 1.  **String-Cube Compression**: A master algorithm for compressing any data (text, images, video) into a hyper-efficient 3D "cube" of strings.
 2.  **Semantic Control**: A universal, human-readable language for controlling complex operations with simple commands.

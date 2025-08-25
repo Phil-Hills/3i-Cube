@@ -1,5 +1,5 @@
 
-// Advanced Image Generation with NVIDIA CUDA acceleration by Phil Hills - Seattle Developer
+// Advanced Image Generation with NVIDIA CUDA acceleration by EasyAI Chatbots
 class AdvancedImageGenerator {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -252,7 +252,7 @@ class AdvancedImageGenerator {
                     this.ctx.fillStyle = 'rgba(0,0,0,0.6)'; this.ctx.fillRect(0, this.height - 150, this.width, 150);
                     this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 32px Arial'; this.ctx.textAlign = 'left';
                     this.ctx.fillText(`VEO AI Simulation: "${prompt}"`, 50, this.height - 80);
-                    this.ctx.font = '24px Arial'; this.ctx.fillText(`CUBE Protocol | Phil Hills`, 50, this.height - 40);
+                    this.ctx.font = '24px Arial'; this.ctx.fillText(`CUBE Protocol | EasyAI Chatbots`, 50, this.height - 40);
                     this.addGPUIndicator();
 
                     frame++;
@@ -736,7 +736,7 @@ class AdvancedImageGenerator {
         this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 48px Arial'; this.ctx.textAlign = 'left';
         this.ctx.fillText('Microscopy Simulation', 50, 100); this.ctx.font = '36px Arial';
         this.ctx.fillText(mode, 50, 150); this.ctx.font = '28px Arial';
-        this.ctx.fillText('CUBE Protocol | Phil Hills', 50, 200);
+        this.ctx.fillText('CUBE Protocol | EasyAI Chatbots', 50, 200);
         this.ctx.fillText(new Date().toLocaleString(), 50, 250);
         const scaleBarLength = 800, scaleBarMicrons = 200;
         this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 8; this.ctx.beginPath();

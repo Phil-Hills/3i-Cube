@@ -40,7 +40,7 @@ dm.Send(zernikeVector * Z2C);
            <div>
               <h5 className="font-semibold text-green-300 mb-2">After (CUBE Protocol)</h5>
               <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-green-200/80 h-full overflow-auto"><code>{`
-# Adaptive Optics - By Phil Hills
+# Adaptive Optics - By EasyAI Chatbots
 CONNECT|MICROSCOPE→DM[Deformable_Mirror]|READY
 
 CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[...]|FITTED
@@ -79,7 +79,7 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <CubeIcon className="w-7 h-7 text-cyan-400 mr-3" />
             <div>
               <h2 className="text-xl font-bold text-white">About CUBE Protocol</h2>
-              <p className="text-sm text-slate-400">Created by Phil Hills - Seattle Developer</p>
+              <p className="text-sm text-slate-400">Created by EasyAI Chatbots</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-slate-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">

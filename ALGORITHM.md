@@ -11,7 +11,7 @@ ALGORITHM|STRING_CUBE[Compress]→SEMANTIC_CUBE[Control]→UNIVERSAL[Everything]
 #!/usr/bin/env python3
 """
 CUBE PROTOCOL MASTER ALGORITHM
-By Phil Hills - Seattle Developer
+By EasyAI Chatbots
 The Universal Compression & Semantic Control System
 """
 
