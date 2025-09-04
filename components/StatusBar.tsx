@@ -1,14 +1,12 @@
-
 import React from 'react';
-import type { MicroscopeStatus, Brand } from '../types';
+import type { MicroscopeStatus } from '../types';
 import { BRAND_CONFIGS } from '../constants';
 
 interface StatusBarProps {
   status: MicroscopeStatus;
-  brand: Brand;
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ status, brand }) => {
+export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
   const getStatusIndicator = () => {
     switch (status) {
       case 'CONNECTED':
@@ -25,7 +23,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status, brand }) => {
   };
 
   const { color, text } = getStatusIndicator();
-  const currentBrandConfig = BRAND_CONFIGS[brand];
+  const currentBrandConfig = BRAND_CONFIGS['3i'];
 
   return (
     <footer className="flex items-center justify-between p-2 px-4 bg-slate-900 border-t-2 border-[var(--cube-blue)] text-sm">

@@ -2,10 +2,6 @@ import type { ExampleScriptCategory, ConverterExample, Brand, BrandConfig } from
 
 export const BRAND_CONFIGS: Record<Brand, BrandConfig> = {
   '3i': { name: '3i (Intelligent Imaging Innovations)', appName: '3i-CUBE' },
-  'zeiss': { name: 'Zeiss', appName: 'ZEN CUBE Protocol' },
-  'nikon': { name: 'Nikon', appName: 'NIS CUBE Protocol' },
-  'leica': { name: 'Leica Microsystems', appName: 'LAS X CUBE' },
-  'olympus': { name: 'Olympus (Evident Scientific)', appName: 'cellSens CUBE' },
 };
 
 export const BRANDED_METHOD_SCRIPTS: Record<Brand, ExampleScriptCategory[]> = {
@@ -102,88 +98,6 @@ STITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE`
         }
       ]
     },
-  ],
-  'zeiss': [
-    {
-        category: "Zeiss Specific Features",
-        description: "Commands tailored for Zeiss ZEN software and hardware.",
-        scripts: [
-            {
-                name: "Airyscan Super-Resolution",
-                description: "Perform a 2x super-resolution scan with a Zeiss Airyscan detector.",
-                script: `ZEISS|AIRYSCAN[2x]→MODE[FAST]→PROCESS→SAVE|ENHANCED`
-            },
-            {
-                name: "LSM 980 Spectral Unmixing",
-                description: "Use the LSM 980 to spectrally separate two overlapping fluorophores.",
-                script: `ZEISS|LSM[980]→SPECTRAL[490-600nm]→UNMIX[GFP,YFP]|SEPARATED`
-            },
-            {
-                name: "Apotome Optical Sectioning",
-                description: "Acquire an optically sectioned image using structured illumination.",
-                script: `ZEISS|APOTOME→GRID[3_Phase]→ACQUIRE[ZStack]→RECONSTRUCT|SECTIONED`
-            }
-        ]
-    },
-  ],
-  'nikon': [
-    {
-        category: "Nikon Specific Features",
-        description: "Commands designed for Nikon NIS-Elements software and hardware.",
-        scripts: [
-            {
-                name: "Perfect Focus System (PFS)",
-                description: "Maintain perfect focus over a long time-lapse experiment.",
-                script: `NIKON|PERFECT_FOCUS[ON]→MAINTAIN→CAPTURE[24h:5min]|STABLE`
-            },
-            {
-                name: "STORM Super-Resolution",
-                description: "Perform 3D Stochastic Optical Reconstruction Microscopy.",
-                script: `NIKON|STORM[3D]→LOCALIZE[High_Precision]→RECONSTRUCT|SUPER_RES`
-            },
-            {
-                name: "JOBS Experiment Designer",
-                description: "Execute a pre-programmed JOBS sequence for automated imaging.",
-                script: `NIKON|JOBS[Load:My_Experiment.job]→EXECUTE|COMPLETE`
-            }
-        ]
-    },
-  ],
-  'leica': [
-    {
-      category: "Leica Specific Features",
-      description: "Commands for Leica LAS X software and STELLARIS platform.",
-      scripts: [
-        {
-            name: "STELLARIS TauSense",
-            description: "Utilize fluorescence lifetime information for contrast.",
-            script: `LEICA|STELLARIS[TauSense]→LIFETIME[Contrast]→UNMIX[Autofluorescence]|CLEAN`
-        },
-        {
-            name: "LIGHTNING Deconvolution",
-            description: "Apply real-time LIGHTNING computational clearing.",
-            script: `LEICA|LIGHTNING[ON]→ACQUIRE[Live]→SUPER_RES[120nm]|ENHANCED`
-        }
-      ]
-    }
-  ],
-  'olympus': [
-    {
-      category: "Olympus Specific Features",
-      description: "Commands for Olympus cellSens and FV3000 systems.",
-      scripts: [
-        {
-            name: "FV3000 TruSpectral",
-            description: "High-precision spectral unmixing with variable bandwidth.",
-            script: `OLYMPUS|FV3000[TruSpectral]→DETECTION[Band:2nm]→UNMIX|PRECISE`
-        },
-        {
-            name: "SpinSR Super Resolution",
-            description: "Acquire super-resolution images using the spinning disk system.",
-            script: `OLYMPUS|SpinSR[10]→MODE[Live]→RESOLUTION[120nm]|ACHIEVED`
-        }
-      ]
-    }
   ],
 };
 

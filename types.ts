@@ -68,12 +68,12 @@ export interface Dataset {
   cubeScript: string;
 }
 
-export type Brand = '3i' | 'zeiss' | 'nikon' | 'leica' | 'olympus';
+export type Brand = '3i';
 
 export interface BrandConfig {
   name: string;
   appName: string;
 }
 
-export type View = 'dashboard' | 'executor' | 'converter' | 'gallery' | 'ml_builder' | 'video_builder' | 'data_hub';
+export type View = 'dashboard' | 'executor' | 'video_builder' | 'ml_builder' | 'data_hub' | 'converter' | 'gallery';
 export type ConverterMode = 'code' | 'text' | 'data';

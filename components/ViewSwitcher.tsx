@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, CpuChipIcon, VideoCameraIcon, CircleStackIcon, HomeIcon } from './icons';
+import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, HomeIcon, VideoCameraIcon, CpuChipIcon, CircleStackIcon } from './icons';
 import type { View } from '../types';
 
 interface ViewSwitcherProps {
@@ -9,62 +8,33 @@ interface ViewSwitcherProps {
 }
 
 export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewChange }) => {
-  const baseClasses = "px-4 py-2 text-sm font-medium rounded-md flex items-center transition-colors duration-200";
-  const activeClasses = "bg-cube-cyan text-white shadow-lg shadow-cube-cyan/20";
-  const inactiveClasses = "text-gray-300 hover:bg-white/10";
+  const views: { id: View; label: string; icon: React.FC<{className?: string}> }[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
+    { id: 'executor', label: 'Executor', icon: PlayIcon },
+    { id: 'video_builder', label: 'Video Builder', icon: VideoCameraIcon },
+    { id: 'ml_builder', label: 'ML Builder', icon: CpuChipIcon },
+    { id: 'data_hub', label: 'Data Hub', icon: CircleStackIcon },
+    { id: 'converter', label: 'CUBE Converter', icon: SwitchHorizontalIcon },
+    { id: 'gallery', label: 'Media Gallery', icon: PhotoIcon },
+  ];
+
+  const baseClasses = "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200";
+  const activeClasses = "bg-slate-700/50 text-white";
+  const inactiveClasses = "text-slate-400 hover:bg-slate-700/30 hover:text-slate-200";
 
   return (
-    <div className="flex justify-center mb-0">
-      <div className="flex space-x-2 bg-gray-950/40 backdrop-blur-2xl p-1 rounded-lg border border-white/10">
-        <button
-          onClick={() => onViewChange('dashboard')}
-          className={`${baseClasses} ${currentView === 'dashboard' ? activeClasses : inactiveClasses}`}
-        >
-          <HomeIcon className="w-5 h-5 mr-2" />
-          Dashboard
-        </button>
-        <button
-          onClick={() => onViewChange('executor')}
-          className={`${baseClasses} ${currentView === 'executor' ? activeClasses : inactiveClasses}`}
-        >
-          <PlayIcon className="w-5 h-5 mr-2" />
-          Executor
-        </button>
-         <button
-          onClick={() => onViewChange('video_builder')}
-          className={`${baseClasses} ${currentView === 'video_builder' ? activeClasses : inactiveClasses}`}
-        >
-          <VideoCameraIcon className="w-5 h-5 mr-2" />
-          Video Builder
-        </button>
-        <button
-          onClick={() => onViewChange('ml_builder')}
-          className={`${baseClasses} ${currentView === 'ml_builder' ? activeClasses : inactiveClasses}`}
-        >
-          <CpuChipIcon className="w-5 h-5 mr-2" />
-          ML Builder
-        </button>
-        <button
-          onClick={() => onViewChange('data_hub')}
-          className={`${baseClasses} ${currentView === 'data_hub' ? activeClasses : inactiveClasses}`}
-        >
-          <CircleStackIcon className="w-5 h-5 mr-2" />
-          Data Hub
-        </button>
-        <button
-          onClick={() => onViewChange('converter')}
-          className={`${baseClasses} ${currentView === 'converter' ? activeClasses : inactiveClasses}`}
-        >
-          <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
-          CUBE Converter
-        </button>
-        <button
-          onClick={() => onViewChange('gallery')}
-          className={`${baseClasses} ${currentView === 'gallery' ? activeClasses : inactiveClasses}`}
-        >
-          <PhotoIcon className="w-5 h-5 mr-2" />
-          Media Gallery
-        </button>
+    <div className="flex-shrink-0 -mt-2 mb-4">
+       <div className="flex p-1 space-x-1 bg-slate-900/70 backdrop-blur-xl rounded-lg border border-white/10 overflow-x-auto">
+        {views.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => onViewChange(id)}
+            className={`${baseClasses} ${currentView === id ? activeClasses : inactiveClasses}`}
+          >
+            <Icon className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap">{label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

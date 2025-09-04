@@ -1,6 +1,6 @@
 # 3i-CUBE: Revolutionizing Microscopy
 
-**[Live Demo & Simulator](https://cube-protocol-universal-microscopy-control-768405504263.us-west1.run.app)**
+**[Live Demo & Simulator](https://service-3i-cube-intelligent-imaging-control-768405504263.us-west1.run.app/)**
 
 *An advanced AI-powered protocol from **3i (Intelligent Imaging Innovations)**, with core algorithms and UI/UX created by **EasyAI Chatbots**.*
 

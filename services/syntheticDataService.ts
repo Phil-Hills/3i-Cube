@@ -11,7 +11,7 @@ interface GeneratedPair {
     label: string;
 }
 
-const SIZE = 512;
+const SIZE = 256;
 
 /**
  * Generates a set of synthetic microscopy images and their corresponding segmentation labels.
@@ -48,13 +48,13 @@ class SyntheticDataGenerator {
     public generate(params: SyntheticDataParams): GeneratedPair {
         this.clearCanvases();
         
-        // 1. Generate one base image programmatically
-        const baseCanvas = this.generateBaseCellProgrammatically(params.cellType);
+        const numCells = params.cellType === 'Tissue' ? 5 + Math.floor(Math.random() * 5) : 1;
         
-        // 2. Apply variations and augmentations
-        this.applyVariations(baseCanvas);
+        for (let i=0; i < numCells; i++) {
+            const baseCanvas = this.generateBaseCellProgrammatically(params.cellType, i + 1);
+            this.applyVariations(baseCanvas, i + 1);
+        }
         
-        // 3. Apply realistic microscopy effects to the image canvas
         this.applyMicroscopyEffects(params.artifacts);
 
         return {
@@ -64,13 +64,13 @@ class SyntheticDataGenerator {
     }
 
     private clearCanvases(): void {
-        this.imageCtx.fillStyle = '#000000';
+        this.imageCtx.fillStyle = '#050505';
         this.imageCtx.fillRect(0, 0, SIZE, SIZE);
         this.labelCtx.fillStyle = '#000000'; // Background class
         this.labelCtx.fillRect(0, 0, SIZE, SIZE);
     }
 
-    private generateBaseCellProgrammatically(cellType: SimCellType): HTMLCanvasElement {
+    private generateBaseCellProgrammatically(cellType: SimCellType, labelId: number): HTMLCanvasElement {
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = SIZE;
         tempCanvas.height = SIZE;
@@ -79,105 +79,165 @@ class SyntheticDataGenerator {
         ctx.fillRect(0,0,SIZE,SIZE);
 
         const center = { x: SIZE / 2, y: SIZE / 2 };
+        const labelColor = `hsl(${(labelId * 60) % 360}, 100%, 50%)`;
         
-        // Cell membrane (elliptical)
+        if (cellType === 'Neurons') {
+            this.drawNeuron(ctx, this.labelCtx, center, labelColor);
+        } else { // Tissue or other cells
+            this.drawStandardCell(ctx, this.labelCtx, center, labelColor);
+        }
+        
+        return tempCanvas;
+    }
+
+    private drawStandardCell(imageCtx: CanvasRenderingContext2D, labelCtx: CanvasRenderingContext2D, center: {x: number, y: number}, labelColor: string) {
         const axes = { 
-            x: 80 + (Math.random() - 0.5) * 20, 
-            y: 100 + (Math.random() - 0.5) * 20 
+            x: SIZE * 0.15 + (Math.random() - 0.5) * SIZE * 0.05, 
+            y: SIZE * 0.2 + (Math.random() - 0.5) * SIZE * 0.05 
         };
         const angle = Math.random() * Math.PI * 2;
         
-        // Draw cell on image canvas (with color)
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = 'rgba(0, 100, 0, 0.8)';
-        ctx.beginPath();
-        ctx.ellipse(center.x, center.y, axes.x, axes.y, angle, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw cell on label canvas (with label color)
-        this.labelCtx.fillStyle = '#808080'; // Cytoplasm class
-        this.labelCtx.beginPath();
-        this.labelCtx.ellipse(center.x, center.y, axes.x, axes.y, angle, 0, Math.PI * 2);
-        this.labelCtx.fill();
+        imageCtx.globalCompositeOperation = 'lighter';
         
-        // Add nucleus
+        // Cytoplasm
+        const cytoGradient = imageCtx.createRadialGradient(center.x, center.y, 0, center.x, center.y, Math.max(axes.x, axes.y));
+        cytoGradient.addColorStop(0, 'rgba(0, 200, 50, 0.9)');
+        cytoGradient.addColorStop(1, 'rgba(0, 50, 0, 0.1)');
+        imageCtx.fillStyle = cytoGradient;
+        imageCtx.beginPath();
+        imageCtx.ellipse(center.x, center.y, axes.x, axes.y, angle, 0, Math.PI * 2);
+        imageCtx.fill();
+
+        labelCtx.fillStyle = labelColor; 
+        labelCtx.beginPath();
+        labelCtx.ellipse(center.x, center.y, axes.x, axes.y, angle, 0, Math.PI * 2);
+        labelCtx.fill();
+        
+        // Nucleus
         const nucleusCenter = {
             x: center.x + (Math.random() - 0.5) * 40,
             y: center.y + (Math.random() - 0.5) * 40
         };
-        const nucleusRadius = 30 + (Math.random() - 0.5) * 10;
+        const nucleusRadius = SIZE * 0.06 + (Math.random() - 0.5) * SIZE * 0.02;
         
-        // Draw nucleus on image canvas
-        ctx.fillStyle = 'rgba(0, 0, 200, 0.9)';
-        ctx.beginPath();
-        ctx.arc(nucleusCenter.x, nucleusCenter.y, nucleusRadius, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Draw nucleus on label canvas
-        this.labelCtx.fillStyle = '#FFFFFF'; // Nucleus class
-        this.labelCtx.beginPath();
-        this.labelCtx.arc(nucleusCenter.x, nucleusCenter.y, nucleusRadius, 0, Math.PI * 2);
-        this.labelCtx.fill();
+        const nucGradient = imageCtx.createRadialGradient(nucleusCenter.x, nucleusCenter.y, 0, nucleusCenter.x, nucleusCenter.y, nucleusRadius);
+        nucGradient.addColorStop(0, 'rgba(100, 100, 255, 1)');
+        nucGradient.addColorStop(1, 'rgba(50, 50, 200, 0.2)');
+        imageCtx.fillStyle = nucGradient;
+        imageCtx.beginPath();
+        imageCtx.arc(nucleusCenter.x, nucleusCenter.y, nucleusRadius, 0, Math.PI * 2);
+        imageCtx.fill();
 
-        // Add organelles
-        for (let i = 0; i < 20; i++) {
-            const org_x = center.x + (Math.random() - 0.5) * 120;
-            const org_y = center.y + (Math.random() - 0.5) * 120;
-            const org_size = Math.random() * 5 + 3;
-            ctx.fillStyle = `rgba(0, 150, 0, ${0.5 + Math.random() * 0.3})`;
-            ctx.beginPath();
-            ctx.arc(org_x, org_y, org_size, 0, Math.PI * 2);
-            ctx.fill();
+        imageCtx.globalCompositeOperation = 'source-over';
+    }
+
+    private drawNeuron(imageCtx: CanvasRenderingContext2D, labelCtx: CanvasRenderingContext2D, center: {x: number, y: number}, labelColor: string) {
+        const somaRadius = SIZE * 0.1 + (Math.random() - 0.5) * SIZE * 0.04;
+        
+        // Draw Soma
+        imageCtx.globalCompositeOperation = 'lighter';
+        const somaGradient = imageCtx.createRadialGradient(center.x, center.y, 0, center.x, center.y, somaRadius);
+        somaGradient.addColorStop(0, 'rgba(0, 255, 150, 0.9)');
+        somaGradient.addColorStop(1, 'rgba(0, 100, 50, 0.2)');
+        imageCtx.fillStyle = somaGradient;
+        imageCtx.beginPath();
+        imageCtx.arc(center.x, center.y, somaRadius, 0, Math.PI * 2);
+        imageCtx.fill();
+
+        labelCtx.fillStyle = labelColor;
+        labelCtx.beginPath();
+        labelCtx.arc(center.x, center.y, somaRadius, 0, Math.PI * 2);
+        labelCtx.fill();
+        
+        // Draw Dendrites
+        const numDendrites = 5 + Math.floor(Math.random() * 4);
+        for(let i=0; i<numDendrites; i++) {
+            const startAngle = Math.random() * Math.PI * 2;
+            const startX = center.x + Math.cos(startAngle) * somaRadius * 0.8;
+            const startY = center.y + Math.sin(startAngle) * somaRadius * 0.8;
+            const endX = center.x + (Math.random() - 0.5) * SIZE;
+            const endY = center.y + (Math.random() - 0.5) * SIZE;
+            
+            const path = this.createWigglyPath(startX, startY, endX, endY, 5, 15);
+            
+            imageCtx.strokeStyle = 'rgba(0, 200, 100, 0.6)';
+            imageCtx.lineWidth = 3 + Math.random() * 3;
+            imageCtx.stroke(path);
+
+            labelCtx.strokeStyle = labelColor;
+            labelCtx.lineWidth = imageCtx.lineWidth;
+            labelCtx.stroke(path);
         }
-        ctx.globalCompositeOperation = 'source-over';
-        return tempCanvas;
+        imageCtx.globalCompositeOperation = 'source-over';
+    }
+
+    private createWigglyPath(sx: number, sy: number, ex: number, ey: number, segments: number, wiggle: number): Path2D {
+        const path = new Path2D();
+        path.moveTo(sx, sy);
+        const dx = (ex - sx) / segments;
+        const dy = (ey - sy) / segments;
+        for (let i = 1; i < segments; i++) {
+            path.lineTo(
+                sx + dx * i + (Math.random() - 0.5) * wiggle,
+                sy + dy * i + (Math.random() - 0.5) * wiggle
+            );
+        }
+        path.lineTo(ex, ey);
+        return path;
     }
     
-    private applyVariations(baseCanvas: HTMLCanvasElement) {
+    private applyVariations(baseCanvas: HTMLCanvasElement, labelId: number) {
         // --- Apply transformations to both canvases simultaneously ---
         [this.imageCtx, this.labelCtx].forEach(ctx => {
             ctx.save();
             ctx.translate(SIZE / 2, SIZE / 2);
 
-            // 1. Rotation
             const angle = Math.random() * Math.PI * 2;
             ctx.rotate(angle);
 
-            // 2. Scale
             const scale = 0.8 + Math.random() * 0.4;
             ctx.scale(scale, scale);
 
-            // 7. Flip
-            if (Math.random() > 0.5) ctx.scale(-1, 1); // Horizontal
-            if (Math.random() > 0.5) ctx.scale(1, -1); // Vertical
+            if (Math.random() > 0.5) ctx.scale(-1, 1);
+            if (Math.random() > 0.5) ctx.scale(1, -1);
             
-            ctx.translate(-SIZE / 2, -SIZE / 2);
+            const offsetX = (Math.random() - 0.5) * SIZE * 0.5;
+            const offsetY = (Math.random() - 0.5) * SIZE * 0.5;
+            
+            ctx.translate(-SIZE / 2 + offsetX, -SIZE / 2 + offsetY);
             ctx.drawImage(baseCanvas, 0, 0);
             ctx.restore();
         });
 
-        // --- Apply transformations to image canvas only ---
         this.imageCtx.save();
-        // 3. Brightness
-        // 4. Contrast
-        // 6. Blur (part of variations)
         const brightness = 0.7 + Math.random() * 0.6;
         const contrast = 0.8 + Math.random() * 0.4;
-        const blur = Math.random() > 0.5 ? Math.random() * 2 : 0;
+        const blur = Math.random() > 0.5 ? Math.random() * 0.5 : 0;
         this.imageCtx.filter = `brightness(${brightness}) contrast(${contrast}) blur(${blur}px)`;
-        this.imageCtx.drawImage(this.imageCanvas, 0, 0);
-        this.imageCtx.restore();
+        
+        // Need to draw to a temp canvas to apply filter, then draw back
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = SIZE;
+        tempCanvas.height = SIZE;
+        const tempCtx = tempCanvas.getContext('2d')!;
+        tempCtx.drawImage(this.imageCanvas, 0, 0);
 
-        // 5. Noise level variation
-        const noiseLevel = Math.random() * 20;
-        this.addGaussianNoise(this.imageCtx, noiseLevel);
+        this.imageCtx.clearRect(0, 0, SIZE, SIZE);
+        this.imageCtx.drawImage(tempCanvas, 0, 0);
+
+        this.imageCtx.restore();
     }
 
     private applyMicroscopyEffects(artifacts: SimArtifact[]) {
         if (artifacts.includes('PSF_Blur')) {
             this.imageCtx.save();
-            this.imageCtx.filter = 'blur(1.5px)';
-            this.imageCtx.drawImage(this.imageCanvas, 0, 0);
+            this.imageCtx.filter = 'blur(1px) brightness(1.1)';
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = SIZE;
+            tempCanvas.height = SIZE;
+            tempCanvas.getContext('2d')!.drawImage(this.imageCanvas, 0, 0);
+            this.imageCtx.clearRect(0,0,SIZE,SIZE);
+            this.imageCtx.drawImage(tempCanvas, 0, 0);
             this.imageCtx.restore();
         }
 
@@ -187,9 +247,9 @@ class SyntheticDataGenerator {
 
         if (artifacts.includes('Uneven_Illumination')) {
             this.imageCtx.save();
-            const gradient = this.imageCtx.createLinearGradient(0, 0, SIZE, SIZE);
+            const gradient = this.imageCtx.createRadialGradient(SIZE/2, SIZE/2, 0, SIZE/2, SIZE/2, SIZE * 0.8);
             gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.7)');
+            gradient.addColorStop(1, 'rgba(200, 200, 200, 0.7)');
             this.imageCtx.globalCompositeOperation = 'multiply';
             this.imageCtx.fillStyle = gradient;
             this.imageCtx.fillRect(0, 0, SIZE, SIZE);
@@ -197,25 +257,13 @@ class SyntheticDataGenerator {
         }
     }
     
-    private addGaussianNoise(ctx: CanvasRenderingContext2D, amount: number) {
-        const imageData = ctx.getImageData(0, 0, SIZE, SIZE);
-        const d = imageData.data;
-        for (let i = 0; i < d.length; i += 4) {
-            const noise = (Math.random() - 0.5) * amount;
-            d[i] += noise;
-            d[i+1] += noise;
-            d[i+2] += noise;
-        }
-        ctx.putImageData(imageData, 0, 0);
-    }
-    
     private addPoissonNoise(ctx: CanvasRenderingContext2D) {
         const imageData = ctx.getImageData(0, 0, SIZE, SIZE);
         const data = imageData.data;
         for (let i = 0; i < data.length; i += 4) {
             const signal = (data[i] + data[i+1] + data[i+2])/3;
-            if (signal > 0) {
-                const noise = Math.sqrt(signal) * (Math.random() - 0.5) * 2.5; // Scaled for visual effect
+            if (signal > 5) { // only apply to signal, not background
+                const noise = Math.sqrt(signal) * (Math.random() - 0.5) * 3;
                 data[i] = Math.max(0, Math.min(255, data[i] + noise));
                 data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
                 data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));

@@ -96,7 +96,7 @@ export const DataHubView: React.FC<DataHubViewProps> = ({ onLoadInExecutor }) =>
     }, [searchTerm, sourceFilter]);
 
   return (
-    <div className="flex flex-col flex-grow pt-6 overflow-hidden gap-6 animate-fade-in">
+    <div className="flex flex-col flex-grow pt-6 overflow-hidden gap-6 animate-fade-in p-4">
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <CircleStackIcon className="w-8 h-8 mr-3 text-cyan-400" />

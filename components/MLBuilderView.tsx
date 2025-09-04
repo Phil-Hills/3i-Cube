@@ -6,9 +6,9 @@ import type { SyntheticDataParams } from '../services/syntheticDataService';
 type DataSource = 'simulated';
 type Model = 'unet' | 'stardist' | 'custom';
 type LossFunction = 'bce' | 'tversky' | 'dice' | 'focal';
-type OutputAction = 'apply' | 'save' | 'export';
-export type SimCellType = 'HeLa' | 'Neurons' | 'Tissue';
+export type SimCellType = 'Neurons' | 'Tissue';
 export type SimArtifact = 'PSF_Blur' | 'Poisson_Noise' | 'Uneven_Illumination';
+type OutputAction = 'apply' | 'save' | 'export';
 
 interface MLBuilderViewProps {
   onLoadInExecutor: (script: string) => void;
@@ -20,7 +20,7 @@ const PipelineNode: React.FC<{ title: string; children: React.ReactNode; icon: R
       <Icon className="w-5 h-5 mr-2" />
       {title}
     </h3>
-    <div className="space-y-2 flex-grow">
+    <div className="space-y-3 flex-grow">
       {children}
     </div>
   </div>
@@ -48,7 +48,6 @@ const ImageWithLabelToggle: React.FC<{ image: string, label: string }> = ({ imag
 };
 
 export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }) => {
-  const [dataSource, setDataSource] = useState<DataSource>('simulated');
   const [model, setModel] = useState<Model>('unet');
   const [epochs, setEpochs] = useState(50);
   const [learningRate, setLearningRate] = useState('0.001');
@@ -56,7 +55,7 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
   const [outputAction, setOutputAction] = useState<OutputAction>('apply');
   const [generatedScript, setGeneratedScript] = useState('');
   
-  const [simCellType, setSimCellType] = useState<SimCellType>('HeLa');
+  const [simCellType, setSimCellType] = useState<SimCellType>('Neurons');
   const [simImageCount, setSimImageCount] = useState(1000);
   const [simArtifacts, setSimArtifacts] = useState<Set<SimArtifact>>(new Set(['PSF_Blur', 'Poisson_Noise']));
   
@@ -64,12 +63,9 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    let dataStr = '';
-    if (dataSource === 'simulated') {
-        const artifactsStr = Array.from(simArtifacts).join(',');
-        dataStr = `GENERATE|CELLS[Type:${simCellType},Count:${simImageCount}]→VARY[All]→AUGMENT[Flip,Contrast,Brightness]→ARTIFACTS[${artifactsStr}]|DATASET`;
-    }
-
+    const artifactsStr = Array.from(simArtifacts).join(',');
+    const dataStr = `SIMULATE|CELLS[Type:${simCellType},Count:${simImageCount}]→ARTIFACTS[${artifactsStr}]|DATASET`;
+    
     const modelMap = {
         'unet': 'MODEL[U-Net:Segmentation]',
         'stardist': 'MODEL[StarDist_3D:Tracking]',
@@ -80,15 +76,15 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
     const trainingStr = `TRAIN[Epochs:${epochs},LR:${learningRate},Loss:${lossFunction.toUpperCase()}]`;
 
     const outputMap = {
-        'apply': 'OUTPUT[Apply_To_View]',
-        'save': 'OUTPUT[Save_Trained_Model]',
-        'export': 'OUTPUT[Export_Segmentation_Mask]'
+        'apply': 'DEPLOY[Apply_To_Live_View]',
+        'save': 'DEPLOY[Save_Trained_Model]',
+        'export': 'DEPLOY[Export_Segmentation_Mask]'
     };
     const outputStr = outputMap[outputAction];
 
-    const script = `ML|${dataStr}\nML|DATA[Generated]→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
+    const script = `ML|${dataStr}\nML|DATASET[Generated]→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
     setGeneratedScript(script);
-  }, [dataSource, model, epochs, learningRate, lossFunction, outputAction, simCellType, simImageCount, simArtifacts]);
+  }, [model, epochs, learningRate, lossFunction, outputAction, simCellType, simImageCount, simArtifacts]);
 
   const toggleArtifact = (artifact: SimArtifact) => {
     setSimArtifacts(prev => {
@@ -120,7 +116,7 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
   const SelectInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; children: React.ReactNode }> = ({ label, value, onChange, children }) => (
     <div>
         <label className="text-sm text-slate-400 block mb-1">{label}</label>
-        <select value={value} onChange={onChange} className="w-full bg-slate-700/50 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+        <select value={value} onChange={onChange} className="w-full bg-slate-900 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500">
             {children}
         </select>
     </div>
@@ -129,12 +125,12 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
   const NumberInput: React.FC<{ label: string; value: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; step?: number }> = ({ label, value, onChange, step=1 }) => (
     <div>
       <label className="text-sm text-slate-400 block mb-1">{label}</label>
-      <input type="number" value={value} onChange={onChange} step={step} className="w-full bg-slate-700/50 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+      <input type="number" value={value} onChange={onChange} step={step} className="w-full bg-slate-900 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
     </div>
   );
 
   return (
-    <div className="flex flex-col flex-grow pt-6 overflow-y-auto gap-6 animate-fade-in">
+    <div className="flex flex-col flex-grow pt-6 overflow-y-auto gap-4 animate-fade-in p-2">
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <CpuChipIcon className="w-8 h-8 mr-3 text-cyan-400" />
@@ -146,7 +142,6 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
       <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4">
         <PipelineNode title="1. Synthetic Data Generation" icon={CircleStackIcon}>
           <SelectInput label="Cell Type" value={simCellType} onChange={e => setSimCellType(e.target.value as SimCellType)}>
-            <option value="HeLa">HeLa Cells</option>
             <option value="Neurons">Neurons</option>
             <option value="Tissue">Tissue Section</option>
           </SelectInput>
@@ -176,7 +171,7 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
             <NumberInput label="Epochs" value={epochs} onChange={e => setEpochs(parseInt(e.target.value, 10) || 0)} />
             <div>
               <label className="text-sm text-slate-400 block mb-1">Learning Rate</label>
-              <input type="text" value={learningRate} onChange={e => setLearningRate(e.target.value)} className="w-full bg-slate-700/50 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+              <input type="text" value={learningRate} onChange={e => setLearningRate(e.target.value)} className="w-full bg-slate-900 text-slate-200 rounded-md p-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
             </div>
           </div>
           <SelectInput label="Loss Function" value={lossFunction} onChange={e => setLossFunction(e.target.value as LossFunction)}>
@@ -198,9 +193,9 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
         </PipelineNode>
       </div>
 
-      <div className="bg-gray-950/40 backdrop-blur-2xl border border-white/10 rounded-lg p-4 mt-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-          <div className="bg-slate-800/50 p-4 rounded-lg">
+      <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-lg p-4">
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <div className="bg-slate-800/50 p-4 rounded-lg flex-grow">
             <h3 className="text-lg font-bold text-slate-100 mb-2">Cost & Time Savings</h3>
             <div className="grid grid-cols-2 gap-4 text-center">
               <div className="bg-red-900/30 p-2 rounded">
@@ -215,11 +210,11 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
               </div>
             </div>
           </div>
-          <div className="text-center md:text-left">
+          <div className="flex-shrink-0 w-full md:w-auto">
             <button
                 onClick={handleGeneratePreview}
                 disabled={isGenerating}
-                className="w-full md:w-auto flex items-center justify-center p-3 bg-white/10 text-white font-bold rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full flex items-center justify-center p-3 bg-slate-700/80 text-white font-bold rounded-lg hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
                 {isGenerating ? <><LoaderIcon className="w-5 h-5 mr-2 animate-spin" /> Generating...</> : <><SparklesIcon className="w-5 h-5 mr-2" /> Generate Data Preview</>}
             </button>

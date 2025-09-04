@@ -17,10 +17,10 @@ import { ImageModal } from './components/ImageModal';
 import { GalleryView } from './components/GalleryView';
 import * as galleryService from './services/galleryService';
 import { XMarkIcon } from './components/icons';
-import { MLBuilderView } from './components/MLBuilderView';
-import { VideoBuilderView } from './components/VideoBuilderView';
-import { DataHubView } from './components/DataHubView';
 import { DashboardView } from './components/DashboardView';
+import { VideoBuilderView } from './components/VideoBuilderView';
+import { MLBuilderView } from './components/MLBuilderView';
+import { DataHubView } from './components/DataHubView';
 
 const getInitialScript = (brand: Brand): string => {
   const scripts = BRANDED_METHOD_SCRIPTS[brand];
@@ -59,26 +59,21 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
-  const initialBrand: Brand = '3i';
+  const brand: Brand = '3i';
 
-  const [brand, setBrand] = useState<Brand>(initialBrand);
-  const [cubeScript, setCubeScript] = useState<string>(getInitialScript(initialBrand));
+  const [cubeScript, setCubeScript] = useState<string>(getInitialScript(brand));
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
   const [simulatedMedia, setSimulatedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
-  const [view, setView] = useState<View>('dashboard');
+  const [view, setView] = useState<View>('ml_builder');
 
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{url: string; cubeScript: string; type: 'image' | 'video'; id?: number} | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
-  
-  useEffect(() => {
-    document.documentElement.dataset.theme = brand;
-  }, [brand]);
   
   useEffect(() => {
     const loadImages = async () => {
@@ -151,11 +146,6 @@ const App: React.FC = () => {
     setSimulatedMedia(null);
   };
 
-  const handleBrandChange = (newBrand: Brand) => {
-    setBrand(newBrand);
-    selectScript(getInitialScript(newBrand));
-  };
-
   const handleOpenImageModal = (media: {url: string; cubeScript: string; type: 'image' | 'video'; id?: number}) => {
     setSelectedMedia(media);
     setIsImageModalOpen(true);
@@ -190,13 +180,13 @@ const App: React.FC = () => {
         setToast({ message: `Delete failed: ${errorMessage}`, type: 'error' });
     }
   };
-  
-  const loadScriptAndSwitchToExecutor = (script: string) => {
+
+  const handleLoadInExecutor = useCallback((script: string) => {
     setCubeScript(script);
-    setView('executor');
     setLogEntries([]);
     setSimulatedMedia(null);
-  };
+    setView('executor');
+  }, []);
 
   const renderView = () => {
     switch(view) {
@@ -230,16 +220,16 @@ const App: React.FC = () => {
             </div>
           </div>
         );
+      case 'video_builder':
+        return <VideoBuilderView onLoadInExecutor={handleLoadInExecutor} />;
+      case 'ml_builder':
+        return <MLBuilderView onLoadInExecutor={handleLoadInExecutor} />;
+      case 'data_hub':
+        return <DataHubView onLoadInExecutor={handleLoadInExecutor} />;
       case 'converter':
         return <ConverterView />;
       case 'gallery':
         return <GalleryView images={galleryImages} onImageSelect={({ imageUrl, cubeScript, id, mediaType }) => handleOpenImageModal({ url: imageUrl, cubeScript, id, type: mediaType })} />;
-      case 'ml_builder':
-        return <MLBuilderView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
-       case 'data_hub':
-        return <DataHubView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
-      case 'video_builder':
-        return <VideoBuilderView onLoadInExecutor={loadScriptAndSwitchToExecutor} />;
       default:
         return null;
     }
@@ -248,8 +238,6 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-transparent text-slate-200 font-sans">
       <Header 
-        brand={brand}
-        onBrandChange={handleBrandChange}
         onAboutClick={() => setIsAboutModalOpen(true)}
         onDocsClick={() => setIsDocsModalOpen(true)}
       />
@@ -259,7 +247,7 @@ const App: React.FC = () => {
         {renderView()}
       </main>
       
-      <StatusBar status={microscopeStatus} brand={brand} />
+      <StatusBar status={microscopeStatus} />
       {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
       {isDocsModalOpen && <DocsModal onClose={() => setIsDocsModalOpen(false)} />}
       {isImageModalOpen && selectedMedia && (
