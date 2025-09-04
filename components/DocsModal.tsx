@@ -130,7 +130,7 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <BookOpenIcon className="w-7 h-7 text-cyan-400 mr-3" />
             <div>
               <h2 className="text-xl font-bold text-white">3i-CUBE Documentation</h2>
-               <p className="text-sm text-gray-400">{docMeta[activeDoc].subtitle}</p>
+               <p className="text-sm text-gray-400">From 3i, with core AI by EasyAI Chatbots</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">
