@@ -64,7 +64,8 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
 
   useEffect(() => {
     const artifactsStr = Array.from(simArtifacts).join(',');
-    const dataStr = `SIMULATE|CELLS[Type:${simCellType},Count:${simImageCount}]→ARTIFACTS[${artifactsStr}]|DATASET`;
+    const simulationSequence = `SIMULATE→CELLS[Type:${simCellType},Count:${simImageCount}]→ARTIFACTS[${artifactsStr}]`;
+    const simulationLine = `ML|${simulationSequence}|DATASET_GENERATED`;
     
     const modelMap = {
         'unet': 'MODEL[U-Net:Segmentation]',
@@ -82,7 +83,9 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
     };
     const outputStr = outputMap[outputAction];
 
-    const script = `ML|${dataStr}\nML|DATASET[Generated]→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
+    const trainingLine = `ML|DATASET[Generated]→${modelStr}→${trainingStr}→${outputStr}|COMPLETE`;
+    
+    const script = `${simulationLine}\n${trainingLine}`;
     setGeneratedScript(script);
   }, [model, epochs, learningRate, lossFunction, outputAction, simCellType, simImageCount, simArtifacts]);
 
