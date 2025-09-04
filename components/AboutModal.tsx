@@ -2,61 +2,58 @@
 import React, { useEffect } from 'react';
 import { CubeIcon, XMarkIcon } from './icons';
 
-const AdaptiveOpticsShowcase: React.FC = () => (
-  <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4 my-6">
-      <h4 className="text-lg font-semibold text-slate-100 mb-3 text-center">Example: Adaptive Optics</h4>
-      <p className="text-sm text-center text-slate-400 mb-4">A real 200+ line script is converted into just 6 lines of CUBE.</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-              <h5 className="font-semibold text-red-300 mb-2">Before (Procedural Script - Excerpt)</h5>
-              <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-red-200/80 h-full overflow-auto"><code>{`
-# This script performs indirect, image-based adaptive optics
-# ... (150+ lines of nested loops, calibration, and plotting)
+const LatticeLightSheetShowcase: React.FC = () => (
+    <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4 my-6">
+        <h4 className="text-lg font-semibold text-slate-100 mb-3 text-center">Example: 4D Lattice LightSheet Imaging</h4>
+        <p className="text-sm text-center text-slate-400 mb-4">A complex multi-day acquisition script is compressed into 3 lines of 3i-CUBE.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <h5 className="font-semibold text-red-300 mb-2">Before (Vendor Script - Excerpt)</h5>
+                <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-red-200/80 h-full overflow-auto"><code>{`
+# Fictional complex script for a 3i Marianas system
+# (represents dozens of UI clicks and settings)
 
-[nZern, Z2C, dm] = Init_Deformable_Mirror();
-dm.Reset();
-
-p = polyfit(Spherical_calibration, Defocus_correction, 1);
-
-for i = Zernike_index
-  for j = 1:length(ZernikeAmplitude) 
-    [zernikeVector] = set_zernike_on_dm(dm, nZern, Z2C, ...);      
-    
-    isRequestingFrame = 1;
-    while (isFrameReady == 0)
-      pause(0.1);
-    end
-    
-    [Total_Intensity(i,j)] = Calc_Merits(...);
-  end
-  
-  [Max_amp_fit(i)] = Find_maximal_zernike(...);
-end
-
-# Apply optimal pattern
-dm.Send(zernikeVector * Z2C);
+- acquisition:
+    - type: timelapse
+    - duration: 24h
+    - interval: 30s
+- lattice_optics:
+    - sheet_NA: 0.5
+    - excitation_NA: 0.55
+    - dither_range: 5um
+- z_stack:
+    - mode: piezo
+    - steps: 200
+    - step_size: 0.5um
+- channels:
+    - name: GFP
+      laser: 488nm
+      power: 5%
+    - name: RFP
+      laser: 561nm
+      power: 8%
+- post_processing:
+    - deskew: true
+    - deconvolution:
+        - algorithm: richardson_lucy
+        - iterations: 10
 `}</code></pre>
-          </div>
-           <div>
-              <h5 className="font-semibold text-green-300 mb-2">After (CUBE Protocol)</h5>
-              <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-green-200/80 h-full overflow-auto"><code>{`
-# Adaptive Optics - By EasyAI Chatbots
-CONNECT|MICROSCOPE→DM[Deformable_Mirror]|READY
+            </div>
+             <div>
+                <h5 className="font-semibold text-green-300 mb-2">After (3i-CUBE)</h5>
+                <pre className="bg-slate-900 p-2 rounded text-xs font-mono text-green-200/80 h-full overflow-auto"><code>{`
+# 4D Lattice Light Sheet with GPU acceleration - by 3i
+SETUP|LATTICE[Marianas]→SAMPLE[Zebrafish_Embryo]|CONFIGURED
 
-CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[...]|FITTED
+ACQUIRE|4D→VOLUME[500x500x100um]→TIME[24h]→INTERVAL[30s]|CAPTURING
 
-OPTIMIZE|ZERNIKE[1:7]→AMPLITUDE[-2:0.5:2]|RUNNING
-
-ACQUIRE|LOOP[Modes]→TEST[Amplitudes]→MEASURE|OPTIMIZING
-
-APPLY|BEST[Pattern]→DM[Send]→LOCK|CORRECTED
-
-RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]|COMPLETE
+PROCESS|DECONVOLVE[AI]→GPU[ACCELERATED]→RENDER[3D]|COMPLETE
 `}</code></pre>
-          </div>
-      </div>
-  </div>
+            </div>
+        </div>
+    </div>
 );
+
 
 export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   useEffect(() => {
@@ -78,8 +75,8 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <div className="flex items-center">
             <CubeIcon className="w-7 h-7 text-cyan-400 mr-3" />
             <div>
-              <h2 className="text-xl font-bold text-white">About CUBE Protocol</h2>
-              <p className="text-sm text-slate-400">Created by EasyAI Chatbots</p>
+              <h2 className="text-xl font-bold text-white">About 3i-CUBE</h2>
+              <p className="text-sm text-slate-400">From Intelligent Imaging Innovations</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-slate-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">
@@ -90,11 +87,11 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <div className="p-6 overflow-y-auto text-slate-300 space-y-6">
           <p className="text-lg text-center text-slate-100 mb-2">Transform Complex Microscopy into Simple, Universal Commands</p>
 
-          <AdaptiveOpticsShowcase />
+          <LatticeLightSheetShowcase />
           
            <div className="text-center border-t border-white/10 pt-6 mt-6">
               <h4 className="text-xl font-semibold text-slate-100 mb-2">Ready to Transform Your Workflow?</h4>
-              <p className="text-slate-400 mb-4">Bring the power of CUBE Protocol to your lab.</p>
+              <p className="text-slate-400 mb-4">Bring the power of 3i-CUBE to your lab.</p>
               <div className="flex justify-center space-x-4">
                   <button className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-md hover:brightness-110 transition-all duration-300 shadow-lg shadow-purple-500/30">
                       Schedule Demo

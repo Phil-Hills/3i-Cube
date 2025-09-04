@@ -36,7 +36,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status, brand }) => {
       </div>
       <div className="text-slate-500 text-right">
         <div>{currentBrandConfig.name} Protocol v2.0</div>
-        <div className="text-xs">Created by EasyAI Chatbots</div>
+        <div className="text-xs">From Intelligent Imaging Innovations</div>
       </div>
     </footer>
   );

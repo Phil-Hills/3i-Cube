@@ -1,4 +1,4 @@
-# CUBE Protocol: The Universal Compression & Control Algorithm
+# 3i-CUBE: The Universal Compression & Control Algorithm
 
 **[Live Demo & Simulator](https://cube-protocol-universal-microscopy-control-768405504263.us-west1.run.app)**
 
@@ -8,14 +8,14 @@ ALGORITHM|STRING_CUBE[Compress]→SEMANTIC_CUBE[Control]→UNIVERSAL[Everything]
 
 ## 1. The Complete Vision
 
-CUBE Protocol is a revolutionary system from EasyAI Chatbots that unifies two powerful concepts:
+3i-CUBE is a revolutionary system from 3i (Intelligent Imaging Innovations) that unifies two powerful concepts:
 
 1.  **String-Cube Compression**: A master algorithm for compressing any data (text, images, video) into a hyper-efficient 3D "cube" of strings.
 2.  **Semantic Control**: A universal, human-readable language for controlling complex operations with simple commands.
 
 Together, they create a complete ecosystem for managing, transferring, and executing operations on data with unprecedented efficiency and clarity.
 
-## 2. The Two Pillars of CUBE Protocol
+## 2. The Two Pillars of 3i-CUBE
 
 ### Pillar 1: String-Cube Compression
 
@@ -80,7 +80,7 @@ String-Cube Compression and Semantic Control work together to provide a complete
 
 ## 5. The Impact
 
-CUBE Protocol is more than a tool; it's a paradigm shift in how we interact with data.
+3i-CUBE is more than a tool; it's a paradigm shift in how we interact with data.
 
 ```cube
 IMPACT|COMPRESS[Everything]→CONTROL[Anything]→SAVE[Time,Money,Family]|REVOLUTIONARY

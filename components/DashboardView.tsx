@@ -42,7 +42,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onViewChange }) =>
     <div className="flex-grow flex flex-col p-6 overflow-y-auto animate-fade-in">
         <header className="text-center mb-10">
             <h1 className="text-4xl font-extrabold text-white tracking-tight sm:text-5xl">
-                CUBE Protocol v2.0 Dashboard
+                3i-CUBE v2.0 Dashboard
             </h1>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-400">
                 Showcasing a <span className="text-cyan-300 font-semibold">91.3:1</span> average code compression ratio on real-world microscopy workflows.
@@ -53,7 +53,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onViewChange }) =>
                     className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-lg hover:brightness-110 transition-all duration-300 shadow-lg shadow-purple-500/30 transform hover:-translate-y-0.5"
                 >
                     <ArrowPathIcon className="w-5 h-5 mr-2 inline-block" />
-                    Try the CUBE Converter
+                    Try the 3i-CUBE Converter
                 </button>
             </div>
         </header>
@@ -61,10 +61,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onViewChange }) =>
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl p-6">
             <h2 className="text-2xl font-bold text-slate-100 mb-4 flex items-center">
                 <CubeIcon className="w-7 h-7 text-cyan-400 mr-3" />
-                Microscopy Workflow Compression Benchmark
+                3i-CUBE Workflow Compression Benchmark
             </h2>
             <p className="text-slate-400 mb-6">
-                Analysis of complex Python microscopy scripts, converted to CUBE Protocol.
+                Analysis of complex Python microscopy scripts, converted to 3i-CUBE.
             </p>
             
             <div className="overflow-x-auto">

@@ -1,5 +1,5 @@
 {
-  "name": "CUBE Protocol: Universal Microscopy Control",
-  "description": "An AI-powered simulator for the CUBE protocol, a universal language designed to simplify and compress complex microscopy workflows for any system.",
+  "name": "3i-CUBE: Intelligent Imaging Control",
+  "description": "An AI-powered simulator for 3i-CUBE, an intelligent imaging protocol from 3i (Intelligent Imaging Innovations).",
   "requestFramePermissions": []
 }

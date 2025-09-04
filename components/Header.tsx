@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({ brand, onBrandChange, onAboutCli
         <button
           onClick={onAboutClick}
           className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-          aria-label="About CUBE Protocol"
+          aria-label="About 3i-CUBE"
         >
           <QuestionMarkCircleIcon className="w-6 h-6" />
         </button>

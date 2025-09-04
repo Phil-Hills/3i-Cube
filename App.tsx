@@ -59,7 +59,7 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
-  const initialBrand: Brand = 'generic';
+  const initialBrand: Brand = '3i';
 
   const [brand, setBrand] = useState<Brand>(initialBrand);
   const [cubeScript, setCubeScript] = useState<string>(getInitialScript(initialBrand));

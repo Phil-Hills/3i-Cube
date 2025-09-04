@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ConversionMetrics } from '../types';
 
@@ -14,10 +15,10 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
 
   const lines = script.trim().split('\n');
   const logs: string[] = [
-    '🔬 CUBE Protocol Control System',
+    '🔬 3i-CUBE Control System',
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-    'CUBE Protocol Execution Log',
-    'Created by EasyAI Chatbots',
+    '3i-CUBE Execution Log',
+    'From Intelligent Imaging Innovations (3i)',
     ''
   ];
   let mediaGenerated = false;
@@ -36,7 +37,7 @@ export const interpretCubeScript = async (script: string): Promise<string[]> => 
     logs.push(`[${new Date().toLocaleTimeString()}] Executing: ${line}`);
 
     const upperDomain = domain.toUpperCase();
-    if (upperDomain === 'MARIANAS' || upperDomain === 'AXL' || upperDomain === 'MICROSCOPE') {
+    if (upperDomain === 'MARIANAS' || upperDomain === 'AXL' || upperDomain === 'MICROSCOPE' || upperDomain === 'SLIDEBOOK') {
         logs.push(`  -> ✓ Connected to ${domain} system`);
         logs.push(`     • Serial: ${upperDomain}-2024-${Math.floor(1000 + Math.random() * 9000)}`);
         logs.push(`     • Firmware: v7.3.2`);
@@ -104,7 +105,7 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
 
     const original_lines = countMeaningfulLines(code);
     
-    const systemInstruction = `You are an expert at converting code to the CUBE Protocol, from EasyAI Chatbots. Your highest priority is INTELLIGENT GROUPING. Group related lines of code (like a whole function, class, or API call) into a single, semantic CUBE command in the format: DOMAIN|SEQUENCE|OUTCOME. Do not convert line-by-line. Capture the overall purpose of a code block.`;
+    const systemInstruction = `You are an expert at converting code to the 3i-CUBE Protocol, from 3i (Intelligent Imaging Innovations). Your highest priority is INTELLIGENT GROUPING. Group related lines of code (like a whole function, class, or API call) into a single, semantic CUBE command in the format: DOMAIN|SEQUENCE|OUTCOME. Do not convert line-by-line. Capture the overall purpose of a code block.`;
 
     const responseSchema = {
       type: Type.OBJECT,
@@ -171,8 +172,8 @@ export const convertCodeToCube = async (code: string): Promise<{ cube_code: stri
     const cube_lines = countMeaningfulLines(result.cube_script);
 
     const cube_code_with_header = [
-      `# Converted to CUBE Protocol`,
-      `# By EasyAI Chatbots`,
+      `# Converted to 3i-CUBE`,
+      `# By 3i (Intelligent Imaging Innovations)`,
       `# Analysis: ${result.analysis}`,
       `# Compression: ${original_lines}:${cube_lines} lines\n`,
       result.cube_script,
@@ -206,7 +207,7 @@ export const generateCubeFromNaturalLanguage = async (description: string): Prom
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    const systemInstruction = `You are an expert microscopist and a master of the CUBE Protocol, a semantic language for controlling microscopes in the format: DOMAIN|SEQUENCE|OUTCOME. Your task is to convert a user's natural language description of a scientific experiment into a concise, elegant, and syntactically correct CUBE Protocol script. You must also provide a brief analysis and estimate how many lines of traditional code (e.g., Python, MATLAB) this script would replace.`;
+    const systemInstruction = `You are an expert microscopist and a master of the 3i-CUBE Protocol, a semantic language for controlling microscopes in the format: DOMAIN|SEQUENCE|OUTCOME. Your task is to convert a user's natural language description of a scientific experiment into a concise, elegant, and syntactically correct 3i-CUBE Protocol script. You must also provide a brief analysis and estimate how many lines of traditional code (e.g., Python, MATLAB) this script would replace.`;
 
     const responseSchema = {
       type: Type.OBJECT,
@@ -228,7 +229,7 @@ export const generateCubeFromNaturalLanguage = async (description: string): Prom
     };
 
     const prompt = `
-      **CRITICAL TASK: Convert the user's experimental description into a CUBE Protocol script, provide an analysis, and estimate the lines of code saved.**
+      **CRITICAL TASK: Convert the user's experimental description into a 3i-CUBE Protocol script, provide an analysis, and estimate the lines of code saved.**
 
       **High-Quality Examples:**
 
@@ -273,7 +274,7 @@ export const generateCubeFromNaturalLanguage = async (description: string): Prom
 
     const cube_code_with_header = [
       `# Generated from Natural Language with Gemini`,
-      `# By EasyAI Chatbots`,
+      `# By 3i (Intelligent Imaging Innovations)`,
       `# Analysis: ${result.analysis}`,
       `# Estimated code lines replaced: ${original_lines}\n`,
       result.cube_script,

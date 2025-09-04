@@ -1,7 +1,7 @@
 import type { ExampleScriptCategory, ConverterExample, Brand, BrandConfig } from './types';
 
 export const BRAND_CONFIGS: Record<Brand, BrandConfig> = {
-  'generic': { name: 'CUBE Protocol', appName: 'Universal CUBE Protocol' },
+  '3i': { name: '3i (Intelligent Imaging Innovations)', appName: '3i-CUBE' },
   'zeiss': { name: 'Zeiss', appName: 'ZEN CUBE Protocol' },
   'nikon': { name: 'Nikon', appName: 'NIS CUBE Protocol' },
   'leica': { name: 'Leica Microsystems', appName: 'LAS X CUBE' },
@@ -9,7 +9,30 @@ export const BRAND_CONFIGS: Record<Brand, BrandConfig> = {
 };
 
 export const BRANDED_METHOD_SCRIPTS: Record<Brand, ExampleScriptCategory[]> = {
-  'generic': [
+  '3i': [
+    {
+      category: "3i Specific Systems",
+      description: "Workflows tailored for 3i's cutting-edge microscopy systems like Marianas and SlideBook.",
+      scripts: [
+        {
+          name: "Lattice Light Sheet (Marianas)",
+          description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution on a Marianas system.",
+          script: `SETUP|LATTICE[Marianas]→SAMPLE[Zebrafish_Embryo]→GENTLE[Low_Power]|CONFIGURED
+ACQUIRE|4D→VOLUME[500x500x200um]→TIME[6h]→INTERVAL[30s]|CAPTURING
+PROCESS|DECONVOLVE[AI]→GPU[ACCELERATED]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
+        },
+        {
+          name: "Spinning Disk Confocal (CSU-W1)",
+          description: "High-speed Z-stack acquisition with deconvolution for clarity using a CSU-W1.",
+          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
+        },
+        {
+            name: "SlideBook Batch Processing",
+            description: "Run an automated batch process sequence defined in SlideBook software.",
+            script: `SLIDEBOOK|BATCH[Load:Experiment_Protocol.sb]→EXECUTE→EXPORT[OME-TIFF]|AUTOMATED`
+        }
+      ]
+    },
     {
       category: "AI Media Generation",
       description: "Use generative AI models to create images and videos from text prompts.",
@@ -65,19 +88,6 @@ SAVE|FORMAT[H265]→COMPRESS[GPU]→BITRATE[100Mbps]|EFFICIENT`
 SETUP|LIVE_CELL→TEMP[37C]→CO2[5%]|READY
 ACQUIRE|TIMELAPSE[24h:5min]→CHANNELS[GFP,RFP]→FOCUS[PFS]|RUNNING
 ANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE`
-        },
-        {
-          name: "Lattice Light Sheet",
-          description: "4D imaging of a developing zebrafish embryo with AI-powered deconvolution.",
-          script: `# 4D Lattice light sheet with GPU acceleration
-SETUP|LATTICE→SAMPLE[Zebrafish_Embryo]→GENTLE[Low_Power]|CONFIGURED
-ACQUIRE|4D→VOLUME[500x500x200um]→TIME[6h]→INTERVAL[30s]|CAPTURING
-PROCESS|DECONVOLVE[AI]→GPU[ACCELERATED]→RENDER[3D]→EXPORT[Movie]|COMPLETE`
-        },
-        {
-          name: "Spinning Disk Confocal",
-          description: "High-speed Z-stack acquisition with deconvolution for clarity.",
-          script: `ACQUIRE|CONFOCAL[CSU-W1]→CHANNELS[405,488,561,647]→ZSTACK[100]→DECONVOLVE|SHARP`
         },
         {
           name: "Live Cell Perfect Focus",
