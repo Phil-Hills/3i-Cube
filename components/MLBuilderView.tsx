@@ -134,9 +134,15 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <CpuChipIcon className="w-8 h-8 mr-3 text-cyan-400" />
-          Synthetic Data ML Builder
+          Synthetic Data, Made Simple
         </h1>
-        <p className="mt-2 text-slate-400 max-w-3xl mx-auto">CUBE doesn’t just control microscopes - it also orchestrates the ML around them. Generate synthetic images to train models with zero API cost. Feed them back into 3i systems, making microscopes smarter every experiment.</p>
+        <p className="mt-2 text-slate-400 max-w-3xl mx-auto">
+            One of the most powerful things 3i-CUBE can do is help your microscopes learn.
+            <br/><br/>
+            Here, you can generate training data, set up a model, and apply it, all through clear CUBE instructions. No coding required.
+            <br/><br/>
+            At first, the options may feel wide open. Don’t worry if you’re not sure which model or settings are best. We’ll guide you through it, and you can always adjust as you learn more. The key is to start trying, so your microscopes and models begin improving together.
+        </p>
       </header>
 
       <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4">

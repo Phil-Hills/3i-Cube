@@ -116,8 +116,12 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ images, onImageSelect 
             ) : (
                 <div className="flex flex-col items-center justify-center h-full text-gray-500 text-center">
                     <PhotoIcon className="w-16 h-16 mb-4 text-gray-600"/>
-                    <h3 className="text-lg font-semibold text-gray-400">The Gallery is Empty</h3>
-                    <p className="max-w-xs">Run experiments in the Executor and click "Save" on the preview to start your collection.</p>
+                    <h3 className="text-lg font-semibold text-gray-400">Your Saved Work, All in One Place</h3>
+                    <p className="max-w-xs">
+                        As you run experiments and generate previews, this gallery will start to fill up.
+                        <br/><br/>
+                        Right now it’s empty, and that’s exciting, because it means the first cube you save will be the very beginning of your collection.
+                    </p>
                 </div>
             )}
         </div>

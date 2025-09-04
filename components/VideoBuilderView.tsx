@@ -20,9 +20,15 @@ export const VideoBuilderView: React.FC<VideoBuilderViewProps> = ({ onLoadInExec
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <VideoCameraIcon className="w-8 h-8 mr-3 text-cyan-400" />
-          AI Video Builder (VEO)
+          Bring Your Ideas to Life
         </h1>
-        <p className="mt-2 text-slate-400 max-w-2xl mx-auto">Enter a natural description, and CUBE generates a synthetic video command. Perfect for training, simulation, and presentation - all with 100% reproducible scripts.</p>
+        <p className="mt-2 text-slate-400 max-w-2xl mx-auto">
+            Sometimes you need to see it, not just read it. The Video Builder lets you turn a simple description into a generated clip.
+            <br/><br/>
+            Type what you’d like to see. For example, <em>“a zebrafish embryo developing over 24 hours”</em>, and 3i-CUBE will create the script and preview automatically.
+            <br/><br/>
+            Think of it as storyboarding for science. Even if the first videos are rough, they are reproducible, shareable, and always traceable back to the CUBE command.
+        </p>
       </header>
 
       <div className="max-w-4xl mx-auto w-full space-y-6">

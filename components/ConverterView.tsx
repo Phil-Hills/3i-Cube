@@ -1079,10 +1079,15 @@ export const ConverterView: React.FC = () => {
   return (
     <div className="flex flex-col flex-grow pt-2 overflow-hidden gap-4">
        <div className="text-center px-4">
-        <p className="text-slate-300 max-w-3xl mx-auto">
-          Paste code, text, or JSON. See it compressed into a CUBE command. Decompress to prove 100% fidelity. This is the protocol at work - compact for AI, lossless for science.
-        </p>
-      </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Try Out the Converter</h2>
+            <p className="text-slate-300 max-w-3xl mx-auto">
+                This is your space to experiment. Paste in any text, code, or notes and click <em>Compress</em>.
+                <br/><br/>
+                You’ll see your work turned into a compact <strong>CUBE command</strong>. You can always decompress to check that the original is <strong>100% intact</strong>; nothing is lost.
+                <br/><br/>
+                It may take a few tries to get the hang of it, and some cubes will feel more useful than others right now. That’s all part of the process. The important thing is practicing the routine of compressing and decompressing until it feels natural.
+            </p>
+        </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow overflow-hidden px-2">
         {/* Input Panel */}
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col h-full">
@@ -1179,7 +1184,7 @@ export const ConverterView: React.FC = () => {
                 <pre><code className="text-sm text-cyan-300 font-mono">{outputCode}</code></pre>
             )}
           </div>
-           <p className="text-center text-xs text-slate-500 mt-2">CUBEs can be dropped into any chatbot. Ask it: ‘Reconstruct this CUBE per its header’ → you’ll get back your original content exactly.</p>
+           <p className="text-center text-xs text-slate-500 mt-2">CUBEs can be dropped into any chatbot. Ask it: ‘Reconstruct this CUBE per its header’ to get back your original content exactly.</p>
            <MetricsDisplay metrics={metrics} />
         </div>
       </div>

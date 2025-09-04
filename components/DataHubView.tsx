@@ -100,10 +100,14 @@ export const DataHubView: React.FC<DataHubViewProps> = ({ onLoadInExecutor }) =>
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <CircleStackIcon className="w-8 h-8 mr-3 text-cyan-400" />
-          Scientific Data Hub
+          Your Data Library
         </h1>
         <p className="mt-2 text-slate-400 max-w-2xl mx-auto">
-          The Scientific Data Hub connects 3i-CUBE to the world’s datasets. With one CUBE command, load benchmark data for training or validation - seamlessly integrated with your microscope workflows.
+          Every experiment gets better with the right data. In the Data Hub, you can explore public datasets and load them directly into CUBE commands.
+          <br/><br/>
+          Maybe today it’s E. coli segmentation, tomorrow mitochondrial dynamics. Whatever the project, you’ll have reliable examples ready to use.
+          <br/><br/>
+          Over time, you’ll build your own gallery here too, a living library of cubes you can return to, compare, and share.
         </p>
       </header>
       

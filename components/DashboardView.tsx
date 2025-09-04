@@ -24,10 +24,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onViewChange }) =>
         <div className="max-w-4xl w-full">
             <header className="text-center py-12">
                 <h1 className="text-4xl font-extrabold text-white tracking-tight sm:text-5xl">
-                    3i-CUBE: The Universal Remote for Microscopy and AI
+                    Welcome to 3i-CUBE
                 </h1>
                 <p className="mt-4 max-w-3xl mx-auto text-lg text-slate-300">
-                    Invented by EasyAI Chatbots, 3i-CUBE replaces complex scripts and GUIs with one command. Compress workflows for AI agents, run ML directly, and generate synthetic images that make microscopes self-improving.
+                    We’re so glad you’re here! This is where you’ll see just how much simpler and lighter your workflows can become.
+                    <br/><br/>
+                    On average, our protocol reduces thousands of lines of complex code into just a handful of easy-to-read commands. In fact, across real microscopy case studies, we’ve seen a <strong>91:1 reduction</strong>. That means more focus on science, and less time wrestling with scripts.
+                    <br/><br/>
+                    Please try the converter below to see it for yourself. Even if the first cubes you make feel a little basic, that’s okay. Building the habit of using CUBEs now will set you up for smoother, reproducible experiments later.
                 </p>
                 <div className="mt-8">
                     <button
@@ -73,12 +77,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onViewChange }) =>
                     </table>
                 </div>
                 <p className="text-center text-slate-400 mt-4 text-sm italic">
-                  These are not toy examples - they’re real 3i workflows. Thousands of lines of brittle Python → replaced by a handful of commands. 91× simpler, 100% intact.
+                  These are not toy examples; they’re real 3i workflows. Thousands of lines of brittle Python replaced by a handful of commands. 91× simpler, 100% intact.
                 </p>
             </div>
             
             <p className="text-center text-xl font-bold text-white mt-12 tracking-wide">
-                One protocol controls the robot you have — and helps train the robot it’s becoming.
+                One protocol controls the robot you have and helps train the robot it’s becoming.
             </p>
         </div>
     </div>

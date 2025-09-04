@@ -32,9 +32,12 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
       </div>
       <div className="text-slate-400 text-right text-xs">
         <p className="font-semibold text-slate-300">
-          3i-CUBE is powered by the CUBE Protocol, invented by EasyAI Chatbots.
+            Powered by EasyAI Chatbots
         </p>
-        <p>Secure data. Fast development. Fast updates. Self-improving microscopes.</p>
+        <p>
+            3i-CUBE is built on the CUBE Protocol, invented by EasyAI Chatbots.
+            Our promise is simple: secure data, faster development, quicker microscope updates, and AI that improves with every experiment.
+        </p>
       </div>
     </footer>
   );
