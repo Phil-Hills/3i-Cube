@@ -4,7 +4,7 @@ import { CubeIcon, XMarkIcon } from './icons';
 
 const LatticeLightSheetShowcase: React.FC = () => (
     <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4 my-6">
-        <h4 className="text-lg font-semibold text-slate-100 mb-3 text-center">Example: 4D Lattice LightSheet Imaging</h4>
+        <h4 className="text-lg font-semibold text-slate-100 mb-3 text-center">A Concrete Example: 4D Lattice LightSheet Imaging</h4>
         <p className="text-sm text-center text-slate-400 mb-4">A complex multi-day acquisition script is compressed into 3 lines of 3i-CUBE.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -86,6 +86,20 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         <div className="p-6 overflow-y-auto text-slate-300 space-y-6">
           <p className="text-lg text-center text-slate-100 mb-2">Transform Complex Microscopy into Simple, Universal Commands</p>
+          
+           <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-300">The Challenge: The Complexity Crisis</h3>
+              <p className="text-slate-400">
+                  3i systems are the most powerful in the world, but with great power comes great complexity. Scientists face major hurdles: software overload with hundreds of buttons, brittle and unshareable workflows tied to complex scripts, and a significant barrier to using groundbreaking AI/ML models for analysis.
+              </p>
+          </div>
+
+          <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-300">The Solution: The Ultimate Remote Control</h3>
+              <p className="text-slate-400">
+                  3i-CUBE is a modern extension of 3i's software that solves the complexity crisis by acting as a universal remote control for your microscope. Instead of hundreds of buttons, CUBE uses a simple, intuitive language based on the <code>DOMAIN|SEQUENCE|OUTCOME</code> pattern. You tell the system what you want, and it handles the complex "button presses" for you, making workflows readable, shareable, and perfectly reproducible.
+              </p>
+          </div>
 
           <LatticeLightSheetShowcase />
           
