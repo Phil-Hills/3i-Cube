@@ -1,6 +1,5 @@
 import React from 'react';
 import type { MicroscopeStatus } from '../types';
-import { BRAND_CONFIGS } from '../constants';
 
 interface StatusBarProps {
   status: MicroscopeStatus;
@@ -23,7 +22,6 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
   };
 
   const { color, text } = getStatusIndicator();
-  const currentBrandConfig = BRAND_CONFIGS['3i'];
 
   return (
     <footer className="flex items-center justify-between p-2 px-4 bg-slate-900 border-t-2 border-[var(--cube-blue)] text-sm">
@@ -32,9 +30,11 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
         <span className="text-slate-300">Microscope Status:</span>
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
-      <div className="text-slate-500 text-right">
-        <div>{currentBrandConfig.name} Protocol v2.0</div>
-        <div className="text-xs">From Intelligent Imaging Innovations</div>
+      <div className="text-slate-400 text-right text-xs">
+        <p className="font-semibold text-slate-300">
+          3i-CUBE is powered by the CUBE Protocol, invented by EasyAI Chatbots.
+        </p>
+        <p>Secure data. Fast development. Fast updates. Self-improving microscopes.</p>
       </div>
     </footer>
   );

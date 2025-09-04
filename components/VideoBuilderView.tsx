@@ -22,7 +22,7 @@ export const VideoBuilderView: React.FC<VideoBuilderViewProps> = ({ onLoadInExec
           <VideoCameraIcon className="w-8 h-8 mr-3 text-cyan-400" />
           AI Video Builder (VEO)
         </h1>
-        <p className="mt-2 text-slate-400">Generate a video from a text prompt and create the CUBE script automatically.</p>
+        <p className="mt-2 text-slate-400 max-w-2xl mx-auto">Enter a natural description, and CUBE generates a synthetic video command. Perfect for training, simulation, and presentation - all with 100% reproducible scripts.</p>
       </header>
 
       <div className="max-w-4xl mx-auto w-full space-y-6">

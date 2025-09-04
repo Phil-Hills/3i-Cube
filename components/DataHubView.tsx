@@ -103,7 +103,7 @@ export const DataHubView: React.FC<DataHubViewProps> = ({ onLoadInExecutor }) =>
           Scientific Data Hub
         </h1>
         <p className="mt-2 text-slate-400 max-w-2xl mx-auto">
-          Connect to the world's scientific data. Instantly load benchmark datasets for training and validation with a single CUBE command.
+          The Scientific Data Hub connects 3i-CUBE to the world’s datasets. With one CUBE command, load benchmark data for training or validation - seamlessly integrated with your microscope workflows.
         </p>
       </header>
       

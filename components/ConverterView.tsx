@@ -1077,8 +1077,13 @@ export const ConverterView: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col flex-grow pt-6 overflow-hidden gap-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow overflow-hidden">
+    <div className="flex flex-col flex-grow pt-2 overflow-hidden gap-4">
+       <div className="text-center px-4">
+        <p className="text-slate-300 max-w-3xl mx-auto">
+          Paste code, text, or JSON. See it compressed into a CUBE command. Decompress to prove 100% fidelity. This is the protocol at work - compact for AI, lossless for science.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow overflow-hidden px-2">
         {/* Input Panel */}
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col h-full">
           <div className="flex items-center justify-between mb-4">
@@ -1174,11 +1179,12 @@ export const ConverterView: React.FC = () => {
                 <pre><code className="text-sm text-cyan-300 font-mono">{outputCode}</code></pre>
             )}
           </div>
+           <p className="text-center text-xs text-slate-500 mt-2">CUBEs can be dropped into any chatbot. Ask it: ‘Reconstruct this CUBE per its header’ → you’ll get back your original content exactly.</p>
            <MetricsDisplay metrics={metrics} />
         </div>
       </div>
       
-      <div className="flex-shrink-0 mt-4">
+      <div className="flex-shrink-0 px-2 pb-2">
          {error && <div className="text-center text-red-400 mb-2 text-sm p-2 bg-red-900/20 rounded-md border border-red-500/30">{error}</div>}
          <button
           onClick={() => handleConvert()}

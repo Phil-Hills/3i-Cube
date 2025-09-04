@@ -136,7 +136,7 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
           <CpuChipIcon className="w-8 h-8 mr-3 text-cyan-400" />
           Synthetic Data ML Builder
         </h1>
-        <p className="mt-2 text-slate-400 max-w-2xl mx-auto">Generate unlimited, scientifically-plausible training data with zero API cost, then build the CUBE script to train your model.</p>
+        <p className="mt-2 text-slate-400 max-w-3xl mx-auto">CUBE doesn’t just control microscopes - it also orchestrates the ML around them. Generate synthetic images to train models with zero API cost. Feed them back into 3i systems, making microscopes smarter every experiment.</p>
       </header>
 
       <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4">
