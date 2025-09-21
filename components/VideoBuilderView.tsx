@@ -16,7 +16,7 @@ export const VideoBuilderView: React.FC<VideoBuilderViewProps> = ({ onLoadInExec
   }, [prompt, aspectRatio]);
 
   return (
-    <div className="flex flex-col flex-grow pt-6 overflow-y-auto gap-6 animate-fade-in p-4">
+    <div className="flex flex-col pt-6 gap-6 animate-fade-in p-4">
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <VideoCameraIcon className="w-8 h-8 mr-3 text-cyan-400" />

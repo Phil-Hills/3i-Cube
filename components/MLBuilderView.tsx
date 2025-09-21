@@ -133,7 +133,7 @@ export const MLBuilderView: React.FC<MLBuilderViewProps> = ({ onLoadInExecutor }
   );
 
   return (
-    <div className="flex flex-col flex-grow pt-6 overflow-y-auto gap-4 animate-fade-in p-2">
+    <div className="flex flex-col pt-6 gap-4 animate-fade-in p-2">
       <header className="text-center">
         <h1 className="text-3xl font-bold text-white flex items-center justify-center">
           <CpuChipIcon className="w-8 h-8 mr-3 text-cyan-400" />

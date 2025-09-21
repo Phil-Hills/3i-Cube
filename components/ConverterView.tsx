@@ -3,7 +3,7 @@ import { generateCubeFromNaturalLanguage, convertCodeToCube } from '../services/
 import { compressDataToCube } from '../services/converterService';
 import { CODE_CONVERTER_EXAMPLES, NATURAL_LANGUAGE_EXAMPLES, DATA_COMPRESSION_EXAMPLES } from '../constants';
 import type { ConversionMetrics, ConverterMode } from '../types';
-import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ShareIcon, ChatBubbleBottomCenterTextIcon, CircleStackIcon, ArrowPathIcon, CheckCircleIcon, XCircleIcon } from './icons';
+import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ShareIcon, ChatBubbleBottomCenterTextIcon, CircleStackIcon, ArrowPathIcon, CheckCircleIcon, XCircleIcon, PlayIcon } from './icons';
 import { Remarkable } from 'remarkable';
 
 const ALGORITHM_MD_CONTENT = `# THE CUBE PROTOCOL ALGORITHM - COMPLETE IMPLEMENTATION
@@ -929,8 +929,10 @@ const MetricsDisplay: React.FC<{ metrics: ConversionMetrics | null }> = ({ metri
   );
 };
 
-
-export const ConverterView: React.FC = () => {
+interface ConverterViewProps {
+  onLoadInExecutor: (script: string) => void;
+}
+export const ConverterView: React.FC<ConverterViewProps> = ({ onLoadInExecutor }) => {
   const [mode, setMode] = useState<ConverterMode>('data');
   const [input, setInput] = useState<string>('');
   const [outputCode, setOutputCode] = useState<string>('');
@@ -1184,6 +1186,14 @@ export const ConverterView: React.FC = () => {
                 <pre><code className="text-sm text-cyan-300 font-mono">{outputCode}</code></pre>
             )}
           </div>
+          <button
+            onClick={() => onLoadInExecutor(outputCode)}
+            disabled={!outputCode || isConverting}
+            className="mt-3 w-full flex items-center justify-center p-2 bg-slate-700 text-white font-semibold rounded-lg hover:bg-cyan-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+          >
+            <PlayIcon className="w-4 h-4 mr-2" />
+            Load in Executor
+          </button>
            <p className="text-center text-xs text-slate-500 mt-2">CUBEs can be dropped into any chatbot. Ask it: ‘Reconstruct this CUBE per its header’ to get back your original content exactly.</p>
            <MetricsDisplay metrics={metrics} />
         </div>

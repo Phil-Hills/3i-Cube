@@ -221,7 +221,7 @@ const App: React.FC = () => {
       case 'ai_studio':
         return <AIStudioView onLoadInExecutor={handleLoadInExecutor} />;
       case 'converter':
-        return <ConverterView />;
+        return <ConverterView onLoadInExecutor={handleLoadInExecutor} />;
       case 'gallery':
         return <GalleryView images={galleryImages} onImageSelect={({ imageUrl, cubeScript, id, mediaType }) => handleOpenImageModal({ url: imageUrl, cubeScript, id, type: mediaType })} />;
       default:

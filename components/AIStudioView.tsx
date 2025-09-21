@@ -58,7 +58,7 @@ export const AIStudioView: React.FC<AIStudioViewProps> = ({ onLoadInExecutor }) 
                     </TabButton>
                 </nav>
             </div>
-            <div className="flex-grow bg-slate-900/30 rounded-b-xl overflow-hidden">
+            <div className="flex-grow bg-slate-900/30 rounded-b-xl overflow-y-auto">
                 {renderActiveView()}
             </div>
         </div>
