@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 type IconProps = {
@@ -190,5 +191,11 @@ export const VideoCameraIcon: React.FC<IconProps> = ({ className }) => (
 export const LightBulbIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m1.5-9a5.98 5.98 0 0 1 6 0m-6 0a5.98 5.98 0 0 0-6 0m6 0a5.98 5.98 0 0 1 6 0m-6 0a5.98 5.98 0 0 0-6 0" />
+    </svg>
+);
+
+export const PaperAirplaneIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
     </svg>
 );

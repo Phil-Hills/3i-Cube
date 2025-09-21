@@ -296,3 +296,64 @@ export const generateCubeFromNaturalLanguage = async (description: string): Prom
     throw new Error(`AI Generation Failed: The model could not process the description. ${errorMessage}`);
   }
 };
+
+async function urlToBase64(url: string): Promise<{ base64: string; mimeType: string }> {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const mimeType = blob.type;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1];
+      if (!base64) {
+          reject(new Error("Failed to extract base64 from data URL."));
+          return;
+      }
+      resolve({ base64, mimeType });
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Analyzes an image with a text prompt using the Gemini API.
+ * @param mediaUrl The URL of the image to analyze (data: or blob:).
+ * @param prompt The user's text prompt.
+ * @returns A promise that resolves to the AI's text response.
+ */
+export const analyzeMediaWithGemini = async (mediaUrl: string, prompt: string): Promise<string> => {
+    try {
+        const { base64, mimeType } = await urlToBase64(mediaUrl);
+
+        if (!mimeType.startsWith('image/')) {
+            throw new Error('Analysis is only supported for images.');
+        }
+
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+        const imagePart = {
+            inlineData: {
+                mimeType: mimeType,
+                data: base64,
+            },
+        };
+
+        const textPart = {
+            text: prompt,
+        };
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts: [imagePart, textPart] },
+        });
+
+        return response.text;
+
+    } catch (error) {
+        console.error("Error during Gemini media analysis:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        throw new Error(`AI Analysis Failed: ${errorMessage}`);
+    }
+};
