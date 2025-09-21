@@ -18,9 +18,7 @@ import { GalleryView } from './components/GalleryView';
 import * as galleryService from './services/galleryService';
 import { XMarkIcon } from './components/icons';
 import { DashboardView } from './components/DashboardView';
-import { VideoBuilderView } from './components/VideoBuilderView';
-import { MLBuilderView } from './components/MLBuilderView';
-import { DataHubView } from './components/DataHubView';
+import { AIStudioView } from './components/AIStudioView';
 
 const getInitialScript = (brand: Brand): string => {
   const scripts = BRANDED_METHOD_SCRIPTS[brand];
@@ -68,7 +66,7 @@ const App: React.FC = () => {
   const [simulatedMedia, setSimulatedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
-  const [view, setView] = useState<View>('ml_builder');
+  const [view, setView] = useState<View>('ai_studio');
 
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{url: string; cubeScript: string; type: 'image' | 'video'; id?: number} | null>(null);
@@ -220,12 +218,8 @@ const App: React.FC = () => {
             </div>
           </div>
         );
-      case 'video_builder':
-        return <VideoBuilderView onLoadInExecutor={handleLoadInExecutor} />;
-      case 'ml_builder':
-        return <MLBuilderView onLoadInExecutor={handleLoadInExecutor} />;
-      case 'data_hub':
-        return <DataHubView onLoadInExecutor={handleLoadInExecutor} />;
+      case 'ai_studio':
+        return <AIStudioView onLoadInExecutor={handleLoadInExecutor} />;
       case 'converter':
         return <ConverterView />;
       case 'gallery':

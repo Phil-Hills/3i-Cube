@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, HomeIcon, VideoCameraIcon, CpuChipIcon, CircleStackIcon } from './icons';
+import { PlayIcon, SwitchHorizontalIcon, PhotoIcon, HomeIcon, SparklesIcon } from './icons';
 import type { View } from '../types';
 
 interface ViewSwitcherProps {
@@ -11,9 +11,7 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
   const views: { id: View; label: string; icon: React.FC<{className?: string}> }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
     { id: 'executor', label: 'Executor', icon: PlayIcon },
-    { id: 'video_builder', label: 'Video Builder', icon: VideoCameraIcon },
-    { id: 'ml_builder', label: 'ML Builder', icon: CpuChipIcon },
-    { id: 'data_hub', label: 'Data Hub', icon: CircleStackIcon },
+    { id: 'ai_studio', label: 'AI Studio', icon: SparklesIcon },
     { id: 'converter', label: 'CUBE Converter', icon: SwitchHorizontalIcon },
     { id: 'gallery', label: 'Media Gallery', icon: PhotoIcon },
   ];

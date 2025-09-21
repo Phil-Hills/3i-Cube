@@ -75,5 +75,5 @@ export interface BrandConfig {
   appName: string;
 }
 
-export type View = 'dashboard' | 'executor' | 'video_builder' | 'ml_builder' | 'data_hub' | 'converter' | 'gallery';
+export type View = 'dashboard' | 'executor' | 'ai_studio' | 'converter' | 'gallery';
 export type ConverterMode = 'code' | 'text' | 'data';
