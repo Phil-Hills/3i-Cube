@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -74,7 +73,7 @@ const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
 const DOC_CONTENTS: Record<DocFile, string> = {
     'README.md': `# 3i-CUBE: Revolutionizing Microscopy
 
-**[Live Demo & Simulator](https://service-3i-cube-intelligent-imaging-control-768405504263.us-west1.run.app/)**
+**[Live Demo & Simulator](https://service-3i-cube-intelligent-imaging-control-768405504263.us-west1.run.app)**
 
 *An advanced AI-powered protocol from **3i (Intelligent Imaging Innovations)**, with core algorithms and UI/UX created by **EasyAI Chatbots**.*
 

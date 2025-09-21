@@ -1,4 +1,5 @@
 
+
 // Advanced Image Generation with NVIDIA CUDA acceleration by EasyAI Chatbots
 class AdvancedImageGenerator {
     private canvas: HTMLCanvasElement;
@@ -49,6 +50,10 @@ class AdvancedImageGenerator {
             url = this.canvas.toDataURL();
         } else {
           this.generateStandardMicroscopy(cubeCommand);
+          this.applyPointSpreadFunction();
+          this.addPoissonNoise();
+          this.addSystematicNoise();
+          this.applyPhotobleaching();
           this.addMicroscopyMetadata('Standard Acquisition');
           url = this.canvas.toDataURL();
         }
@@ -570,13 +575,29 @@ class AdvancedImageGenerator {
     }
     
     private drawNucleus(x: number, y: number, radius: number, brightness: number = 1) {
-        const grad = this.ctx.createRadialGradient(x,y,0, x,y,radius);
-        grad.addColorStop(0, `rgba(75, 10, 255, ${0.9 * brightness})`);
-        grad.addColorStop(1, `rgba(120, 80, 255, ${0.3 * brightness})`);
-        this.ctx.fillStyle = grad;
+        if (!this.ctx) return;
+        const nucleusGradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
+        nucleusGradient.addColorStop(0, `rgba(100, 100, 255, ${0.9 * brightness})`);
+        nucleusGradient.addColorStop(0.5, `rgba(80, 80, 255, ${0.7 * brightness})`);
+        nucleusGradient.addColorStop(1, `rgba(50, 50, 255, ${0.4 * brightness})`);
+        this.ctx.fillStyle = nucleusGradient;
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.fill();
+
+        // Add chromatin condensation spots
+        for (let i = 0; i < 5; i++) {
+            const spotX = x + (Math.random() - 0.5) * radius * 0.8;
+            const spotY = y + (Math.random() - 0.5) * radius * 0.8;
+            const spotRadius = radius * (0.1 + Math.random() * 0.1);
+            const spotGradient = this.ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotRadius);
+            spotGradient.addColorStop(0, `rgba(150, 150, 255, ${brightness})`);
+            spotGradient.addColorStop(1, 'rgba(100, 100, 255, 0)');
+            this.ctx.fillStyle = spotGradient;
+            this.ctx.beginPath();
+            this.ctx.arc(spotX, spotY, spotRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
     }
     
     private generateMassiveVolume(): string {
@@ -692,7 +713,16 @@ class AdvancedImageGenerator {
     }
 
     private generateStandardMicroscopy(cubeCommand: string) {
-        this.drawComplexCell(this.width / 2, this.height / 2, 800);
+        const numCells = 15 + Math.floor(Math.random() * 10);
+        this.ctx.globalCompositeOperation = 'screen';
+        for (let i = 0; i < numCells; i++) {
+            this.generateRealisticCell(
+                Math.random() * this.width,
+                Math.random() * this.height,
+                cubeCommand
+            );
+        }
+        this.ctx.globalCompositeOperation = 'source-over';
     }
     
     private drawComplexCell(x: number, y: number, radius: number) {
@@ -743,6 +773,158 @@ class AdvancedImageGenerator {
         this.ctx.moveTo(3200, 3950); this.ctx.lineTo(3200 + scaleBarLength, 3950); this.ctx.stroke();
         this.ctx.font = '36px Arial'; this.ctx.textAlign = 'center';
         this.ctx.fillText(`${scaleBarMicrons} µm`, 3600, 3930);
+    }
+
+    // --- Start of new realistic rendering methods ---
+
+    private extractChannels(params: string): string[] {
+        const channels: string[] = [];
+        if (params.includes('DAPI') || params.includes('405')) channels.push('DAPI');
+        if (params.includes('GFP') || params.includes('488')) channels.push('GFP');
+        if (params.includes('RFP') || params.includes('CHERRY') || params.includes('561')) channels.push('RFP');
+        if (params.includes('CY5') || params.includes('647')) channels.push('Cy5');
+        if (channels.length === 0) channels.push('GFP', 'DAPI'); // Default to GFP and DAPI
+        return channels;
+    }
+
+    private perlinNoise(x: number): number {
+        return Math.sin(x * 2) * 0.5 + Math.sin(x * 3.7) * 0.3 + Math.sin(x * 7.3) * 0.2;
+    }
+    
+    private generateRealisticCell(x: number, y: number, params: string, scale: number = 1) {
+        if (!this.ctx) return;
+        const cellRadius = (120 + Math.random() * 80) * scale * (this.width / 2048);
+        const channels = this.extractChannels(params.toUpperCase());
+
+        this.ctx.save();
+        this.ctx.translate(x, y);
+
+        const cellPath = new Path2D();
+        for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
+            const noiseRadius = cellRadius * (1 + this.perlinNoise(angle * 3) * 0.2);
+            const px = Math.cos(angle) * noiseRadius;
+            const py = Math.sin(angle) * noiseRadius;
+            if (angle === 0) cellPath.moveTo(px, py);
+            else cellPath.lineTo(px, py);
+        }
+        cellPath.closePath();
+        
+        if (channels.includes('GFP')) {
+            const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, cellRadius);
+            gradient.addColorStop(0, 'rgba(0, 255, 100, 0.1)');
+            gradient.addColorStop(0.7, 'rgba(0, 255, 100, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 255, 100, 0.05)');
+            this.ctx.fillStyle = gradient;
+            this.ctx.fill(cellPath);
+        }
+        
+        if (channels.includes('RFP')) this.generateMitochondria(cellRadius);
+        if (channels.includes('CY5')) this.generateActinFilaments(cellRadius);
+        if (channels.includes('DAPI')) this.drawNucleus(0, 0, cellRadius * 0.4);
+
+        this.ctx.restore();
+    }
+
+    private generateMitochondria(cellRadius: number) {
+        if (!this.ctx) return;
+        const numMito = 20 + Math.floor(Math.random() * 15);
+        for (let i = 0; i < numMito; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * cellRadius * 0.8;
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+
+            this.ctx.save();
+            this.ctx.translate(x, y);
+            this.ctx.rotate(Math.random() * Math.PI);
+            const mitoLength = 15 + Math.random() * 20;
+            const mitoWidth = 5 + Math.random() * 4;
+            const gradient = this.ctx.createLinearGradient(-mitoLength/2, 0, mitoLength/2, 0);
+            gradient.addColorStop(0, 'rgba(255, 50, 0, 0.1)');
+            gradient.addColorStop(0.5, 'rgba(255, 100, 0, 0.9)');
+            gradient.addColorStop(1, 'rgba(255, 50, 0, 0.1)');
+            this.ctx.fillStyle = gradient;
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, 0, mitoLength/2, mitoWidth/2, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        }
+    }
+
+    private generateActinFilaments(cellRadius: number) {
+        if (!this.ctx) return;
+        this.ctx.strokeStyle = 'rgba(255, 0, 255, 0.4)';
+        this.ctx.lineWidth = 1.5;
+        this.ctx.shadowColor = 'rgba(255, 0, 255, 0.5)';
+        this.ctx.shadowBlur = 4;
+        for (let i = 0; i < 20; i++) {
+            this.ctx.beginPath();
+            const startAngle = Math.random() * Math.PI * 2;
+            const endAngle = startAngle + (Math.random() - 0.5) * Math.PI;
+            const startDist = cellRadius * (0.3 + Math.random() * 0.6);
+            const endDist = cellRadius * (0.3 + Math.random() * 0.6);
+            const startX = Math.cos(startAngle) * startDist;
+            const startY = Math.sin(startAngle) * startDist;
+            const endX = Math.cos(endAngle) * endDist;
+            const endY = Math.sin(endAngle) * endDist;
+            const controlX = (startX + endX) / 2 + (Math.random() - 0.5) * 40;
+            const controlY = (startY + endY) / 2 + (Math.random() - 0.5) * 40;
+            this.ctx.moveTo(startX, startY);
+            this.ctx.quadraticCurveTo(controlX, controlY, endX, endY);
+            this.ctx.stroke();
+        }
+        this.ctx.shadowBlur = 0;
+    }
+
+    private applyPointSpreadFunction() {
+        if (!this.ctx || !this.canvas) return;
+        this.ctx.save();
+        this.ctx.filter = 'blur(2px)';
+        this.ctx.drawImage(this.canvas, 0, 0);
+        this.ctx.restore();
+    }
+
+    private addPoissonNoise() {
+        if (!this.ctx) return;
+        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const signal = (data[i] + data[i+1] + data[i+2])/3;
+            if (signal > 0) {
+                const noise = Math.sqrt(signal) * (Math.random() - 0.5) * 2;
+                data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
+                data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
+            }
+        }
+        this.ctx.putImageData(imageData, 0, 0);
+    }
+    
+    private addSystematicNoise() {
+        if (!this.ctx) return;
+        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+        const data = imageData.data;
+        const readNoise = 2;
+        const darkCurrent = 0.1;
+        for (let i = 0; i < data.length; i += 4) {
+            const noise = (Math.random() - 0.5) * readNoise * 2 + darkCurrent;
+            data[i] = Math.max(0, Math.min(255, data[i] + noise));
+            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+        }
+        this.ctx.putImageData(imageData, 0, 0);
+    }
+
+    private applyPhotobleaching() {
+        if (!this.ctx) return;
+        const gradient = this.ctx.createRadialGradient(this.width/2, this.height/2, 0, this.width/2, this.height/2, this.width * 0.7);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+        this.ctx.globalCompositeOperation = 'multiply';
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, this.width, this.height);
+        this.ctx.globalCompositeOperation = 'source-over';
     }
 }
 
