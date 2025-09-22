@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { CubeIcon, XMarkIcon } from './icons';
 
@@ -107,9 +106,11 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <h4 className="text-xl font-semibold text-slate-100 mb-2">Ready to Transform Your Workflow?</h4>
               <p className="text-slate-400 mb-4">Bring the power of 3i-CUBE to your lab.</p>
               <div className="flex justify-center space-x-4">
-                  <button className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-md hover:brightness-110 transition-all duration-300 shadow-lg shadow-purple-500/30">
+                  <a 
+                    href="mailto:phil@easyaichatbots.com?subject=3i-CUBE%20Demo%20Request"
+                    className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-md hover:brightness-110 transition-all duration-300 shadow-lg shadow-purple-500/30 text-center">
                       Schedule Demo
-                  </button>
+                  </a>
                   <button className="px-5 py-2 bg-white/10 text-white font-bold rounded-md hover:bg-white/20 transition-colors">
                       Download Examples
                   </button>

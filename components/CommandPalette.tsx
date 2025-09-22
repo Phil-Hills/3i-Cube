@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ExampleScriptCategory } from '../types';
 import { BeakerIcon, DocumentTextIcon } from './icons';
@@ -15,7 +14,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onSelectScript, 
         <DocumentTextIcon className="w-6 h-6 text-cube-blue mr-2" />
         <h2 className="text-lg font-semibold text-slate-100">Method Templates</h2>
       </div>
-      <div className="space-y-6 overflow-y-auto pr-2 flex-grow">
+      <div className="space-y-6 pr-2 flex-grow overflow-y-auto md:overflow-y-hidden">
         {scriptCategories.map((category) => (
           <div key={category.category}>
             <div className="mb-3">

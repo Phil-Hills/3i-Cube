@@ -32,11 +32,11 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status, executionMode }) =
         <span className="text-slate-300">{label}</span>
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
-      <div className="text-slate-400 text-right text-xs">
+      <div className="text-slate-400 text-right text-[10px] sm:text-xs max-w-[50%]">
         <p className="font-semibold text-slate-300">
             Powered by EasyAI Chatbots
         </p>
-        <p>
+        <p className="hidden sm:block">
             3i-CUBE is built on the CUBE Protocol, invented by EasyAI Chatbots.
             Our promise is simple: secure data, faster development, quicker microscope updates, and AI that improves with every experiment.
         </p>

@@ -223,11 +223,11 @@ export const ConverterView: React.FC<ConverterViewProps> = ({ onLoadInExecutor }
        <div className="text-center px-4">
             <h2 className="text-2xl font-bold text-white mb-2">Try Out the Converter</h2>
             <p className="text-slate-300 max-w-3xl mx-auto">
-                This is your space to experiment. Paste in any text, code, or notes and click <em>Compress</em>.
+                This is your creative space to translate ideas into the language of CUBE. Paste any text data, legacy code, or even a simple description of an experiment. CUBE will intelligently compress it into a secure, shareable command.
                 <br/><br/>
-                You’ll see your work turned into a compact <strong>CUBE command</strong>. You can always decompress to check that the original is <strong>100% intact</strong>; nothing is lost.
+                The output is not just compact—it’s a story. A single CUBE command that holds your original data, perfectly preserved and ready to be loaded into the Executor or shared with a colleague. 
                 <br/><br/>
-                It may take a few tries to get the hang of it, and some cubes will feel more useful than others right now. That’s all part of the process. The important thing is practicing the routine of compressing and decompressing until it feels natural.
+                Don't worry about getting it perfect on the first try. The goal is to explore, to see how your workflows look as elegant CUBE commands, and to build the habit of thinking in this powerful new way.
             </p>
         </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow overflow-hidden px-2">

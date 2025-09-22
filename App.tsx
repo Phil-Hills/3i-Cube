@@ -210,11 +210,11 @@ const App: React.FC = () => {
         />;
       case 'executor':
         return (
-           <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6 overflow-hidden">
-            <div className="md:col-span-3 flex flex-col gap-6 overflow-y-auto">
+           <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6">
+            <div className="md:col-span-3 flex flex-col gap-6">
               <CommandPalette onSelectScript={selectScript} scriptCategories={BRANDED_METHOD_SCRIPTS[brand]} />
             </div>
-            <div className="md:col-span-5 flex flex-col gap-6 overflow-hidden">
+            <div className="md:col-span-5 flex flex-col gap-6">
               <Editor
                 script={cubeScript}
                 onScriptChange={setCubeScript}
@@ -222,15 +222,15 @@ const App: React.FC = () => {
                 isExecuting={isExecuting}
               />
             </div>
-            <div className="md:col-span-4 grid grid-rows-2 gap-6 overflow-hidden">
-              <div className="row-span-1 overflow-hidden">
+            <div className="md:col-span-4 flex flex-col gap-6">
+              <div className="flex-1 min-h-[300px] md:min-h-0">
                 <ImagePreview 
                   media={capturedMedia} 
                   onImageClick={() => capturedMedia && handleOpenImageModal({...capturedMedia, cubeScript})}
                   onSaveClick={handleSaveToGallery}
                 />
               </div>
-              <div className="row-span-1 overflow-hidden">
+              <div className="flex-1 min-h-[300px] md:min-h-0">
                 <OutputLog logEntries={logEntries} />
               </div>
             </div>
@@ -256,7 +256,7 @@ const App: React.FC = () => {
         onExecutionModeChange={handleExecutionModeChange}
       />
       
-      <main className="flex-grow flex flex-col p-4 sm:p-6 overflow-hidden">
+      <main className="flex-grow flex flex-col p-4 sm:p-6 overflow-y-auto">
         <ViewSwitcher currentView={view} onViewChange={setView} />
         {renderView()}
       </main>

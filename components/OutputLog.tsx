@@ -54,7 +54,7 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries }) => {
         <h2 className="text-lg font-semibold text-slate-100">Microscope Log</h2>
       </div>
       
-      <div ref={logContainerRef} className="flex-grow p-4 font-mono text-sm space-y-3 overflow-y-auto bg-slate-900">
+      <div ref={logContainerRef} className="flex-grow p-4 font-mono text-sm space-y-3 bg-slate-900 overflow-y-auto">
         {logEntries.length === 0 ? (
             <div className="text-slate-500 h-full flex items-center justify-center">Awaiting execution...</div>
         ) : (
