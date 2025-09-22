@@ -1,8 +1,8 @@
 # 3i-CUBE: Revolutionizing Microscopy
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/philhills/3i-Cube)
-[![Version](https://img.shields.io/badge/version-2.0-blue)](https://github.com/philhills/3i-Cube)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/3i-Microscopy/3i-CUBE)
+[![Version](https://img.shields.io/badge/version-2.0-blue)](https://github.com/3i-Microscopy/3i-CUBE)
 
 **[Live Demo & Simulator](https://service-3i-cube-intelligent-imaging-control-768405504263.us-west1.run.app)**
 
@@ -68,11 +68,11 @@ You need to have Node.js and npm installed on your system.
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/philhills/3i-Cube.git
+   git clone https://github.com/3i-Microscopy/3i-CUBE.git
    ```
 2. Navigate to the project directory
    ```sh
-   cd 3i-Cube
+   cd 3i-CUBE
    ```
 3. Install NPM packages
    ```sh
@@ -93,4 +93,4 @@ Distributed under the MIT License.
 
 ---
 
-> This is a project by [EasyAI Chatbots](https://github.com/philhills) for [3i (Intelligent Imaging Innovations)](https://www.intelligent-imaging.com/).
+> This is a project by [EasyAI Chatbots](https://github.com/3i-Microscopy) for [3i (Intelligent Imaging Innovations)](https://www.intelligent-imaging.com/).
