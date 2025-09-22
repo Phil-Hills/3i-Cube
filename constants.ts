@@ -105,142 +105,374 @@ export const CODE_CONVERTER_EXAMPLES: { name: string, description: string, code:
   {
     name: "Case Study 1: Multi-Well Plate Analysis",
     description: "Original Lines: 1655, CUBE Commands: 11, Ratio: 150:1. A full high-content screening workflow.",
-    code: `# Full Python script includes extensive error handling, parallel processing setup (Dask/Ray), 
-# database logging, and custom visualization functions using libraries like NumPy, 
-# Pycro-Manager, SciPy, Scikit-Image, and a custom U-Net inference engine.
+    code: `# Full Python script for a High-Content Screening (HCS) workflow.
+# This represents a real-world script including instrument control, parallel 
+# processing, image analysis, and data logging.
 
+import os
+import json
+import time
+import sqlite3
 import numpy as np
-from pycromanager import Core
-from scipy.ndimage import gaussian_filter
-from skimage.restoration import richardson_lucy
-# ... dozens of other imports for database, parallelization, etc.
+from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
-class ExperimentManager:
-    def __init__(self, db_path, config_path):
-        # ... database connection setup ...
-        # ... load instrument configuration ...
+# Mocked vendor-specific APIs for microscope control
+class MockMicroscope:
+    def __init__(self):
+        print("INFO: MockMicroscope initialized.")
+    def move_to_well(self, plate, well):
+        print(f"INFO: Moving to well {well} on plate {plate}.")
+        time.sleep(0.1)
+    def run_autofocus(self):
+        print("INFO: Executing hardware autofocus routine.")
+        time.sleep(0.2)
+        return np.random.rand()
+    def acquire_zstack(self, channels, z_slices, step_size_um):
+        print(f"INFO: Acquiring {z_slices}-slice Z-stack for channels: {channels}.")
+        time.sleep(0.5)
+        # Simulate a 16-bit, 3-channel, 512x512 Z-stack
+        return np.random.randint(0, 2**16, (z_slices, len(channels), 512, 512), dtype=np.uint16)
+    def set_objective(self, objective):
+        print(f"INFO: Setting objective to {objective}.")
+    def shutdown_lasers(self):
+        print("INFO: Shutting down lasers.")
+
+# Image analysis functions (from libraries like scipy, scikit-image)
+class ImageAnalysis:
+    def deconvolve_richardson_lucy(self, image_stack, psf, iterations):
+        print(f"INFO: Running Richardson-Lucy deconvolution for {iterations} iterations.")
+        # Simulate deconvolution - in reality, a heavy computation
+        return image_stack * np.random.uniform(0.9, 1.1, image_stack.shape)
     
-    def run_plate(self, plate_id):
-        # ... load plate geometry from database ...
-        # ... initialize parallel worker pool ...
-        for well in self.get_wells(plate_id):
-            # ... submit job to worker: self.process_well(well) ...
+    def unet_segment(self, image_stack, model_path):
+        print(f"INFO: Applying U-Net segmentation model from {model_path}.")
+        # Simulate segmentation, returns a labeled mask
+        return np.random.randint(0, 50, (image_stack.shape[0], image_stack.shape[2], image_stack.shape[3]), dtype=np.uint16)
+        
+    def measure_properties(self, labeled_mask, intensity_image):
+        print("INFO: Measuring properties of segmented objects.")
+        results = []
+        for i in range(1, labeled_mask.max() + 1):
+            mask = labeled_mask == i
+            if np.any(mask):
+                results.append({
+                    'label_id': i,
+                    'area': np.sum(mask),
+                    'mean_intensity': np.mean(intensity_image[mask])
+                })
+        return results
 
-    def process_well(self, well):
-        # ... move to well, run autofocus routine ...
-        raw_data_path = self.acquire_zstack(well)
-        decon_data_path = self.analysis_pipeline.deconvolve(raw_data_path)
-        segmentation_results = self.analysis_pipeline.segment(decon_data_path)
-        self.log_results_to_db(well, segmentation_results)
-        return True
+# Database management for results
+class ResultsDatabase:
+    def __init__(self, db_path):
+        self.path = db_path
+        self.conn = sqlite3.connect(self.path)
+        self._create_tables()
 
-    def acquire_zstack(self, well):
-        # ... complex multi-channel Z-stack acquisition logic ...
-        # ... save data to distributed files with metadata ...
-        return path_to_data
+    def _create_tables(self):
+        cursor = self.conn.cursor()
+        cursor.execute('CREATE TABLE IF NOT EXISTS experiments (exp_id INTEGER PRIMARY KEY, plate_id TEXT, timestamp TEXT)')
+        cursor.execute('CREATE TABLE IF NOT EXISTS results (result_id INTEGER PRIMARY KEY, exp_id INTEGER, well TEXT, label_id INTEGER, area REAL, mean_intensity REAL)')
+        self.conn.commit()
 
-class AnalysisPipeline:
-    def __init__(self, psf_path, model_path):
-        # ... load PSF and U-Net model weights ...
+    def log_experiment(self, plate_id):
+        cursor = self.conn.cursor()
+        timestamp = datetime.now().isoformat()
+        cursor.execute("INSERT INTO experiments (plate_id, timestamp) VALUES (?, ?)", (plate_id, timestamp))
+        self.conn.commit()
+        return cursor.lastrowid
 
-    def deconvolve(self, data_path):
-        # ... load raw data, measure PSF or load from file ...
-        # ... run Richardson-Lucy deconvolution on GPU ...
-        return path_to_decon_data
-    
-    def segment(self, deconvolved_data_path):
-        # ... load deconvolved data ...
-        # ... apply U-Net model for segmentation ...
-        # ... measure props (intensity, area) for each nucleus ...
-        return props
+    def log_results(self, exp_id, well, results):
+        cursor = self.conn.cursor()
+        for res in results:
+            cursor.execute('INSERT INTO results (exp_id, well, label_id, area, mean_intensity) VALUES (?, ?, ?, ?, ?)',
+                           (exp_id, well, res['label_id'], res['area'], res['mean_intensity']))
+        self.conn.commit()
 
-# ... hundreds of lines for setup, execution, analysis, and teardown ...
-# Total original lines: 1655
+# Main workflow orchestrator
+class HCSWorkflow:
+    def __init__(self, config_path):
+        with open(config_path, 'r') as f:
+            self.config = json.load(f)
+        
+        self.microscope = MockMicroscope()
+        self.analysis = ImageAnalysis()
+        self.database = ResultsDatabase(self.config['database_path'])
+        
+    def _generate_well_list(self):
+        rows = [chr(ord('A') + i) for i in range(16)] # A-P
+        cols = [str(i) for i in range(1, 25)] # 1-24
+        return [f"{row}{col}" for row in rows for col in cols]
+
+    def _process_well(self, well_info):
+        well, exp_id = well_info
+        try:
+            self.microscope.move_to_well(self.config['plate_id'], well)
+            self.microscope.run_autofocus()
+            acq_params = self.config['acquisition']
+            raw_stack = self.microscope.acquire_zstack(acq_params['channels'], acq_params['z_slices'], acq_params['step_size_um'])
+            
+            raw_path = os.path.join(self.config['raw_data_path'], f"{self.config['plate_id']}_{well}.npy")
+            np.save(raw_path, raw_stack)
+
+            decon_params = self.config['deconvolution']
+            psf = np.random.rand(11, 11, 11) # Mock PSF
+            decon_stack = self.analysis.deconvolve_richardson_lucy(raw_stack[:, 1, :, :], psf, decon_params['iterations'])
+
+            seg_params = self.config['segmentation']
+            mask = self.analysis.unet_segment(decon_stack, seg_params['model_path'])
+
+            results = self.analysis.measure_properties(mask, decon_stack)
+            self.database.log_results(exp_id, well, results)
+
+            print(f"SUCCESS: Well {well} processed.")
+            return (well, True, None)
+        except Exception as e:
+            print(f"ERROR: Failed to process well {well}: {e}")
+            return (well, False, str(e))
+
+    def run_experiment(self):
+        print(f"--- Starting HCS Experiment for plate {self.config['plate_id']} ---")
+        self.microscope.set_objective(self.config['acquisition']['objective'])
+        exp_id = self.database.log_experiment(self.config['plate_id'])
+        
+        wells_to_process = self._generate_well_list()
+        well_info_tuples = [(well, exp_id) for well in wells_to_process]
+        
+        with ThreadPoolExecutor(max_workers=self.config['processing']['max_workers']) as executor:
+            results = list(executor.map(self._process_well, well_info_tuples))
+        
+        success_count = sum(1 for _, success, _ in results if success)
+        print(f"--- Experiment Complete: {success_count}/{len(results)} wells succeeded. ---")
+        self.microscope.shutdown_lasers()
+
+# Example usage:
+# config = { "plate_id": "P-12345", "database_path": "hcs.db", ... }
+# workflow = HCSWorkflow(config)
+# workflow.run_experiment()
 `
   },
   {
     name: "Case Study 2: Adaptive Optics Correction",
     description: "Original Lines: 473, CUBE Commands: 7, Ratio: 67:1. An iterative hardware optimization routine.",
-    code: `# This Python script performs indirect, image-based adaptive optics correction
-# by iterating through Zernike modes and optimizing a merit function.
-# It uses a deformable mirror SDK and custom image quality metrics.
+    code: `# Python script for image-based Adaptive Optics (AO) correction.
+# This workflow involves controlling a deformable mirror (DM) to correct
+# for optical aberrations by optimizing an image quality metric.
 
-import alpaodm
 import numpy as np
+import time
 from scipy.optimize import curve_fit
-# ... other imports for camera control and image analysis
 
+# Mocked vendor SDK for a Deformable Mirror
+class MockDeformableMirrorSDK:
+    def __init__(self, num_actuators=97):
+        self.num_actuators = num_actuators
+        self.current_shape = np.zeros(num_actuators)
+        print("INFO: MockDeformableMirrorSDK connected.")
+
+    def apply_shape_vector(self, shape_vector):
+        if len(shape_vector) != self.num_actuators:
+            raise ValueError("Shape vector dimensions mismatch.")
+        print(f"INFO: Applying new shape to DM.")
+        self.current_shape = shape_vector
+        time.sleep(0.01)
+
+    def get_zernike_basis(self, modes):
+        print(f"INFO: Generating Zernike basis for modes {modes}.")
+        return {mode: np.random.rand(self.num_actuators) for mode in modes}
+
+    def flatten_mirror(self):
+        print("INFO: Flattening DM.")
+        self.apply_shape_vector(np.zeros(self.num_actuators))
+
+# Mocked camera API
+class MockCamera:
+    def snap_image(self):
+        time.sleep(0.05)
+        # Quality degrades as the DM shape deviates from a mock 'perfect' shape
+        perfect_shape = np.sin(np.linspace(0, np.pi, 97)) * 0.1
+        aberration_level = np.linalg.norm(perfect_shape - MOCK_DM.current_shape)
+        # Simulate a PSF
+        x, y = np.meshgrid(np.linspace(-1,1,128), np.linspace(-1,1,128))
+        d = np.sqrt(x*x + y*y)
+        sigma = 0.1 + aberration_level * 0.01
+        psf = np.exp(-(d**2 / (2.0 * sigma**2)))
+        return psf * 255 + np.random.rand(128, 128) * 10
+
+# Image Quality Metric Calculation
+def calculate_sharpness_metric(image):
+    return np.var(image)
+
+# Main AO Controller Class
 class AdaptiveOpticsController:
-    def __init__(self):
-        self.dm = alpaodm.DM() # Initialize Deformable Mirror
-        # ... camera and device setup ...
+    def __init__(self, dm_sdk, camera):
+        self.dm = dm_sdk
+        self.camera = camera
+        self.zernike_modes = range(3, 12) # Astigmatism, Coma, Trefoil, etc.
+        self.zernike_basis = self.dm.get_zernike_basis(self.zernike_modes)
+        self.optimal_coeffs = {mode: 0.0 for mode in self.zernike_modes}
 
-    def calculate_merit_function(self, image):
-        # ... calculate image sharpness using FFT high-pass filter ...
-        return sharpness_metric
-
-    def find_optimal_amplitudes(self, modes, amplitude_range):
-        # ... complex nested loops for each Zernike mode and amplitude ...
-        for mode in modes:
+    def find_optimal_correction(self, amplitude_range, steps):
+        print("--- Starting AO Optimization Loop ---")
+        
+        for mode in self.zernike_modes:
+            print(f"Optimizing for Zernike mode: {mode}")
+            amplitudes_to_test = np.linspace(amplitude_range[0], amplitude_range[1], steps)
             merit_values = []
-            for amplitude in amplitude_range:
-                # ... apply Zernike mode to DM ...
-                # ... acquire image from camera ...
-                merit = self.calculate_merit_function(image)
-                merit_values.append(merit)
-            # ... fit polynomial to find the amplitude with the peak merit value ...
-            self.optimal_shape[mode] = best_amplitude
-    
-    def apply_correction(self):
-        # ... combine all optimal Zernike modes into a final DM shape ...
-        self.dm.send_shape(self.optimal_shape)
 
-# ... main execution block with extensive setup, plotting, and result saving ...
-# Total original lines: 473
+            for amp in amplitudes_to_test:
+                current_correction = self.get_current_correction_shape()
+                test_shape = current_correction + amp * self.zernike_basis[mode]
+                self.dm.apply_shape_vector(test_shape)
+                image = self.camera.snap_image()
+                merit_values.append(calculate_sharpness_metric(image))
+            
+            try:
+                def quad_func(x, a, b, c): return a * x**2 + b * x + c
+                params, _ = curve_fit(quad_func, amplitudes_to_test, merit_values)
+                optimal_amp = -params[1] / (2 * params[0])
+                self.optimal_coeffs[mode] = optimal_amp
+                print(f"  -> Optimal coefficient for mode {mode} found: {optimal_amp:.4f}")
+            except Exception:
+                best_idx = np.argmax(merit_values)
+                self.optimal_coeffs[mode] = amplitudes_to_test[best_idx]
+                print(f"  -> Curve fit failed for mode {mode}. Using max value: {self.optimal_coeffs[mode]:.4f}")
+
+        print("--- AO Optimization Complete ---")
+        return self.optimal_coeffs
+
+    def get_current_correction_shape(self):
+        final_shape = np.zeros(self.dm.num_actuators)
+        for mode, coeff in self.optimal_coeffs.items():
+            final_shape += coeff * self.zernike_basis[mode]
+        return final_shape
+
+    def apply_final_correction(self):
+        final_shape = self.get_current_correction_shape()
+        self.dm.apply_shape_vector(final_shape)
+        print("INFO: Final optimal correction applied to DM.")
+
+    def run(self):
+        self.dm.flatten_mirror()
+        merit_before = calculate_sharpness_metric(self.camera.snap_image())
+        print(f"Initial Merit (Sharpness): {merit_before:.2f}")
+
+        self.find_optimal_correction(amplitude_range=(-0.5, 0.5), steps=11)
+
+        self.apply_final_correction()
+        merit_after = calculate_sharpness_metric(self.camera.snap_image())
+        print(f"Final Merit (Sharpness): {merit_after:.2f}")
+
+# Example Usage:
+# MOCK_DM = MockDeformableMirrorSDK()
+# MOCK_CAMERA = MockCamera()
+# ao_controller = AdaptiveOpticsController(MOCK_DM, MOCK_CAMERA)
+# ao_controller.run()
 `
   },
   {
     name: "Case Study 3: Live Cell FRAP Experiment",
     description: "Original Lines: 246, CUBE Commands: 8, Ratio: 30:1. A photomanipulation and recovery monitoring workflow.",
-    code: `# Python script to perform a multi-ROI FRAP experiment using a photomanipulation scanner.
-# Includes environmental control, precise timing, and kinetic analysis.
+    code: `# Python script for a multi-ROI FRAP experiment.
+# Includes environmental control, laser timing, and kinetic analysis.
 
 import time
 import numpy as np
-from pycromanager import Core
-from skimage.draw import polygon
+import json
 from scipy.optimize import curve_fit
 
-class FrapExperiment:
-    def __init__(self, params):
-        self.core = Core()
-        # ... set temperature, CO2, and perfect focus ...
+# Mocked vendor API for microscope control
+class MockMicroscope:
+    def set_environment(self, temp_C, co2_percent):
+        print(f"INFO: Setting environment to {temp_C}°C and {co2_percent}% CO2.")
+    def set_perfect_focus(self, enabled):
+        print(f"INFO: Perfect Focus System {'enabled' if enabled else 'disabled'}.")
+    def set_laser_power(self, laser, power_percent):
+        print(f"INFO: Setting laser {laser} to {power_percent}% power.")
+    def snap_image(self, channel, exposure_ms):
+        print(f"INFO: Acquiring image from channel {channel} ({exposure_ms}ms).")
+        time.sleep(exposure_ms / 1000)
+        return np.random.randint(50, 200, (512, 512), dtype=np.uint16)
+    def target_scanner_to_rois(self, rois):
+        print(f"INFO: Targeting photomanipulation scanner to {len(rois)} ROIs.")
+    def execute_bleach(self, duration_ms, iterations):
+        print(f"INFO: Executing bleach for {duration_ms * iterations}ms total.")
+        time.sleep(duration_ms * iterations / 1000)
 
-    def load_rois_from_file(self, path):
-        # ... load ROI coordinates from a JSON or text file ...
+# FRAP analysis functions
+def measure_roi_intensity(image, roi):
+    # In a real script, this would use the ROI mask
+    return np.mean(image) * np.random.uniform(0.95, 1.05)
 
-    def run_frap(self):
-        self.acquire_pre_bleach()
-        self.execute_bleach()
-        self.monitor_post_bleach()
-        self.analyze_recovery_kinetics()
-
-    def acquire_pre_bleach(self):
-        # ... capture N frames at low laser power for baseline ...
-
-    def execute_bleach(self):
-        # ... control scanner to target ROIs ...
-        # ... set laser to high power, open shutter for specified duration ...
+def fit_recovery_curve(time_points, intensities):
+    def exponential_recovery(t, a, b, c):
+        return a * (1 - np.exp(-b * t)) + c
     
-    def monitor_post_bleach(self):
-        # ... run high-speed time-lapse to capture recovery ...
+    initial_intensity = intensities[0]
+    normalized_intensities = np.array(intensities) / initial_intensity
+    
+    params, _ = curve_fit(exponential_recovery, time_points, normalized_intensities)
+    half_life = np.log(2) / params[1]
+    mobile_fraction = params[0]
+    
+    return {'half_life_s': half_life, 'mobile_fraction': mobile_fraction}
 
-    def analyze_recovery_kinetics(self):
-        # ... measure mean intensity in ROIs over time ...
-        # ... fit exponential curve to data to calculate half-life ...
+# Main FRAP Experiment Class
+class FrapExperiment:
+    def __init__(self, config_path):
+        with open(config_path, 'r') as f:
+            self.config = json.load(f)
+        self.microscope = MockMicroscope()
+        self.rois = self._load_rois()
 
-# ... Main script logic to initialize and run the experiment ...
-# Total original lines: 246
+    def _load_rois(self):
+        print(f"INFO: Loading ROIs from {self.config['roi_file_path']}.")
+        with open(self.config['roi_file_path'], 'r') as f:
+            return json.load(f)
+
+    def run(self):
+        print("--- Starting FRAP Experiment ---")
+        
+        env = self.config['environment']
+        self.microscope.set_environment(env['temperature_C'], env['co2_percent'])
+        self.microscope.set_perfect_focus(env['use_pfs'])
+        
+        pre_bleach_params = self.config['pre_bleach']
+        print("Acquiring pre-bleach baseline...")
+        for i in range(pre_bleach_params['frames']):
+            self.microscope.snap_image(self.config['channel'], pre_bleach_params['exposure_ms'])
+        
+        bleach_params = self.config['photobleach']
+        self.microscope.target_scanner_to_rois(self.rois)
+        self.microscope.set_laser_power(bleach_params['laser'], 100)
+        self.microscope.execute_bleach(bleach_params['duration_ms'], bleach_params['iterations'])
+        self.microscope.set_laser_power(bleach_params['laser'], self.config['imaging_laser_power'])
+        
+        post_bleach_params = self.config['post_bleach']
+        recovery_intensities = {i: [] for i in range(len(self.rois))}
+        time_points = []
+        
+        print("Monitoring fluorescence recovery...")
+        start_time = time.time()
+        for i in range(post_bleach_params['frames']):
+            img = self.microscope.snap_image(self.config['channel'], post_bleach_params['exposure_ms'])
+            time_points.append(time.time() - start_time)
+            for roi_idx, roi in enumerate(self.rois):
+                recovery_intensities[roi_idx].append(measure_roi_intensity(img, roi))
+            time.sleep(post_bleach_params['interval_s'])
+
+        print("Analyzing recovery kinetics...")
+        for roi_idx in range(len(self.rois)):
+            results = fit_recovery_curve(time_points, recovery_intensities[roi_idx])
+            print(f"  -> ROI {roi_idx+1}: Half-life = {results['half_life_s']:.2f}s, Mobile Fraction = {results['mobile_fraction']:.2f}")
+
+        print("--- FRAP Experiment Complete ---")
+
+# Example Usage:
+# config = { "roi_file_path": "rois.json", "channel": "GFP", ... }
+# frap_exp = FrapExperiment(config)
+# frap_exp.run()
 `
   }
 ];
