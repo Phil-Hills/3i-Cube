@@ -1,17 +1,17 @@
 import React from 'react';
-import type { MicroscopeStatus } from '../types';
+import type { MicroscopeStatus, ExecutionMode } from '../types';
 
 interface StatusBarProps {
   status: MicroscopeStatus;
+  executionMode: ExecutionMode;
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
+export const StatusBar: React.FC<StatusBarProps> = ({ status, executionMode }) => {
   const getStatusIndicator = () => {
     switch (status) {
       case 'CONNECTED':
-        return { color: 'bg-green-500', text: 'Connected' };
       case 'IDLE':
-        return { color: 'bg-green-500', text: 'Connected & Idle' };
+        return { color: 'bg-green-500', text: executionMode === 'live' ? 'Connected & Idle' : 'Idle' };
       case 'EXECUTING':
         return { color: 'bg-yellow-500 animate-pulse', text: 'Executing...' };
       case 'ERROR':
@@ -23,12 +23,13 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
   };
 
   const { color, text } = getStatusIndicator();
+  const label = executionMode === 'simulated' ? 'Simulator Status:' : 'Microscope Status:';
 
   return (
     <footer className="flex items-center justify-between p-2 px-4 bg-slate-900 border-t-2 border-[var(--cube-blue)] text-sm">
       <div className="flex items-center">
         <div className={`w-3 h-3 rounded-full mr-2 ${color}`}></div>
-        <span className="text-slate-300">Microscope Status:</span>
+        <span className="text-slate-300">{label}</span>
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
       <div className="text-slate-400 text-right text-xs">

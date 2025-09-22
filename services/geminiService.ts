@@ -1,7 +1,53 @@
-
-
 import { GoogleGenAI, Type } from "@google/genai";
-import type { ConversionMetrics } from '../types';
+import type { ConversionMetrics, LogEntry } from '../types';
+import { MicroscopyImageGenerator } from './imageGenerator';
+
+/**
+ * Simulates the execution of a CUBE script locally.
+ * Generates logs and media without calling any external APIs.
+ * @param script The CUBE script to execute.
+ * @param onLog Callback for log entries.
+ * @param onMediaGenerated Callback for when media is generated.
+ */
+export const interpretCubeScript = async (
+  script: string,
+  onLog: (log: LogEntry) => void,
+  onMediaGenerated: (media: { url: string; type: 'image' | 'video' }) => void
+): Promise<void> => {
+  const lines = script.split('\n').filter(line => line.trim() && !line.trim().startsWith('#'));
+  const imageGenerator = new MicroscopyImageGenerator();
+
+  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+  onLog({ type: 'SYSTEM', message: 'Starting simulated execution...', timestamp: new Date() });
+  await delay(200);
+
+  for (const line of lines) {
+    const parts = line.split('|');
+    if (parts.length !== 3) continue;
+
+    const [domain, sequence, outcome] = parts;
+    
+    onLog({ type: 'INFO', message: `Executing DOMAIN: ${domain}`, timestamp: new Date() });
+    await delay(300);
+
+    const operations = sequence.split('→');
+    for (const op of operations) {
+      onLog({ type: 'INFO', message: `  -> SEQUENCE: ${op}`, timestamp: new Date() });
+      await delay(250);
+    }
+    
+    onLog({ type: 'SUCCESS', message: `OUTCOME: ${outcome} achieved.`, timestamp: new Date() });
+    await delay(300);
+  }
+
+  onLog({ type: 'INFO', message: 'Generating final media preview...', timestamp: new Date() });
+  const media = await imageGenerator.generateFromCube(script);
+  onMediaGenerated(media);
+  
+  onLog({ type: 'SUCCESS', message: 'Simulated execution complete.', timestamp: new Date() });
+};
+
 
 /**
  * Converts any code or natural language to CUBE script using the Gemini API.

@@ -77,3 +77,4 @@ export interface BrandConfig {
 
 export type View = 'dashboard' | 'executor' | 'ai_studio' | 'converter' | 'gallery';
 export type ConverterMode = 'code' | 'text' | 'data';
+export type ExecutionMode = 'simulated' | 'live';

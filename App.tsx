@@ -5,7 +5,8 @@ import { Editor } from './components/Editor';
 import { OutputLog } from './components/OutputLog';
 import { StatusBar } from './components/StatusBar';
 import { microscopeService } from './services/microscopeService';
-import type { LogEntry, MicroscopeStatus, View, GalleryImage, Brand } from './types';
+import { interpretCubeScript } from './services/geminiService';
+import type { LogEntry, MicroscopeStatus, View, GalleryImage, Brand, ExecutionMode } from './types';
 import { BRANDED_METHOD_SCRIPTS } from './constants';
 import { AboutModal } from './components/AboutModal';
 import { DocsModal } from './components/DocsModal';
@@ -60,11 +61,12 @@ const App: React.FC = () => {
   const [cubeScript, setCubeScript] = useState<string>(getInitialScript(brand));
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
-  const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
+  const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('IDLE');
   const [capturedMedia, setCapturedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
-  const [view, setView] = useState<View>('ai_studio');
+  const [view, setView] = useState<View>('dashboard');
+  const [executionMode, setExecutionMode] = useState<ExecutionMode>('simulated');
 
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{url: string; cubeScript: string; type: 'image' | 'video'; id?: number} | null>(null);
@@ -78,8 +80,11 @@ const App: React.FC = () => {
     microscopeService.onMediaGenerated = (media) => setCapturedMedia(media);
     microscopeService.onExecutionChange = setIsExecuting;
     
-    // Attempt to connect on mount
-    microscopeService.connect();
+    // Set initial status for simulated mode
+    if (executionMode === 'simulated') {
+        setMicroscopeStatus('IDLE');
+        setLogEntries([{ type: 'SYSTEM', message: 'Application started in Simulated Mode.', timestamp: new Date() }]);
+    }
 
     // Load gallery images
     const loadImages = async () => {
@@ -98,14 +103,49 @@ const App: React.FC = () => {
     return () => microscopeService.disconnect();
   }, []);
 
+  const handleExecutionModeChange = (newMode: ExecutionMode) => {
+    if (newMode === executionMode) return;
+    
+    setLogEntries([]);
+    setCapturedMedia(null);
+    setIsExecuting(false);
+    setExecutionMode(newMode);
+
+    if (newMode === 'live') {
+        setMicroscopeStatus('DISCONNECTED'); // Will be updated by service
+        microscopeService.connect();
+    } else { // simulated
+        microscopeService.disconnect();
+        setMicroscopeStatus('IDLE'); // Simulated is always ready
+        setLogEntries([{ type: 'SYSTEM', message: 'Switched to Simulated Mode. Execution will be run locally.', timestamp: new Date() }]);
+    }
+  };
+
   const handleExecute = useCallback(async () => {
     if (isExecuting || !cubeScript.trim()) return;
 
     setLogEntries([]);
     setCapturedMedia(null);
-    microscopeService.executeScript(cubeScript);
+    setIsExecuting(true);
 
-  }, [cubeScript, isExecuting]);
+    if (executionMode === 'live') {
+        microscopeService.executeScript(cubeScript);
+    } else {
+        try {
+            await interpretCubeScript(
+                cubeScript,
+                (log) => setLogEntries(prev => [...prev, log]),
+                (media) => setCapturedMedia(media)
+            );
+        } catch (error) {
+            console.error("Simulation error:", error);
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            setLogEntries(prev => [...prev, { type: 'ERROR', message: `Simulation failed: ${errorMessage}`, timestamp: new Date() }]);
+        } finally {
+            setIsExecuting(false);
+        }
+    }
+  }, [cubeScript, isExecuting, executionMode]);
 
   const selectScript = (script: string) => {
     setCubeScript(script);
@@ -158,7 +198,16 @@ const App: React.FC = () => {
   const renderView = () => {
     switch(view) {
       case 'dashboard':
-        return <DashboardView onViewChange={setView} />;
+        return <DashboardView 
+          onViewChange={setView} 
+          galleryImages={galleryImages}
+          onImageClick={(media) => handleOpenImageModal({
+            id: media.id,
+            url: media.imageUrl,
+            cubeScript: media.cubeScript,
+            type: media.mediaType,
+          })}
+        />;
       case 'executor':
         return (
            <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 pt-6 overflow-hidden">
@@ -192,7 +241,7 @@ const App: React.FC = () => {
       case 'converter':
         return <ConverterView onLoadInExecutor={handleLoadInExecutor} />;
       case 'gallery':
-        return <GalleryView images={galleryImages} onImageSelect={({ imageUrl, cubeScript, id, mediaType }) => handleOpenImageModal({ url: imageUrl, cubeScript, id, type: mediaType })} />;
+        return <GalleryView images={galleryImages} onImageSelect={(media) => handleOpenImageModal({ url: media.imageUrl, cubeScript: media.cubeScript, id: media.id, type: media.mediaType })} />;
       default:
         return null;
     }
@@ -203,6 +252,8 @@ const App: React.FC = () => {
       <Header 
         onAboutClick={() => setIsAboutModalOpen(true)}
         onDocsClick={() => setIsDocsModalOpen(true)}
+        executionMode={executionMode}
+        onExecutionModeChange={handleExecutionModeChange}
       />
       
       <main className="flex-grow flex flex-col p-4 sm:p-6 overflow-hidden">
@@ -210,7 +261,7 @@ const App: React.FC = () => {
         {renderView()}
       </main>
       
-      <StatusBar status={microscopeStatus} />
+      <StatusBar status={microscopeStatus} executionMode={executionMode} />
       {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
       {isDocsModalOpen && <DocsModal onClose={() => setIsDocsModalOpen(false)} />}
       {isImageModalOpen && selectedMedia && (
