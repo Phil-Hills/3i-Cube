@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -69,7 +70,6 @@ const docMeta: Record<DocFile, { title: string, subtitle: string }> = {
     }
 };
 
-// FIX: Added missing markdown content for SLIDEBOOK.md, TECHNICAL.md, and RECURSION.md to satisfy the Record<DocFile, string> type.
 const DOC_CONTENTS: Record<DocFile, string> = {
     'README.md': `# 3i-CUBE: Revolutionizing Microscopy
 
@@ -593,59 +593,49 @@ FINISH|EXPERIMENT|COMPLETE
 
 ---
 
-## Case Study 4: Internal AI/ML Workflow (3i-DLT Repo)
+## Case Study 4: Simplifying Colin's 3i-DLT Repository
 
-- **Source:** \`3i-DLT\` Python Repository (internal tools)
-- **Goal:** Simplify data preparation and model inference scripts.
-- **Compression:** Entire scripts reduced to single commands.
+This case study analyzes two representative code examples from **Colin’s 3i‑DLT repository** to illustrate how the team currently works with SlideBook data and deep‑learning models. These excerpts show why CUBE’s high‑level commands offer so much value by comparison, simplifying complex code into single, declarative commands.
 
-This case study analyzes Python scripts from the \`3i-DLT\` repository, used by one of 3i's teams for AI model development. It shows how CUBE replaces complex, boilerplate-heavy code with high-level, declarative commands.
+### Example 1: PyQt‑based ONNX inference tool
 
-### Workflow Part 1: Training Data Preparation
+**Before: \`pyqtbuild.py\`**
 
-**Before: \`make_training_data.py\`**
-
-This script prepares training data for U-Net models. It involves:
-- Loading 3D images and masks from \`.npy\` files.
-- Using the \`patchify\` library to break them into overlapping 3D cubes.
-- Checking each patch and skipping any where the mask is all zeros.
-- Saving the valid patches with unique filenames.
-- Computing statistics like foreground pixel fraction for each patch.
-
-This common workflow requires nested loops, manual file I/O, and custom helper functions.
+This script defines a \`MainWindow\` class that builds a desktop GUI for loading an ONNX model and applying it to SlideBook images. When the user clicks **Open Model**, the \`open_file\` method opens an ONNX file with \`QFileDialog\`, instantiates an \`onnxruntime\` inference session and inspects the model inputs and outputs. A **Fetch Image** button calls \`SBSupport.get_array\` to pull a specific channel and time point from SlideBook, reshapes the returned array and displays it. The image is then pre-processed according to the selected data type (uint16, float32, double) before being passed through the ONNX model; the \`apply_image\` method runs inference and displays the model’s prediction alongside the input. The GUI wiring is explicit—widgets, layouts, slots and signals are all coded manually, and error handling relies on Python exceptions.
 
 **After: CUBE Protocol**
 
-The entire multi-step workflow is encapsulated in one command:
+All of this logic can be collapsed into a single CUBE command:
+
 \`\`\`cube
-PREPARE|VOLUME[input_image.npy,input_mask.npy]→PATCHIFY[size=(64,64,64),step=32]→FILTER[NonzeroMask]→SAVE_PATCHES[destination_images,destination_masks]→ANALYZE|MASKS[destination_masks]→MEASURE[RegionRatio,PixelCount]|COMPLETE
+PROCESS|IMAGE→LOAD_MODEL[model.onnx]→APPLY[Channel=1,Timepoint=0]→DISPLAY|DONE
 \`\`\`
 
-### Workflow Part 2: Model Inference
+This one‑liner tells CUBE to load the ONNX model, fetch the specified channel/time point from SlideBook, apply the model and show the result—eliminating hundreds of lines of GUI and image‑handling code.
 
-**Before: \`unet_test_3D.py\`**
+---
 
-This script runs a trained 3D U-Net model on data. It involves:
-- Reading a volume from SlideBook via \`SBSupport.get_array\`.
-- Padding the volume to be compatible with patch sizes.
-- Using \`patchify\` to divide the volume into 3D cubes.
-- Normalizing each patch individually.
-- Feeding each patch through the pre-loaded Keras model.
-- Looping through Z, Y, and X dimensions to process each cube.
-- Assembling the predictions back into a full-volume segmentation.
+### Example 2: U‑Net architecture definition
 
-This is a time-consuming and verbose process, common in inference pipelines.
+**Before: \`Training a UNET/UNET.py\`**
+
+In the \`UNET.py\` file a function \`create_3d_unet(input_shape, num_classes)\` constructs a full 3‑D U‑Net using TensorFlow/Keras primitives. The code builds the contracting path with repeated \`Conv3D\`→\`BatchNormalization\`→\`ReLU\` blocks followed by \`MaxPooling3D\`, doubles the number of filters at each level, then builds the expanding path with \`UpSampling3D\` and concatenation layers to recover resolution. Finally, it applies a 1×1×1 convolution to produce \`num_classes\` output channels and returns a compiled Keras \`Model\`. Training scripts elsewhere in the repository slice volumes into patches, normalise them, and stitch together predictions manually.
 
 **After: CUBE Protocol**
 
-The entire inference pipeline is condensed into a single, clear line:
+With CUBE’s ML builder you can define and train a U‑Net by declaring the architecture and training parameters in one line:
+
 \`\`\`cube
-PROCESS|VOLUME[input_volume]→AI[UNET_3D]→PATCHIFY→PREDICT→COMBINE→EXPORT[segmentation_volume]|DONE
+ML|TRAIN[Model=UNET3D,InputShape=(64,64,64,1),Classes=2,Loss=Dice,Epochs=50]→APPLY[Volume]→SAVE|COMPLETE
 \`\`\`
+
+This removes the need to hand‑code the network layers and training loops and makes it easy to reuse or share the same model on different datasets.
+
+---
 
 ### Conclusion: Concrete Value
 
-By mapping a team's own code to these concise commands, the practical value of CUBE becomes concrete. It eliminates the need to write and maintain tens or hundreds of lines of Python, simplifies reproducibility, and empowers non-programmers to run sophisticated AI workflows directly alongside SlideBook’s device control.
+These examples show how Colin’s current workflows rely on substantial custom code. CUBE simplifies such tasks by providing high‑level commands for model loading, inference, and training—dramatically reducing complexity and making advanced AI tools accessible to non‑programmers.
 `,
     'SRDTRANS.md': `# SRDTrans: Making State-of-the-Art AI Accessible
 
@@ -1628,7 +1618,7 @@ SlideBook still does the heavy lifting—controlling the hardware and managing t
 
 ---
 
-## Feature-by-Feature Mapping
+## High-Level Feature Mapping
 
 This section provides examples of how complex, multi-step workflows in vendor-specific software like **3i SlideBook** are simplified into single, readable CUBE commands.
 
@@ -1664,47 +1654,26 @@ LIGHTSHEET|TISSUE[Cleared]→PRESCAN[3D]→ROI[Select]→MONTAGE[4.5cm]|IMAGED
 - Automated lightsheet pattern generation
 - Large tissue montaging
 
-### VENDOR-SPECIFIC CUBE PATTERNS
+---
 
-#### 1. Conditional Capture
-\`\`\`cube
-CONDITIONAL|LOWMAG[Scan]→DETECT[Cells>Threshold]→HIGHMAG[Capture]→ANALYZE|SMART
-\`\`\`
-**Implementation:**
-- Script control (Python, MATLAB, etc.)
-- Hierarchical capture
-- Automated cell selection
-- Higher magnification on targets
+## Expanded Feature Mapping
 
-#### 2. Multiwell Plate Imaging
-\`\`\`cube
-MULTIWELL|PLATE[384]→WELLS[A1:P24]→FOCUS[Surface]→CAPTURE[All]|SCREENED
-\`\`\`
-**Maps to:**
-- Multiwell interface
-- Focus Surface correction
-- Automated well selection
-- Batch processing
+The following section maps more of SlideBook's advanced features to their corresponding CUBE commands, demonstrating the protocol's comprehensive coverage of complex microscopy operations.
 
-#### 3. FRET Analysis
-\`\`\`cube
-FRET|DONOR[CFP]→ACCEPTOR[YFP]→LIFETIME[Measure]→PROXIMITY[Calculate]|ANALYZED
-\`\`\`
-**Software Operations:**
-- FLIM module activation
-- Frequency modulation
-- Lifetime measurement
-- FRET efficiency calculation
-
-#### 4. Photomanipulation
-\`\`\`cube
-PHOTOMANIP|ROI[Define]→FRAP[Bleach]→RECOVER[Monitor]→KINETICS[Measure]|COMPLETE
-\`\`\`
-**Uses:**
-- Scanner systems (Vector/Phasor)
-- ROI definition
-- Laser control
-- Recovery monitoring
+| SlideBook Feature | CUBE Protocol Command |
+| :--- | :--- |
+| **3D Capture & Multipoint View** | \`VIEW|CAPTURE_STATUS[3D]→MULTIPOINT[XYZT]|MONITORING\` |
+| **.sldy Distributed File Format** | \`EXPORT|FORMAT[SLDY]→PATH[/data/experiment]→DISTRIBUTED|SAVED\` |
+| **.sldyz Lossless Compression** | \`EXPORT|FORMAT[SLDYZ]→COMPRESS[Zstandard]→LOSSLESS|OPTIMIZED\` |
+| **Conditional Capture** | \`CONDITIONAL|SCAN[LowMag]→DETECT[Cells>Threshold]→CAPTURE[HighMag]|SMART\` |
+| **Large Data Montaging** | \`MONTAGE|TILES[Large]→STITCH[Subsampled]→BACKGROUND[Run]→OUTPUT[NewFile]|COMPLETE\` |
+| **VIVO Multiphoton Console** | \`SETUP|CONSOLE[Multiphoton]→LASER[Adjust:Depth]→FEEDBACK[Dynamic]|READY\` |
+| **Cleared Tissue Console** | \`LIGHTSHEET|TISSUE[Cleared]→PRESCAN[3D]→ROI[Select]→PATTERN[Generate]|IMAGED\` |
+| **Bounding Box View** | \`VIEW|VOLUME[3D]→BOUNDING_BOX[Define]→CUTAWAY[XYZ]→TRANSPARENCY[Set]|VISUALIZED\` |
+| **StoryBoard Movie Maker** | \`EXPORT|MOVIE[Storyboard]→KEYFRAMES[Define]→INTERPOLATE[Spline]→RENDER|ANIMATED\` |
+| **LUT by Depth** | \`VIEW|VOLUME[3D]→LUT[Apply:Depth]→COLORIZE[Z]|MAPPED\` |
+| **Focus Surface** | \`FOCUS|SURFACE[Define:3Points]→INTERPOLATE[Spline]→TRACK[Continuous]|STABLE\` |
+| **GPU Accelerated Processing** | \`PROCESS|DECONVOLVE[Live]→GPU[CUDA]→ACCELERATED|REALTIME\` |
 `,
     'TECHNICAL.md': `# Technical Workflows
 
@@ -2635,8 +2604,8 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <div className="flex items-center">
             <BookOpenIcon className="w-7 h-7 text-cyan-400 mr-3" />
             <div>
-              <h2 className="text-xl font-bold text-white">3i-CUBE Documentation</h2>
-               <p className="text-sm text-gray-400">From 3i, with core AI by EasyAI Chatbots</p>
+              <h2 className="text-xl font-bold text-white">CUBE Protocol Documentation</h2>
+               <p className="text-sm text-gray-400">{docMeta[activeDoc].subtitle}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close modal">
