@@ -51,13 +51,9 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries }) => {
     <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col h-full overflow-hidden">
       <div className="flex items-center p-4 border-b border-white/10 flex-shrink-0">
         <TerminalIcon className="w-6 h-6 text-[var(--cube-blue)] mr-2" />
-        <h2 className="text-lg font-semibold text-slate-100">Simulated Microscope Log</h2>
+        <h2 className="text-lg font-semibold text-slate-100">Microscope Log</h2>
       </div>
       
-      <div className="p-2 bg-blue-900/20 text-center text-xs text-blue-200 flex-shrink-0 border-b border-white/10">
-        ⚡️ <strong>Demo Mode:</strong> Simulating commands for real microscope hardware.
-      </div>
-
       <div ref={logContainerRef} className="flex-grow p-4 font-mono text-sm space-y-3 overflow-y-auto bg-slate-900">
         {logEntries.length === 0 ? (
             <div className="text-slate-500 h-full flex items-center justify-center">Awaiting execution...</div>

@@ -9,15 +9,16 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
   const getStatusIndicator = () => {
     switch (status) {
       case 'CONNECTED':
+        return { color: 'bg-green-500', text: 'Connected' };
       case 'IDLE':
-        return { color: 'bg-green-500', text: 'Simulated: Connected & Idle' };
+        return { color: 'bg-green-500', text: 'Connected & Idle' };
       case 'EXECUTING':
-        return { color: 'bg-yellow-500 animate-pulse', text: 'Simulated: Executing...' };
+        return { color: 'bg-yellow-500 animate-pulse', text: 'Executing...' };
       case 'ERROR':
         return { color: 'bg-red-500', text: 'Error' };
       case 'DISCONNECTED':
       default:
-        return { color: 'bg-slate-500', text: 'Simulated: Disconnected' };
+        return { color: 'bg-slate-500', text: 'Disconnected' };
     }
   };
 

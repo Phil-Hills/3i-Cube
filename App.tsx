@@ -4,14 +4,13 @@ import { CommandPalette } from './components/CommandPalette';
 import { Editor } from './components/Editor';
 import { OutputLog } from './components/OutputLog';
 import { StatusBar } from './components/StatusBar';
-import { interpretCubeScript } from './services/geminiService';
+import { microscopeService } from './services/microscopeService';
 import type { LogEntry, MicroscopeStatus, View, GalleryImage, Brand } from './types';
 import { BRANDED_METHOD_SCRIPTS } from './constants';
 import { AboutModal } from './components/AboutModal';
 import { DocsModal } from './components/DocsModal';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { ConverterView } from './components/ConverterView';
-import { MicroscopyImageGenerator } from './services/imageGenerator';
 import { ImagePreview } from './components/ImagePreview';
 import { ImageModal } from './components/ImageModal';
 import { GalleryView } from './components/GalleryView';
@@ -56,14 +55,13 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () 
 };
 
 const App: React.FC = () => {
-  const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
   const brand: Brand = '3i';
 
   const [cubeScript, setCubeScript] = useState<string>(getInitialScript(brand));
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
-  const [simulatedMedia, setSimulatedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+  const [capturedMedia, setCapturedMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [view, setView] = useState<View>('ai_studio');
@@ -74,6 +72,16 @@ const App: React.FC = () => {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   
   useEffect(() => {
+    // Setup listeners for microscope service
+    microscopeService.onLog = (log) => setLogEntries(prev => [...prev, log]);
+    microscopeService.onStatusChange = setMicroscopeStatus;
+    microscopeService.onMediaGenerated = (media) => setCapturedMedia(media);
+    microscopeService.onExecutionChange = setIsExecuting;
+    
+    // Attempt to connect on mount
+    microscopeService.connect();
+
+    // Load gallery images
     const loadImages = async () => {
       try {
         const images = await galleryService.getImages();
@@ -85,63 +93,24 @@ const App: React.FC = () => {
       }
     };
     loadImages();
+    
+    // Cleanup on unmount
+    return () => microscopeService.disconnect();
   }, []);
 
   const handleExecute = useCallback(async () => {
     if (isExecuting || !cubeScript.trim()) return;
 
-    setIsExecuting(true);
-    setMicroscopeStatus('EXECUTING');
     setLogEntries([]);
-    
-    try {
-      const generatedLogs = await interpretCubeScript(cubeScript);
-      
-      let status: MicroscopeStatus = 'IDLE';
-      if (cubeScript.includes('CONNECT|')) status = 'CONNECTED';
-      let mediaGeneratedInLog = false;
+    setCapturedMedia(null);
+    microscopeService.executeScript(cubeScript);
 
-      for (const log of generatedLogs) {
-        await new Promise(resolve => setTimeout(resolve, 75));
-
-        if (log.includes('[MEDIA_GENERATED]')) {
-            mediaGeneratedInLog = true;
-            const newMedia = await imageGenerator.generateFromCube(cubeScript);
-            setSimulatedMedia(newMedia);
-            const cleanLog = log.replace('[MEDIA_GENERATED]', '').trim();
-             if(cleanLog) {
-                setLogEntries(prev => [...prev, { type: 'INFO', message: cleanLog, timestamp: new Date() }]);
-             }
-        } else if (log.toLowerCase().includes('success') || log.toLowerCase().includes('complete')) {
-            setLogEntries(prev => [...prev, { type: 'SUCCESS', message: log, timestamp: new Date() }]);
-        } else if (log.toLowerCase().includes('error') || log.toLowerCase().includes('fail')) {
-            setLogEntries(prev => [...prev, { type: 'ERROR', message: log, timestamp: new Date() }]);
-        } else {
-            setLogEntries(prev => [...prev, { type: 'INFO', message: log, timestamp: new Date() }]);
-        }
-      }
-      
-      if (!mediaGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE|PROCESS|SEGMENT|TRACK|ML\||ENHANCE|GENERATE|DATA\|LOAD/i.test(cubeScript)) {
-          const newMedia = await imageGenerator.generateFromCube(cubeScript);
-          setSimulatedMedia(newMedia);
-      }
-
-      setMicroscopeStatus(status);
-
-    } catch (error) {
-      console.error(error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setLogEntries(prev => [...prev, { type: 'ERROR', message: `API Error: ${errorMessage}`, timestamp: new Date() }]);
-      setMicroscopeStatus('ERROR');
-    } finally {
-      setIsExecuting(false);
-    }
-  }, [cubeScript, isExecuting, imageGenerator]);
+  }, [cubeScript, isExecuting]);
 
   const selectScript = (script: string) => {
     setCubeScript(script);
     setLogEntries([]);
-    setSimulatedMedia(null);
+    setCapturedMedia(null);
   };
 
   const handleOpenImageModal = (media: {url: string; cubeScript: string; type: 'image' | 'video'; id?: number}) => {
@@ -150,9 +119,9 @@ const App: React.FC = () => {
   };
 
   const handleSaveToGallery = async () => {
-    if (simulatedMedia) {
+    if (capturedMedia) {
         try {
-            await galleryService.saveImage(simulatedMedia.url, cubeScript, simulatedMedia.type);
+            await galleryService.saveImage(capturedMedia.url, cubeScript, capturedMedia.type);
             const images = await galleryService.getImages();
             setGalleryImages(images);
             setToast({ message: 'Media saved to gallery!', type: 'success' });
@@ -182,7 +151,7 @@ const App: React.FC = () => {
   const handleLoadInExecutor = useCallback((script: string) => {
     setCubeScript(script);
     setLogEntries([]);
-    setSimulatedMedia(null);
+    setCapturedMedia(null);
     setView('executor');
   }, []);
 
@@ -207,8 +176,8 @@ const App: React.FC = () => {
             <div className="md:col-span-4 grid grid-rows-2 gap-6 overflow-hidden">
               <div className="row-span-1 overflow-hidden">
                 <ImagePreview 
-                  media={simulatedMedia} 
-                  onImageClick={() => simulatedMedia && handleOpenImageModal({...simulatedMedia, cubeScript})}
+                  media={capturedMedia} 
+                  onImageClick={() => capturedMedia && handleOpenImageModal({...capturedMedia, cubeScript})}
                   onSaveClick={handleSaveToGallery}
                 />
               </div>

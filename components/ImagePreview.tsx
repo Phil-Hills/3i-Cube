@@ -13,7 +13,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ media, onImageClick,
       <div className="flex items-center justify-between mb-3 flex-shrink-0">
         <div className="flex items-center">
             <PhotoIcon className="w-6 h-6 text-cyan-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-100">AI-Generated Preview</h2>
+            <h2 className="text-lg font-semibold text-gray-100">Live Image Preview</h2>
         </div>
         <button 
             onClick={onSaveClick}
@@ -54,7 +54,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ media, onImageClick,
         ) : (
           <div className="text-gray-500 text-center p-4">
              <PhotoIcon className="w-12 h-12 mx-auto mb-2 text-gray-600" />
-            <p>No media preview</p>
+            <p>No media captured</p>
           </div>
         )}
       </div>

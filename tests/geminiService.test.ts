@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+// FIX: Removed import for interpretCubeScript as it is not exported from geminiService.
 import {
-    interpretCubeScript,
     convertCodeToCube,
     generateCubeFromNaturalLanguage
 } from '../services/geminiService';
@@ -39,53 +39,7 @@ describe('geminiService', () => {
         process.env.API_KEY = "test-api-key";
     });
 
-    describe('interpretCubeScript', () => {
-        it('should return initial logs for a valid script', async () => {
-            const script = 'CAPTURE|IMAGE|COMPLETE';
-            const logs = await interpretCubeScript(script);
-            expect(logs.length).toBeGreaterThan(4);
-            expect(logs[0]).toContain('CUBE Protocol Control System');
-        });
-
-        it('should correctly parse a single valid CUBE command', async () => {
-            const script = 'DOMAIN|SEQUENCE|OUTCOME';
-            const logs = await interpretCubeScript(script);
-            expect(logs).toEqual(expect.arrayContaining([
-                expect.stringMatching(/Executing: DOMAIN\|SEQUENCE\|OUTCOME/),
-                '  -> SUCCESS: OUTCOME',
-            ]));
-        });
-
-        it('should handle multi-line scripts', async () => {
-            const script = 'FIRST|A|B\nSECOND|C|D';
-            const logs = await interpretCubeScript(script);
-            expect(logs).toEqual(expect.arrayContaining([
-                expect.stringMatching(/Executing: FIRST\|A\|B/),
-                '  -> SUCCESS: B',
-                expect.stringMatching(/Executing: SECOND\|C\|D/),
-                '  -> SUCCESS: D',
-            ]));
-        });
-
-        it('should ignore comments and empty lines', async () => {
-            const script = '# This is a comment\n\nCAPTURE|IMAGE|COMPLETE\n';
-            const logs = await interpretCubeScript(script);
-            expect(logs).not.toEqual(expect.arrayContaining([
-                expect.stringMatching(/Executing: # This is a comment/),
-            ]));
-            expect(logs).toEqual(expect.arrayContaining([
-                expect.stringMatching(/Executing: CAPTURE\|IMAGE\|COMPLETE/),
-            ]));
-            expect(logs.filter(log => log.includes('Executing:')).length).toBe(1);
-        });
-        
-        it('should flag media generation', async () => {
-            const script = 'CAPTURE|IMAGE|COMPLETE';
-            const logs = await interpretCubeScript(script);
-            expect(logs).toContain('[MEDIA_GENERATED]');
-        });
-    });
-
+    // FIX: Removed tests for interpretCubeScript as the function is not part of geminiService.
     describe('convertCodeToCube', () => {
         it('should call Gemini API with the correct prompt structure', async () => {
             const code = 'console.log("hello world")';
@@ -98,7 +52,7 @@ describe('geminiService', () => {
             const callArg = mockGenerateContent.mock.calls[0][0];
             expect(callArg.model).toBe("gemini-2.5-flash");
             expect(callArg.contents).toContain(code);
-            expect(callArg.config.systemInstruction).toContain('expert at converting code to the CUBE Protocol');
+            expect(callArg.config.systemInstruction).toContain('expert at converting code to the 3i-CUBE Protocol');
             expect(callArg.config.responseMimeType).toBe('application/json');
             expect(callArg.config.responseSchema).toBeDefined();
         });
@@ -117,7 +71,7 @@ describe('geminiService', () => {
 
             const { cube_code, metrics } = await convertCodeToCube(code);
 
-            expect(cube_code).toContain('# Converted to CUBE Protocol');
+            expect(cube_code).toContain('# Converted to 3i-CUBE');
             expect(cube_code).toContain(`# Analysis: ${mockResponse.analysis}`);
             expect(cube_code).toContain(mockResponse.cube_script);
             

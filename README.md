@@ -16,10 +16,9 @@
 ## Table of Contents
 
 - [The Core Concept](#the-core-concept)
-  - [The Challenge](#the-challenge-the-complexity-crisis-in-modern-microscopy)
-  - [The Solution](#the-solution-the-ultimate-remote-control)
 - [Key Features](#key-features)
 - [Getting Started](#getting-started)
+- [Running with the Virtual Microscope](#running-with-the-virtual-microscope)
 - [License](#license)
 
 ## The Core Concept
@@ -86,6 +85,26 @@ You need to have Node.js and npm installed on your system.
    ```sh
    npm run dev
    ```
+
+## Running with the Virtual Microscope
+
+The application is designed to connect to a backend that simulates a real microscope. To run this backend, you'll need Python 3.
+
+1.  **Install Python Dependencies:**
+    From the project root, install the required libraries using pip.
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+2.  **Run the Virtual Microscope Server:**
+    In a new terminal, start the Python server.
+    ```sh
+    python virtual_microscope_server.py
+    ```
+    You should see the output `Virtual microscope server started on ws://localhost:8765`.
+
+3.  **Connect the App:**
+    With the Python server running, open or refresh the 3i-CUBE web application in your browser. It will automatically connect to the virtual microscope, and the status bar will change to "Connected". You can now execute scripts and receive live feedback and images from the Python backend.
 
 ## License
 
