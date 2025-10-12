@@ -1,10 +1,69 @@
 # CUBE Protocol: The Universal Compression & Control Algorithm
 
+This repository contains the source code for a web-based simulator and interpreter for the CUBE Protocol, a conceptual framework for data compression and semantic control, particularly for microscopy workflows.
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or later recommended)
+- [npm](https://www.npmjs.com/) (usually comes with Node.js)
+
+### Installation & Running
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/cube-protocol-for-3i-microscopes.git
+    cd cube-protocol-for-3i-microscopes
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Set up environment variables:**
+    Create a `.env` file in the root of the project and add your Gemini API key:
+    ```
+    GEMINI_API_KEY="YOUR_API_KEY_HERE"
+    ```
+
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    The application should now be running on [http://localhost:5173](http://localhost:5173).
+
+## Project Structure
+
+The repository is organized as a standard Vite + React + TypeScript project:
+
+```
+.
+├── docs/               # Contains the detailed conceptual documents for the CUBE protocol.
+├── public/             # Static assets and the main index.html file.
+├── src/                # Application source code.
+│   ├── components/     # React components.
+│   ├── services/       # Services for interacting with external APIs (e.g., Gemini).
+│   ├── App.tsx         # Main application component.
+│   ├── index.tsx       # Application entry point.
+│   └── ...             # Other source files.
+├── .gitignore          # Files to be ignored by Git.
+├── package.json        # Project dependencies and scripts.
+├── tsconfig.json       # TypeScript configuration.
+├── vite.config.ts      # Vite build tool configuration.
+└── README.md           # This file.
+```
+
+---
+
+## CUBE Protocol Concept
+
 ```cube
 ALGORITHM|STRING_CUBE[Compress]→SEMANTIC_CUBE[Control]→UNIVERSAL[Everything]|REVOLUTIONARY
 ```
 
-## 1. The Complete Vision
+### 1. The Complete Vision
 
 CUBE Protocol is a revolutionary system designed by Phil Hills that unifies two powerful concepts:
 
@@ -13,9 +72,9 @@ CUBE Protocol is a revolutionary system designed by Phil Hills that unifies two 
 
 Together, they create a complete ecosystem for managing, transferring, and executing operations on data with unprecedented efficiency and clarity.
 
-## 2. The Two Pillars of CUBE Protocol
+### 2. The Two Pillars of CUBE Protocol
 
-### Pillar 1: String-Cube Compression
+#### Pillar 1: String-Cube Compression
 
 The core of CUBE's efficiency is its advanced compression algorithm. It transforms massive datasets into a compact, structured format.
 
@@ -34,7 +93,7 @@ The core of CUBE's efficiency is its advanced compression algorithm. It transfor
 | Image     | 1000:1       |
 | Video     | 5000:1       |
 
-### Pillar 2: Semantic Control
+#### Pillar 2: Semantic Control
 
 The CUBE language simplifies complex operations into a three-part "trinity" pattern: `DOMAIN|SEQUENCE|OUTCOME`.
 
@@ -49,7 +108,7 @@ This creates a self-documenting command that is understandable by both humans an
 MICROSCOPY|ZSTACK[100]→CHANNELS[GFP,DAPI]→TIMELAPSE[5min]→DECONVOLVE|COMPLETE
 ```
 
-## 3. A Unified System
+### 3. A Unified System
 
 String-Cube Compression and Semantic Control work together to provide a complete data solution. The semantic command acts as the **metadata and instruction set**, while the string-cube holds the **compressed data payload**.
 
@@ -61,22 +120,22 @@ String-Cube Compression and Semantic Control work together to provide a complete
     ```
 2.  **The Data (String-Cube Compression):** The resulting 10GB image dataset is compressed into a String-Cube, reducing its size by over 1000:1 for efficient storage and transfer.
 
-## 4. Core Capabilities & Benefits
+### 4. Core Capabilities & Benefits
 
-### Universal Compression
+#### Universal Compression
 - **Drastic Size Reduction**: Compresses websites, scientific data, and media by 99% or more.
 - **Efficient Storage & Transfer**: Makes handling terabyte-scale datasets feasible and fast.
 
-### Intelligent Semantic Control
+#### Intelligent Semantic Control
 - **Simplicity & Clarity**: Replaces hundreds of lines of script with a single, self-documenting command.
 - **Reproducibility**: Experiments and protocols can be shared as simple, reliable text strings.
 - **Automation**: Perfect for AI-driven workflows, enabling programmatic generation and execution of complex tasks.
 
-### AI Optimization
+#### AI Optimization
 - **99% Token Savings**: Dramatically reduces the cost and improves the speed of sending large amounts of data to AI models like Gemini or Claude by sending the compact String-Cube instead of raw text.
 - **Reliable AI-to-AI Communication**: Provides a standardized, verifiable format for agents to exchange data.
 
-## 5. The Impact
+### 5. The Impact
 
 CUBE Protocol is more than a tool; it's a paradigm shift in how we interact with data.
 
