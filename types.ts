@@ -1,3 +1,4 @@
+
 export type MicroscopeStatus = 'DISCONNECTED' | 'CONNECTED' | 'EXECUTING' | 'IDLE' | 'ERROR';
 
 export type LogType = 'INFO' | 'SUCCESS' | 'ERROR' | 'SYSTEM';
@@ -21,60 +22,14 @@ export interface ExampleScriptCategory {
 }
 
 export interface ConversionMetrics {
-    // For code/text conversion
-    original_lines?: number;
-    cube_lines?: number;
-    savings_percent?: number;
-
-    // For data compression
-    original_size_bytes?: number;
-    compressed_size_bytes?: number;
-    hash?: string;
-    dimensions?: [number, number, number];
-    cells_used?: number;
-
-    // Common
+    original_lines: number;
+    cube_lines: number;
     compression_ratio: string;
-    time_saved_minutes: number;
+    savings_percent: number;
 }
-
 
 export interface ConverterExample {
     name: string;
     description: string;
     code: string;
 }
-
-export interface GalleryImage {
-  id: number; // timestamp
-  imageUrl: string;
-  cubeScript: string;
-  createdAt: Date;
-  mediaType: 'image' | 'video';
-  tags: {
-    system: string;
-    technique: string;
-  };
-}
-
-export interface Dataset {
-  id: string;
-  source: 'Zenodo' | 'FigShare' | 'Kaggle';
-  title: string;
-  description: string;
-  tags: string[];
-  size: string;
-  citation: string;
-  cubeScript: string;
-}
-
-export type Brand = '3i';
-
-export interface BrandConfig {
-  name: string;
-  appName: string;
-}
-
-export type View = 'dashboard' | 'executor' | 'ai_studio' | 'converter' | 'gallery';
-export type ConverterMode = 'code' | 'text' | 'data';
-export type ExecutionMode = 'simulated' | 'live';

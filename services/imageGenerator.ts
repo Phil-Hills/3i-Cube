@@ -1,1284 +1,238 @@
 
-
-// Advanced Image Generation with NVIDIA CUDA acceleration by EasyAI Chatbots
-class AdvancedImageGenerator {
-    private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
-    private width = 4096;
-    private height = 4096;
-
-    constructor() {
-        this.canvas = document.createElement('canvas');
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-        const context = this.canvas.getContext('2d');
-        if (!context) {
-            throw new Error('Failed to get 2D context for image generator');
-        }
-        this.ctx = context;
-    }
-
-    public async generateMedia(cubeCommand: string): Promise<{url: string, type: 'image' | 'video'}> {
-        this.ctx.fillStyle = '#000000';
-        this.ctx.fillRect(0, 0, 4096, 4096);
-        this.addGPUIndicator();
-
-        const commands = cubeCommand.toUpperCase();
-        
-        if (commands.includes('GENERATE|VIDEO')) {
-            const url = await this.generateVideoPreview(cubeCommand);
-            return { url, type: 'video' };
-        }
-        
-        let url: string;
-        if (commands.includes('SIMULATE')) {
-            url = this.generateSimulatedTrainingDataComparison();
-        } else if (commands.includes('REALTIME_DECONV')) {
-            url = this.generateRealtimeDeconvolution();
-        } else if (commands.includes('SUPER_RES') || commands.includes('SRDTRANS')) {
-            url = this.generateSuperResolutionComparison();
-        } else if (commands.includes('AI_SEGMENT') || commands.includes('SEGMENT') || commands.includes('U-NET') || commands.includes('STARDIST')) {
-            url = this.generateAISegmentation();
-        } else if (commands.includes('MASSIVE_VOLUME')) {
-            url = this.generateMassiveVolume();
-        } else if (commands.includes('MULTIVIEW_FUSION')) {
-            url = this.generateMultiviewFusion();
-        } else if (commands.includes('LIVE_PROCESS')) {
-            url = this.generateLiveProcessing();
-        } else if (commands.includes('DATA|LOAD')) {
-            this.generateDatasetPreview(cubeCommand);
-            url = this.canvas.toDataURL();
-        } else {
-          this.generateStandardMicroscopy(cubeCommand);
-          this.applyPointSpreadFunction();
-          this.addPoissonNoise();
-          this.addSystematicNoise();
-          this.applyPhotobleaching();
-          this.addMicroscopyMetadata('Standard Acquisition');
-          url = this.canvas.toDataURL();
-        }
-        return { url, type: 'image' };
-    }
-    
-    private generateDatasetPreview(cubeCommand: string): string {
-        this.ctx.fillStyle = '#050a1a';
-        this.ctx.fillRect(0, 0, this.width, this.height);
-
-        const datasetMatch = cubeCommand.match(/LOAD\[(.*?):(.*?)\]/i);
-        const source = datasetMatch ? datasetMatch[1] : 'Unknown Source';
-        const id = datasetMatch ? datasetMatch[2] : 'Unknown ID';
-
-        // Draw a grid of placeholder images
-        const grid_size = 5;
-        const cell_size = (this.width - 200) / grid_size;
-        for(let i=0; i<grid_size; i++) {
-            for(let j=0; j<grid_size; j++) {
-                const x = 100 + i * cell_size;
-                const y = 100 + j * cell_size;
-                this.ctx.fillStyle = `rgba(0, 255, 128, ${Math.random() * 0.1 + 0.05})`;
-                this.ctx.fillRect(x + 10, y + 10, cell_size - 20, cell_size - 20);
-                this.drawSingleComplexCell(x + cell_size/2, y + cell_size/2, cell_size * 0.3, Math.random() > 0.5);
-            }
-        }
-        
-        this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        this.ctx.fillRect(0, this.height / 2 - 200, this.width, 400);
-
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = 'bold 96px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('Loading Scientific Dataset', this.width/2, this.height/2 - 50);
-
-        this.ctx.fillStyle = '#00FFFF';
-        this.ctx.font = '64px "Courier New", monospace';
-        this.ctx.fillText(`${source}: ${id}`, this.width/2, this.height/2 + 80);
-        
-        this.addGPUStats('Data Loading', 'Preparing for ML', `Source: ${source}`);
-        return this.canvas.toDataURL();
-    }
-
-
-    private async generateVideoPreview(cubeCommand: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            if (typeof MediaRecorder === 'undefined' || !this.canvas.captureStream) {
-                this.ctx.fillStyle = 'black';
-                this.ctx.fillRect(0, 0, this.width, this.height);
-                this.ctx.fillStyle = 'white';
-                this.ctx.font = 'bold 48px Arial';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText('Video Generation Failed', this.width / 2, this.height / 2 - 50);
-                this.ctx.fillStyle = '#ffcc00';
-                this.ctx.font = '32px Arial';
-                this.ctx.fillText('MediaRecorder API not supported in your browser.', this.width / 2, this.height / 2 + 50);
-                resolve(this.canvas.toDataURL());
-                return;
-            }
-
-            try {
-                const MimeTypes = [
-                    'video/webm; codecs=vp9',
-                    'video/webm; codecs=vp8',
-                    'video/webm',
-                ];
-                const supportedMimeType = MimeTypes.find(type => MediaRecorder.isTypeSupported(type));
-
-                if (!supportedMimeType) {
-                    console.warn("No supported video MIME type found for MediaRecorder.");
-                    this.ctx.fillStyle = 'black';
-                    this.ctx.fillRect(0, 0, this.width, this.height);
-                    this.ctx.fillStyle = 'white';
-                    this.ctx.font = 'bold 48px Arial';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.fillText('Video Generation Failed', this.width / 2, this.height / 2 - 50);
-                    this.ctx.fillStyle = '#ffcc00';
-                    this.ctx.font = '32px Arial';
-                    this.ctx.fillText('No supported video formats for recording.', this.width / 2, this.height / 2 + 50);
-                    resolve(this.canvas.toDataURL());
-                    return;
-                }
-
-                const promptMatch = cubeCommand.match(/VIDEO\[(.*?)\]/i);
-                const prompt = promptMatch ? promptMatch[1] : 'Generated Video';
-
-                const stream = this.canvas.captureStream(30);
-                const recorder = new MediaRecorder(stream, { mimeType: supportedMimeType });
-                const chunks: Blob[] = [];
-                
-                recorder.ondataavailable = (e) => chunks.push(e.data);
-                recorder.onstop = () => {
-                    if (chunks.length === 0) {
-                        console.error("Video recording stopped but no data was generated.");
-                        reject(new Error('Video recording produced an empty file.'));
-                        return;
-                    }
-                    const blob = new Blob(chunks, { type: supportedMimeType });
-                    const url = URL.createObjectURL(blob);
-                    resolve(url);
-                };
-                recorder.onerror = (e) => {
-                    console.error("MediaRecorder error:", e);
-                    reject(new Error('A recording error occurred.'));
-                };
-
-                interface SimCell {
-                    id: number; x: number; y: number; radius: number; targetRadius: number;
-                    vx: number; vy: number; color: string; timeToDivide: number;
-                }
-                const cells: SimCell[] = [];
-                const MAX_CELLS = 150;
-                const colors = ['#00ff00', '#ff00ff', '#00ffff', '#ffff00'];
-                let nextCellId = 0;
-
-                const createCell = (x?: number, y?: number, parentRadius?: number) => {
-                    const radius = parentRadius ? parentRadius * 0.8 : 30 + Math.random() * 20;
-                    cells.push({
-                        id: nextCellId++, x: x ?? Math.random() * this.width, y: y ?? Math.random() * this.height,
-                        radius: 0, targetRadius: radius, vx: (Math.random() - 0.5) * 1, vy: (Math.random() - 0.5) * 1,
-                        color: colors[Math.floor(Math.random() * colors.length)], timeToDivide: 100 + Math.random() * 100,
-                    });
-                };
-                for (let i = 0; i < 15; i++) createCell();
-
-                let frame = 0;
-                const duration = 150; // 5 seconds at 30fps
-
-                const animate = () => {
-                    if (frame >= duration) {
-                        if (recorder.state === 'recording') {
-                            recorder.stop();
-                        }
-                        return;
-                    }
-                    
-                    this.ctx.fillStyle = '#000000';
-                    this.ctx.fillRect(0, 0, this.width, this.height);
-                    this.ctx.globalCompositeOperation = 'lighter';
-
-                    const newCells: SimCell[] = [];
-                    cells.forEach(cell => {
-                        cell.x += cell.vx; cell.y += cell.vy;
-                        cell.vx += (Math.random() - 0.5) * 0.2; cell.vy += (Math.random() - 0.5) * 0.2;
-                        if (cell.x < 0 || cell.x > this.width) cell.vx *= -1;
-                        if (cell.y < 0 || cell.y > this.height) cell.vy *= -1;
-                        cell.vx = Math.max(-1.5, Math.min(1.5, cell.vx)); cell.vy = Math.max(-1.5, Math.min(1.5, cell.vy));
-                        if (cell.radius < cell.targetRadius) cell.radius += 0.5;
-
-                        cell.timeToDivide--;
-                        if (cell.timeToDivide <= 0 && cells.length + newCells.length < MAX_CELLS) {
-                            cell.targetRadius *= 0.8; cell.radius = Math.min(cell.radius, cell.targetRadius);
-                            cell.timeToDivide = 100 + Math.random() * 100;
-                            const daughterCell: SimCell = {
-                                id: nextCellId++, x: cell.x + (Math.random() - 0.5) * cell.radius * 2,
-                                y: cell.y + (Math.random() - 0.5) * cell.radius * 2, radius: 0,
-                                targetRadius: cell.targetRadius, vx: -cell.vx + (Math.random() - 0.5),
-                                vy: -cell.vy + (Math.random() - 0.5), color: cell.color, timeToDivide: 100 + Math.random() * 100,
-                            };
-                            newCells.push(daughterCell);
-                        }
-
-                        const gradient = this.ctx.createRadialGradient(cell.x, cell.y, 0, cell.x, cell.y, cell.radius);
-                        gradient.addColorStop(0, `${cell.color}ff`);
-                        gradient.addColorStop(0.5, `${cell.color}80`);
-                        gradient.addColorStop(1, `${cell.color}00`);
-                        this.ctx.fillStyle = gradient;
-                        this.ctx.beginPath(); this.ctx.arc(cell.x, cell.y, cell.radius, 0, Math.PI * 2); this.ctx.fill();
-                    });
-                    cells.push(...newCells);
-
-                    this.ctx.globalCompositeOperation = 'source-over';
-                    
-                    // Add reassuring messages
-                    const progress = frame / duration;
-                    const messages = [
-                        { t: 0, msg: "Initializing VEO AI Model..." },
-                        { t: 0.2, msg: "Parsing prompt and generating keyframes..." },
-                        { t: 0.6, msg: "Interpolating frames and upscaling..." },
-                        { t: 0.9, msg: "Encoding final video..." },
-                    ];
-                    let currentMessage = messages[0].msg;
-                    for (const message of messages) {
-                        if (progress >= message.t) {
-                            currentMessage = message.msg;
-                        }
-                    }
-                    this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                    this.ctx.fillRect(0, 0, this.width, 100);
-                    this.ctx.fillStyle = '#FFFFFF';
-                    this.ctx.font = 'bold 36px Arial';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.fillText(currentMessage, this.width/2, 65);
-
-                    // Progress bar
-                    this.ctx.fillStyle = '#444';
-                    this.ctx.fillRect(0, 95, this.width, 5);
-                    this.ctx.fillStyle = '#00FFFF';
-                    this.ctx.fillRect(0, 95, this.width * progress, 5);
-                    
-                    this.ctx.fillStyle = 'rgba(0,0,0,0.6)'; this.ctx.fillRect(0, this.height - 150, this.width, 150);
-                    this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 32px Arial'; this.ctx.textAlign = 'left';
-                    this.ctx.fillText(`VEO AI Simulation: "${prompt}"`, 50, this.height - 80);
-                    this.ctx.font = '24px Arial'; this.ctx.fillText(`CUBE Protocol | EasyAI Chatbots`, 50, this.height - 40);
-                    this.addGPUIndicator();
-
-                    frame++;
-                    requestAnimationFrame(animate);
-                };
-                
-                recorder.start();
-                animate();
-            } catch (e) {
-                console.error("Error setting up video recording:", e);
-                reject(e);
-            }
-        });
-    }
-    
-    private generateSimulatedTrainingDataComparison(): string {
-        const centerX = this.width / 2;
-        const centerY = this.height / 2;
-        const cells: {x: number, y: number, radius: number, angle: number, eccentricity: number}[] = [];
-        const numCells = 25;
-        for (let i = 0; i < numCells; i++) {
-            cells.push({
-                x: centerX + (Math.random() - 0.5) * (this.width - 800),
-                y: centerY + (Math.random() - 0.5) * (this.height - 800),
-                radius: 150 + Math.random() * 100,
-                angle: Math.random() * Math.PI,
-                eccentricity: 0.5 + Math.random() * 0.4
-            });
-        }
-    
-        // Left side: Ground Truth Mask
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.rect(0, 0, centerX, this.height);
-        this.ctx.clip();
-        this.ctx.fillStyle = '#000000';
-        this.ctx.fillRect(0, 0, centerX, this.height);
-        cells.forEach((cell, i) => {
-            const hue = (i / numCells) * 360;
-            this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-            this.ctx.beginPath();
-            this.ctx.ellipse(cell.x, cell.y, cell.radius, cell.radius * cell.eccentricity, cell.angle, 0, Math.PI * 2);
-            this.ctx.fill();
-        });
-        this.ctx.restore();
-
-        // Right side: Simulated Training Image
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.rect(centerX, 0, centerX, this.height);
-        this.ctx.clip();
-        this.ctx.fillStyle = '#000000';
-        this.ctx.fillRect(centerX, 0, centerX, this.height);
-        this.ctx.globalCompositeOperation = 'screen';
-        cells.forEach(cell => {
-             this.drawSingleComplexCell(cell.x, cell.y, cell.radius, true);
-        });
-        this.ctx.globalCompositeOperation = 'source-over';
-        // Apply artifacts
-        this.ctx.filter = 'blur(4px) brightness(1.1)';
-        this.ctx.drawImage(this.canvas, centerX, 0, centerX, this.height, centerX, 0, centerX, this.height);
-        this.ctx.filter = 'none';
-        this.addNoise(centerX, 0, centerX, this.height);
-        this.ctx.restore();
-
-        // Dividing line and labels
-        this.ctx.strokeStyle = '#00FFFF';
-        this.ctx.lineWidth = 8;
-        this.ctx.shadowColor = '#00FFFF';
-        this.ctx.shadowBlur = 20;
-        this.ctx.beginPath();
-        this.ctx.moveTo(centerX, 0);
-        this.ctx.lineTo(centerX, this.height);
-        this.ctx.stroke();
-        this.ctx.shadowBlur = 0;
-
-        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        this.ctx.fillRect(100, 100, 450, 60);
-        this.ctx.fillRect(centerX + 100, 100, 550, 60);
-
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = 'bold 36px Arial';
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText('Ground Truth Mask', 120, 140);
-        this.ctx.fillText('Simulated Training Image', centerX + 120, 140);
-
-        this.addGPUStats('ML Data Generation', `Generated ${numCells} cells`, 'Realistic Artifacts');
-        return this.canvas.toDataURL();
-    }
-
-    private addNoise(x: number, y: number, w: number, h: number) {
-        const imageData = this.ctx.getImageData(x, y, w, h);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            const noise = (Math.random() - 0.5) * 40;
-            data[i] = Math.max(0, Math.min(255, data[i] + noise));
-            data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
-            data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
-        }
-        this.ctx.putImageData(imageData, x, y);
-    }
-
-    private generateSuperResolutionComparison(): string {
-        const centerX = this.width / 2;
-        const centerY = this.height / 2;
-    
-        // Draw the "Before" side (left)
-        this.ctx.save();
-        this.drawComplexCellStructures(centerX, centerY, 1800, false);
-        this.ctx.filter = 'blur(8px) brightness(0.7)';
-        this.ctx.drawImage(this.canvas, 0, 0);
-        this.ctx.filter = 'none';
-        this.ctx.restore();
-    
-        // Draw the "After" side (right), clipped
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.rect(centerX, 0, centerX, this.height);
-        this.ctx.clip();
-        this.drawComplexCellStructures(centerX, centerY, 1800, true);
-        this.ctx.restore();
-    
-        // Draw the dividing line and labels
-        this.ctx.strokeStyle = '#00FFFF';
-        this.ctx.lineWidth = 8;
-        this.ctx.shadowColor = '#00FFFF';
-        this.ctx.shadowBlur = 20;
-        this.ctx.beginPath();
-        this.ctx.moveTo(centerX, 0);
-        this.ctx.lineTo(centerX, this.height);
-        this.ctx.stroke();
-        this.ctx.shadowBlur = 0;
-    
-        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        this.ctx.fillRect(centerX - 300, 100, 250, 60);
-        this.ctx.fillRect(centerX + 50, 100, 250, 60);
-    
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = 'bold 36px Arial';
-        this.ctx.textAlign = 'center';
-    
-        this.ctx.fillText('Original', centerX - 175, 140);
-        this.ctx.fillText('SRDTrans 4x', centerX + 175, 140);
-        
-        this.addGPUStats('Super-Resolution', '4x Upscale', 'SRDTrans Model');
-        return this.canvas.toDataURL();
-    }
-    
-    private drawComplexCellStructures(x: number, y: number, areaRadius: number, highDetail: boolean) {
-        // Clear a circular area for drawing
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, areaRadius * 1.5, 0, Math.PI * 2);
-        this.ctx.clip();
-        this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(0,0, this.width, this.height);
-        this.ctx.restore();
-
-        this.ctx.globalCompositeOperation = 'screen';
-        for (let i = 0; i < 30; i++) {
-            // Use a seed for positioning to ensure both sides are identical
-            const seed = i / 30;
-            const angle = seed * Math.PI * 5 + (seed * 1.2);
-            const dist = seed * areaRadius * 1.5;
-            const cellX = x + Math.cos(angle) * dist;
-            const cellY = y + Math.sin(angle) * dist;
-            const radius = 80 + seed * 100;
-            this.drawSingleComplexCell(cellX, cellY, radius, highDetail);
-        }
-        this.ctx.globalCompositeOperation = 'source-over';
-    }
-    
-    private drawSingleComplexCell(x: number, y: number, radius: number, highDetail: boolean) {
-        const brightness = highDetail ? 1.0 : 0.7;
-        const nucleusColor = `rgba(75, 10, 255, ${0.9 * brightness})`;
-        const cytoplasmColor = `rgba(0, 255, 0, ${0.4 * brightness})`;
-        const mitoColor = `rgba(255, 20, 20, ${0.6 * brightness})`;
-        const actinColor = `rgba(255, 0, 255, ${0.5 * brightness})`;
-
-        // Cytoplasm
-        const cytoGrad = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-        cytoGrad.addColorStop(0, `rgba(0, 255, 0, ${0.5 * brightness})`);
-        cytoGrad.addColorStop(1, `rgba(0, 100, 0, ${0.2 * brightness})`);
-        this.ctx.fillStyle = cytoGrad;
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        // Nucleus
-        const nucleusRadius = radius * 0.4;
-        const nucleusGrad = this.ctx.createRadialGradient(x, y, 0, x, y, nucleusRadius);
-        nucleusGrad.addColorStop(0, `rgba(75, 10, 255, ${0.9 * brightness})`);
-        nucleusGrad.addColorStop(1, `rgba(120, 80, 255, ${0.3 * brightness})`);
-        this.ctx.fillStyle = nucleusGrad;
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, nucleusRadius, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        if (highDetail) {
-             this.ctx.strokeStyle = `rgba(200, 255, 200, 0.6)`;
-             this.ctx.lineWidth = 2;
-             this.ctx.stroke();
-             // Chromatin condensation
-             for(let i=0; i<5; i++) {
-                 this.ctx.fillStyle = `rgba(150, 180, 255, 0.8)`;
-                 this.ctx.beginPath();
-                 this.ctx.arc(x + (Math.random()-0.5) * nucleusRadius, y + (Math.random()-0.5) * nucleusRadius, radius * 0.05, 0, Math.PI*2);
-                 this.ctx.fill();
-             }
-        }
-
-        // Mitochondria / Internal Structures
-        const numMito = highDetail ? 15 : 5;
-        for (let i = 0; i < numMito; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * radius * 0.7 + nucleusRadius;
-            const mitoX = x + Math.cos(angle) * dist;
-            const mitoY = y + Math.sin(angle) * dist;
-            const mitoLength = highDetail ? 15 : 10;
-            const mitoWidth = highDetail ? 5 : 4;
-            this.ctx.fillStyle = mitoColor;
-            this.ctx.beginPath();
-            this.ctx.ellipse(mitoX, mitoY, mitoLength, mitoWidth, Math.random() * Math.PI, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-        
-        // Actin Filaments (only in high detail)
-        if (highDetail) {
-            this.ctx.strokeStyle = actinColor;
-            this.ctx.lineWidth = 1.5;
-            this.ctx.shadowColor = actinColor;
-            this.ctx.shadowBlur = 5;
-            for(let i=0; i < 10; i++) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(x - radius + Math.random() * 2 * radius, y - radius + Math.random() * 2 * radius);
-                this.ctx.lineTo(x - radius + Math.random() * 2 * radius, y - radius + Math.random() * 2 * radius);
-                this.ctx.stroke();
-            }
-            this.ctx.shadowBlur = 0;
-        }
-    }
-
-
-    private generateRealtimeDeconvolution(): string {
-        const cellSize = 1200;
-        
-        // Raw
-        this.ctx.save();
-        this.ctx.filter = 'blur(8px)';
-        this.drawComplexCell(cellSize / 2 + 200, cellSize / 2 + 200, cellSize * 0.4);
-        this.ctx.restore();
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '24px Arial';
-        this.ctx.fillText('Raw', cellSize / 2 + 170, cellSize * 0.1);
-
-        // GPU Processing
-        this.drawProcessingAnimation(cellSize * 1.5 + 200, cellSize / 2 + 200, cellSize * 0.4);
-        this.ctx.fillText('GPU Processing', cellSize * 1.5 + 120, cellSize * 0.1);
-        
-        // Deconvolved
-        this.drawComplexCell(cellSize * 2.5 + 200, cellSize / 2 + 200, cellSize * 0.4);
-        this.ctx.fillText('Deconvolved', cellSize * 2.5 + 140, cellSize * 0.1);
-
-        this.addGPUStats('Real-time Deconvolution', '120 fps', '8ms latency');
-        return this.canvas.toDataURL();
-    }
-
-    private generateAISegmentation(): string {
-        // Draw the base cells first
-        this.ctx.save();
-        this.ctx.translate(2048, 2048);
-        const cells: {x: number, y: number, radius: number}[] = [];
-        for (let i = 0; i < 50; i++) {
-            const cell = {
-                x: (Math.random() - 0.5) * 3800,
-                y: (Math.random() - 0.5) * 3800,
-                radius: 100 + Math.random() * 80
-            };
-            cells.push(cell);
-            this.drawNucleus(cell.x, cell.y, cell.radius, 0.6);
-        }
-        this.ctx.restore();
-
-        // Draw the segmentation masks on top
-        this.ctx.save();
-        this.ctx.translate(2048, 2048);
-        cells.forEach((cell, i) => {
-            const hue = (i / cells.length) * 360;
-            this.ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.4)`;
-            this.ctx.strokeStyle = `hsla(${hue}, 90%, 75%, 0.9)`;
-            this.ctx.lineWidth = 5;
-            
-            // Create a more organic mask shape
-            this.ctx.beginPath();
-            for (let angle = 0; angle < Math.PI * 2; angle += 0.2) {
-                const r = cell.radius * 1.1 * (1 + (Math.random() - 0.5) * 0.15);
-                const px = cell.x + Math.cos(angle) * r;
-                const py = cell.y + Math.sin(angle) * r;
-                if (angle === 0) { this.ctx.moveTo(px, py); } 
-                else { this.ctx.lineTo(px, py); }
-            }
-            this.ctx.closePath();
-            this.ctx.fill();
-            this.ctx.stroke();
-
-            this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = 'bold 36px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${i + 1}`, cell.x, cell.y + 12);
-        });
-        this.ctx.restore();
-        
-        this.addGPUStats('AI Segmentation (U-Net)', '25ms/frame', 'Instance Segmentation');
-        return this.canvas.toDataURL();
-    }
-    
-    private drawNucleus(x: number, y: number, radius: number, brightness: number = 1) {
-        if (!this.ctx) return;
-        const nucleusGradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-        nucleusGradient.addColorStop(0, `rgba(100, 100, 255, ${0.9 * brightness})`);
-        nucleusGradient.addColorStop(0.5, `rgba(80, 80, 255, ${0.7 * brightness})`);
-        nucleusGradient.addColorStop(1, `rgba(50, 50, 255, ${0.4 * brightness})`);
-        this.ctx.fillStyle = nucleusGradient;
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        // Add chromatin condensation spots
-        for (let i = 0; i < 5; i++) {
-            const spotX = x + (Math.random() - 0.5) * radius * 0.8;
-            const spotY = y + (Math.random() - 0.5) * radius * 0.8;
-            const spotRadius = radius * (0.1 + Math.random() * 0.1);
-            const spotGradient = this.ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotRadius);
-            spotGradient.addColorStop(0, `rgba(150, 150, 255, ${brightness})`);
-            spotGradient.addColorStop(1, 'rgba(100, 100, 255, 0)');
-            this.ctx.fillStyle = spotGradient;
-            this.ctx.beginPath();
-            this.ctx.arc(spotX, spotY, spotRadius, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-    }
-    
-    private generateMassiveVolume(): string {
-        const layers = 100, centerX = 2048, centerY = 2048;
-        const gradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 1800);
-        gradient.addColorStop(0, '#000033'); gradient.addColorStop(1, '#000000');
-        this.ctx.fillStyle = gradient; this.ctx.fillRect(0, 0, 4096, 4096);
-        for (let z = 0; z < layers; z++) {
-            const depth = z / layers, scale = 1 - depth * 0.8, alpha = 1 - depth * 0.9;
-            this.ctx.save();
-            this.ctx.globalAlpha = alpha; this.ctx.translate(centerX, centerY); this.ctx.scale(scale, scale);
-            const hue = depth * 240;
-            this.ctx.strokeStyle = `hsla(${hue}, 100%, 50%, ${alpha})`; this.ctx.lineWidth = 2;
-            this.drawVolumeLayer(z, depth);
-            this.ctx.restore();
-        }
-        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '36px Arial'; this.ctx.textAlign = 'left';
-        this.ctx.fillText('10GB Volume Dataset', 100, 100);
-        this.ctx.fillText('2048 x 2048 x 1000 voxels', 100, 150);
-        this.ctx.fillText('Rendered in real-time with CUDA', 100, 200);
-        this.addGPUStats('Volume Rendering', '60 fps', '10GB dataset');
-        return this.canvas.toDataURL();
-    }
-
-    private drawVolumeLayer(z: number, depth: number) {
-        const numStructures = 5 + Math.floor(Math.random() * 5);
-        for (let i = 0; i < numStructures; i++) {
-            const angle = (Math.PI * 2 * i) / numStructures + depth * Math.PI;
-            const r = 500 + Math.sin(depth * Math.PI * 4) * 200;
-            const x = Math.cos(angle) * r, y = Math.sin(angle) * r;
-            this.ctx.beginPath(); this.ctx.moveTo(0, 0); this.ctx.lineTo(x, y);
-            for (let j = 0; j < 3; j++) {
-                const branchAngle = angle + (Math.random() - 0.5) * 0.5, branchLength = r * 0.3;
-                const bx = x + Math.cos(branchAngle) * branchLength, by = y + Math.sin(branchAngle) * branchLength;
-                this.ctx.moveTo(x, y); this.ctx.lineTo(bx, by);
-            }
-            this.ctx.stroke();
-        }
-    }
-    
-    private generateMultiviewFusion(): string {
-        const views = [
-            { x: 1024, y: 1024, angle: 0, label: 'View 0°' }, { x: 3072, y: 1024, angle: 90, label: 'View 90°' },
-            { x: 1024, y: 3072, angle: 180, label: 'View 180°' }, { x: 3072, y: 3072, angle: 270, label: 'View 270°' }
-        ];
-        views.forEach(view => {
-            this.ctx.save(); this.ctx.translate(view.x, view.y); this.ctx.rotate(view.angle * Math.PI / 180);
-            this.drawEmbryo(0, 0, 400, view.angle); this.ctx.restore();
-            this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '32px Arial'; this.ctx.textAlign = 'center';
-            this.ctx.fillText(view.label, view.x, view.y - 450);
-        });
-        this.ctx.save(); this.ctx.translate(2048, 2048);
-        this.ctx.shadowBlur = 20; this.ctx.shadowColor = '#00FF00';
-        this.drawEmbryo(0, 0, 600, 0, true); this.ctx.restore();
-        this.ctx.strokeStyle = '#FFD700'; this.ctx.lineWidth = 4; this.ctx.setLineDash([10, 10]);
-        views.forEach(view => {
-            this.ctx.beginPath(); this.ctx.moveTo(view.x, view.y); this.ctx.lineTo(2048, 2048); this.ctx.stroke();
-        });
-        this.ctx.setLineDash([]);
-        this.ctx.fillStyle = '#FFD700'; this.ctx.font = '48px Arial'; this.ctx.textAlign = 'center';
-        this.ctx.fillText('GPU Fused Result', 2048, 1500);
-        this.addGPUStats('Multiview Fusion', '4 angles', 'Real-time with CUDA');
-        return this.canvas.toDataURL();
-    }
-
-    private drawEmbryo(x: number, y: number, radius: number, angle: number, highQuality = false) {
-        const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-        if (highQuality) {
-            gradient.addColorStop(0, '#00FFFF40'); gradient.addColorStop(0.5, '#00FF0040'); gradient.addColorStop(1, '#FF000020');
-        } else {
-            gradient.addColorStop(0, '#00808040'); gradient.addColorStop(1, '#00404020');
-        }
-        this.ctx.fillStyle = gradient; this.ctx.beginPath();
-        this.ctx.ellipse(x, y, radius, radius * 0.7, 0, 0, Math.PI * 2); this.ctx.fill();
-        if (highQuality) {
-            this.ctx.strokeStyle = '#FFFFFF40'; this.ctx.lineWidth = 2;
-            for (let i = -5; i <= 5; i++) {
-                this.ctx.beginPath(); this.ctx.moveTo(x + i * 40, y - radius * 0.5); this.ctx.lineTo(x + i * 40, y + radius * 0.5); this.ctx.stroke();
-            }
-            this.ctx.strokeStyle = '#FFD70080'; this.ctx.lineWidth = 4;
-            this.ctx.beginPath(); this.ctx.moveTo(x - radius * 0.8, y); this.ctx.lineTo(x + radius * 0.8, y); this.ctx.stroke();
-        }
-        this.ctx.fillStyle = '#000000'; this.ctx.beginPath();
-        this.ctx.arc(x - radius * 0.6, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2); this.ctx.fill();
-    }
-
-    private generateLiveProcessing(): string {
-        const timePoints = 6, cols = 3;
-        for (let t = 0; t < timePoints; t++) {
-            const row = Math.floor(t / cols), col = t % cols;
-            const x = col * 1300 + 650, y = row * 1300 + 650;
-            this.drawDividingCellTimeSeries(x, y, 500, t);
-            this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '28px Arial'; this.ctx.textAlign = 'center';
-            this.ctx.fillText(`t = ${t * 5} min`, x, y - 550);
-            if (t === timePoints - 1) {
-                this.ctx.fillStyle = '#00FF00'; this.ctx.fillText('LIVE', x + 240, y - 550);
-                this.ctx.beginPath(); this.ctx.arc(x + 320, y - 560, 10, 0, Math.PI * 2); this.ctx.fill();
-            }
-        }
-        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '36px Arial'; this.ctx.textAlign = 'left';
-        this.ctx.fillText('GPU Processing Pipeline:', 100, 3900);
-        this.ctx.font = '28px Arial';
-        this.ctx.fillText('Acquire → Denoise → Deconvolve → Track → Display', 100, 3950);
-        this.ctx.fillText('Total latency: <50ms with CUDA acceleration', 100, 4000);
-        this.addGPUStats('Live Processing', '<50ms latency', 'Full pipeline on GPU');
-        return this.canvas.toDataURL();
-    }
-    
-    private drawDividingCellTimeSeries(x: number, y: number, radius: number, timePoint: number) {
-        // Mock implementation
-        this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 4;
-        this.ctx.beginPath(); this.ctx.arc(x, y, radius * 0.4, 0, Math.PI * 2); this.ctx.stroke();
-    }
-
-    private generateStandardMicroscopy(cubeCommand: string) {
-        const numCells = 15 + Math.floor(Math.random() * 10);
-        this.ctx.globalCompositeOperation = 'screen';
-        for (let i = 0; i < numCells; i++) {
-            this.generateRealisticCell(
-                Math.random() * this.width,
-                Math.random() * this.height,
-                cubeCommand
-            );
-        }
-        this.ctx.globalCompositeOperation = 'source-over';
-    }
-    
-    private drawComplexCell(x: number, y: number, radius: number) {
-        this.ctx.strokeStyle = '#00FF00'; this.ctx.lineWidth = 4;
-        this.ctx.beginPath(); this.ctx.arc(x, y, radius, 0, Math.PI * 2); this.ctx.stroke();
-        this.ctx.fillStyle = '#4B0AFF60'; this.ctx.beginPath(); this.ctx.arc(x, y, radius * 0.3, 0, Math.PI * 2); this.ctx.fill();
-    }
-    
-    private drawProcessingAnimation(x: number, y: number, radius: number) {
-        const gridSize = 8, cellSize = radius * 2 / gridSize;
-        for (let i = 0; i < gridSize; i++) {
-            for (let j = 0; j < gridSize; j++) {
-                const px = x - radius + i * cellSize + cellSize / 2, py = y - radius + j * cellSize + cellSize / 2;
-                const processing = Math.random() > 0.3;
-                this.ctx.fillStyle = processing ? '#00FF00' : '#003300';
-                this.ctx.fillRect(px - cellSize / 2 + 2, py - cellSize / 2 + 2, cellSize - 4, cellSize - 4);
-            }
-        }
-    }
-
-    private addGPUIndicator() {
-        this.ctx.fillStyle = '#76B900'; this.ctx.fillRect(3800, 50, 250, 100);
-        this.ctx.fillStyle = '#000000'; this.ctx.font = 'bold 28px Arial'; this.ctx.textAlign = 'left';
-        this.ctx.fillText('NVIDIA', 3830, 90); this.ctx.font = '24px Arial'; this.ctx.fillText('CUDA', 3850, 120);
-        this.ctx.fillStyle = '#00FF00'; this.ctx.beginPath(); this.ctx.arc(3780, 100, 10, 0, Math.PI * 2); this.ctx.fill();
-    }
-
-    private addGPUStats(mode: string, stat1: string, stat2: string) {
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; this.ctx.fillRect(50, 3800, 600, 250);
-        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 36px Arial'; this.ctx.textAlign = 'left';
-        this.ctx.fillText('GPU Acceleration', 70, 3850); this.ctx.font = '28px Arial';
-        this.ctx.fillText(`Mode: ${mode}`, 70, 3900); this.ctx.fillText(`Performance: ${stat1}`, 70, 3940);
-        this.ctx.fillText(`${stat2}`, 70, 3980);
-        this.ctx.fillStyle = '#333333'; this.ctx.fillRect(70, 4000, 500, 30);
-        this.ctx.fillStyle = '#76B900'; this.ctx.fillRect(70, 4000, 450, 30);
-        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = '20px Arial'; this.ctx.textAlign = 'center';
-        this.ctx.fillText('GPU Usage: 90%', 320, 4022);
-    }
-    
-    private addMicroscopyMetadata(mode: string) {
-        this.ctx.fillStyle = '#FFFFFF'; this.ctx.font = 'bold 48px Arial'; this.ctx.textAlign = 'left';
-        this.ctx.fillText('Microscopy Simulation', 50, 100); this.ctx.font = '36px Arial';
-        this.ctx.fillText(mode, 50, 150); this.ctx.font = '28px Arial';
-        this.ctx.fillText('CUBE Protocol | EasyAI Chatbots', 50, 200);
-        this.ctx.fillText(new Date().toLocaleString(), 50, 250);
-        const scaleBarLength = 800, scaleBarMicrons = 200;
-        this.ctx.strokeStyle = '#FFFFFF'; this.ctx.lineWidth = 8; this.ctx.beginPath();
-        this.ctx.moveTo(3200, 3950); this.ctx.lineTo(3200 + scaleBarLength, 3950); this.ctx.stroke();
-        this.ctx.font = '36px Arial'; this.ctx.textAlign = 'center';
-        this.ctx.fillText(`${scaleBarMicrons} µm`, 3600, 3930);
-    }
-
-    // --- Start of new realistic rendering methods ---
-
-    private extractChannels(params: string): string[] {
-        const channels: string[] = [];
-        if (params.includes('DAPI') || params.includes('405')) channels.push('DAPI');
-        if (params.includes('GFP') || params.includes('488')) channels.push('GFP');
-        if (params.includes('RFP') || params.includes('CHERRY') || params.includes('561')) channels.push('RFP');
-        if (params.includes('CY5') || params.includes('647')) channels.push('Cy5');
-        if (channels.length === 0) channels.push('GFP', 'DAPI'); // Default to GFP and DAPI
-        return channels;
-    }
-
-    private perlinNoise(x: number): number {
-        return Math.sin(x * 2) * 0.5 + Math.sin(x * 3.7) * 0.3 + Math.sin(x * 7.3) * 0.2;
-    }
-    
-    private generateRealisticCell(x: number, y: number, params: string, scale: number = 1) {
-        if (!this.ctx) return;
-        const cellRadius = (120 + Math.random() * 80) * scale * (this.width / 2048);
-        const channels = this.extractChannels(params.toUpperCase());
-
-        this.ctx.save();
-        this.ctx.translate(x, y);
-
-        const cellPath = new Path2D();
-        for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
-            const noiseRadius = cellRadius * (1 + this.perlinNoise(angle * 3) * 0.2);
-            const px = Math.cos(angle) * noiseRadius;
-            const py = Math.sin(angle) * noiseRadius;
-            if (angle === 0) cellPath.moveTo(px, py);
-            else cellPath.lineTo(px, py);
-        }
-        cellPath.closePath();
-        
-        if (channels.includes('GFP')) {
-            const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, cellRadius);
-            gradient.addColorStop(0, 'rgba(0, 255, 100, 0.1)');
-            gradient.addColorStop(0.7, 'rgba(0, 255, 100, 0.4)');
-            gradient.addColorStop(1, 'rgba(0, 255, 100, 0.05)');
-            this.ctx.fillStyle = gradient;
-            this.ctx.fill(cellPath);
-        }
-        
-        if (channels.includes('RFP')) this.generateMitochondria(cellRadius);
-        if (channels.includes('CY5')) this.generateActinFilaments(cellRadius);
-        if (channels.includes('DAPI')) this.drawNucleus(0, 0, cellRadius * 0.4);
-
-        this.ctx.restore();
-    }
-
-    private generateMitochondria(cellRadius: number) {
-        if (!this.ctx) return;
-        const numMito = 20 + Math.floor(Math.random() * 15);
-        for (let i = 0; i < numMito; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const distance = Math.random() * cellRadius * 0.8;
-            const x = Math.cos(angle) * distance;
-            const y = Math.sin(angle) * distance;
-
-            this.ctx.save();
-            this.ctx.translate(x, y);
-            this.ctx.rotate(Math.random() * Math.PI);
-            const mitoLength = 15 + Math.random() * 20;
-            const mitoWidth = 5 + Math.random() * 4;
-            const gradient = this.ctx.createLinearGradient(-mitoLength/2, 0, mitoLength/2, 0);
-            gradient.addColorStop(0, 'rgba(255, 50, 0, 0.1)');
-            gradient.addColorStop(0.5, 'rgba(255, 100, 0, 0.9)');
-            gradient.addColorStop(1, 'rgba(255, 50, 0, 0.1)');
-            this.ctx.fillStyle = gradient;
-            this.ctx.beginPath();
-            this.ctx.ellipse(0, 0, mitoLength/2, mitoWidth/2, 0, 0, Math.PI * 2);
-            this.ctx.fill();
-            this.ctx.restore();
-        }
-    }
-
-    private generateActinFilaments(cellRadius: number) {
-        if (!this.ctx) return;
-        this.ctx.strokeStyle = 'rgba(255, 0, 255, 0.4)';
-        this.ctx.lineWidth = 1.5;
-        this.ctx.shadowColor = 'rgba(255, 0, 255, 0.5)';
-        this.ctx.shadowBlur = 4;
-        for (let i = 0; i < 20; i++) {
-            this.ctx.beginPath();
-            const startAngle = Math.random() * Math.PI * 2;
-            const endAngle = startAngle + (Math.random() - 0.5) * Math.PI;
-            const startDist = cellRadius * (0.3 + Math.random() * 0.6);
-            const endDist = cellRadius * (0.3 + Math.random() * 0.6);
-            const startX = Math.cos(startAngle) * startDist;
-            const startY = Math.sin(startAngle) * startDist;
-            const endX = Math.cos(endAngle) * endDist;
-            const endY = Math.sin(endAngle) * endDist;
-            const controlX = (startX + endX) / 2 + (Math.random() - 0.5) * 40;
-            const controlY = (startY + endY) / 2 + (Math.random() - 0.5) * 40;
-            this.ctx.moveTo(startX, startY);
-            this.ctx.quadraticCurveTo(controlX, controlY, endX, endY);
-            this.ctx.stroke();
-        }
-        this.ctx.shadowBlur = 0;
-    }
-
-    private applyPointSpreadFunction() {
-        if (!this.ctx || !this.canvas) return;
-        this.ctx.save();
-        this.ctx.filter = 'blur(2px)';
-        this.ctx.drawImage(this.canvas, 0, 0);
-        this.ctx.restore();
-    }
-
-    private addPoissonNoise() {
-        if (!this.ctx) return;
-        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            const signal = (data[i] + data[i+1] + data[i+2])/3;
-            if (signal > 0) {
-                const noise = Math.sqrt(signal) * (Math.random() - 0.5) * 2;
-                data[i] = Math.max(0, Math.min(255, data[i] + noise));
-                data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
-                data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
-            }
-        }
-        this.ctx.putImageData(imageData, 0, 0);
-    }
-    
-    private addSystematicNoise() {
-        if (!this.ctx) return;
-        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
-        const data = imageData.data;
-        const readNoise = 2;
-        const darkCurrent = 0.1;
-        for (let i = 0; i < data.length; i += 4) {
-            const noise = (Math.random() - 0.5) * readNoise * 2 + darkCurrent;
-            data[i] = Math.max(0, Math.min(255, data[i] + noise));
-            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
-            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
-        }
-        this.ctx.putImageData(imageData, 0, 0);
-    }
-
-    private applyPhotobleaching() {
-        if (!this.ctx) return;
-        const gradient = this.ctx.createRadialGradient(this.width/2, this.height/2, 0, this.width/2, this.height/2, this.width * 0.7);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-        this.ctx.globalCompositeOperation = 'multiply';
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(0, 0, this.width, this.height);
-        this.ctx.globalCompositeOperation = 'source-over';
-    }
-}
-
-
 export class MicroscopyImageGenerator {
-    private canvas: HTMLCanvasElement | null;
-    private ctx: CanvasRenderingContext2D | null;
-    private width = 2048;
-    private height = 2048;
-    private pixelSize = 0.065; // μm/pixel (typical for 100x objective)
-    private NA = 1.4; // Numerical aperture
+  private canvas: HTMLCanvasElement | null;
+  private ctx: CanvasRenderingContext2D | null;
+  private width = 512;
+  private height = 512;
 
-    constructor() {
-        if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
-            this.canvas = document.createElement('canvas');
-            this.canvas.width = this.width;
-            this.canvas.height = this.height;
-            this.ctx = this.canvas.getContext('2d');
-        } else {
-            this.canvas = null;
-            this.ctx = null;
-        }
+  constructor() {
+    if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+      this.canvas = document.createElement('canvas');
+      this.canvas.width = this.width;
+      this.canvas.height = this.height;
+      this.ctx = this.canvas.getContext('2d');
+    } else {
+      this.canvas = null;
+      this.ctx = null;
+    }
+  }
+
+  private getErrorPlaceholder(): string {
+    const errorText = 'Image generation failed.';
+    const svg = `<svg width="${this.width}" height="${this.height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/><text x="50%" y="50%" fill="#f87171" font-family="sans-serif" font-size="16" text-anchor="middle" dy=".3em">${errorText}</text></svg>`;
+    if (typeof btoa === 'function') {
+        return `data:image/svg+xml;base64,${btoa(svg)}`;
+    }
+    return '';
+  }
+
+  public generateFromCube(cubeCommand: string): string {
+    if (!this.ctx || !this.canvas) {
+      console.error("Canvas context is not available for image generation.");
+      return this.getErrorPlaceholder();
     }
 
-    private getErrorPlaceholder(width: number = this.width, height: number = this.height): string {
-        const errorText = 'Image generation failed.';
-        const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/><text x="50%" y="50%" fill="#f87171" font-family="sans-serif" font-size="24" text-anchor="middle" dy=".3em">${errorText}</text></svg>`;
-        if (typeof btoa === 'function') {
-            return `data:image/svg+xml;base64,${btoa(svg)}`;
-        }
-        return '';
+    try {
+      this.ctx.fillStyle = '#000000';
+      this.ctx.fillRect(0, 0, this.width, this.height);
+      
+      const commands = cubeCommand.toUpperCase();
+      let hasDrawn = false;
+      
+      if (commands.includes('MULTI')) {
+          this.generateMultiChannel(commands);
+          hasDrawn = true;
+      } else {
+          if (commands.includes('GFP') || commands.includes('GREEN')) {
+              this.generateFluorescentCells('#00FF00', '#0066FF');
+              hasDrawn = true;
+          }
+          if (commands.includes('RFP') || commands.includes('RED')) {
+              this.generateFluorescentCells('#FF0000', '#0066FF');
+              hasDrawn = true;
+          }
+          if (commands.includes('DAPI') || commands.includes('NUCLEI')) {
+              this.generateNuclei();
+              hasDrawn = true;
+          }
+          if (commands.includes('NEURONS')) {
+              this.drawNeurons();
+              hasDrawn = true;
+          }
+      }
+
+      if (!hasDrawn) {
+        this.generateGenericMicroscopy();
+      }
+
+      this.addMetadata(cubeCommand);
+
+      return this.canvas.toDataURL('image/png');
+
+    } catch (e) {
+      console.error("Error during canvas drawing:", e);
+      return this.getErrorPlaceholder();
     }
-
-    public async generateFromCube(cubeCommand: string): Promise<{url: string, type: 'image' | 'video'}> {
-        const commands = cubeCommand.toUpperCase();
-        const axlKeywords = ['AXL', 'LATTICE', 'CLEARED', 'LIVE', 'MULTICOLOR', 'DECONVOLVED', 'GPU', 'CUDA', 'REALTIME_DECONV', 'AI_SEGMENT', 'MASSIVE_VOLUME', 'MULTIVIEW_FUSION', 'LIVE_PROCESS', 'U-NET', 'STARDIST', 'SEGMENT', 'ENHANCE', 'SUPER_RES', 'SRDTRANS', 'SIMULATE', 'GENERATE|VIDEO', 'DATA|LOAD'];
-
-        if (axlKeywords.some(kw => commands.includes(kw))) {
-            if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
-                try {
-                    const advancedGenerator = new AdvancedImageGenerator();
-                    return await advancedGenerator.generateMedia(cubeCommand);
-                } catch (e) {
-                    console.error("Error during advanced media generation:", e);
-                    const url = this.getErrorPlaceholder(4096, 4096);
-                    return { url, type: 'image' };
-                }
-            }
-            const url = this.getErrorPlaceholder(4096, 4096);
-            return { url, type: 'image' };
-        }
-        
-        if (!this.ctx || !this.canvas) {
-            console.error("Canvas context is not available for image generation.");
-            const url = this.getErrorPlaceholder();
-            return { url, type: 'image' };
-        }
-
-        try {
-            const params = this.parseCubeCommand(commands);
-
-            this.ctx.fillStyle = '#000000';
-            this.ctx.fillRect(0, 0, this.width, this.height);
-            this.ctx.globalCompositeOperation = 'screen';
-
-            if (params.includes('CELL')) {
-                this.generateCellularStructures(params);
-            } else if (params.includes('TISSUE')) {
-                this.generateTissueSection(params);
-            } else if (params.includes('NEURON')) {
-                this.generateNeuronalNetwork(params);
-            } else {
-                this.generateCellularStructures(params);
-            }
-            
-            this.ctx.globalCompositeOperation = 'source-over';
-            
-            this.applyPointSpreadFunction();
-            this.addPoissonNoise();
-            this.addSystematicNoise();
-            this.applyPhotobleaching();
-
-            this.addScientificOverlay(params);
-            const url = this.canvas.toDataURL('image/png');
-            return { url, type: 'image' };
-
-        } catch (e) {
-            console.error("Error during canvas drawing:", e);
-            const url = this.getErrorPlaceholder();
-            return { url, type: 'image' };
-        }
+  }
+  
+  private generateGenericMicroscopy() {
+    this.generateFluorescentCells('#00FF00', '#0066FF'); // Default to GFP
+  }
+  
+  private generateMultiChannel(commands: string) {
+    if(!this.ctx) return;
+    let channelsDrawn = 0;
+    
+    if (commands.includes('GFP')) {
+      this.generateFluorescentCells('#00FF00', '#8888FF');
+      channelsDrawn++;
     }
-
-    private parseCubeCommand(command: string): string {
-        return command.toUpperCase();
+    if (commands.includes('RFP')) {
+      if (channelsDrawn > 0) this.ctx.globalCompositeOperation = 'screen';
+      this.generateFluorescentCells('#FF0000', '#8888FF');
+      channelsDrawn++;
     }
-
-    private extractChannels(params: string): string[] {
-        const channels: string[] = [];
-        if (params.includes('DAPI') || params.includes('405')) channels.push('DAPI');
-        if (params.includes('GFP') || params.includes('488')) channels.push('GFP');
-        if (params.includes('RFP') || params.includes('CHERRY') || params.includes('561')) channels.push('RFP');
-        if (params.includes('CY5') || params.includes('647')) channels.push('Cy5');
-        if (channels.length === 0) channels.push('GFP');
-        return channels;
+    if (commands.includes('DAPI')) {
+       if (channelsDrawn > 0) this.ctx.globalCompositeOperation = 'screen';
+       this.generateNuclei();
+       channelsDrawn++;
     }
     
-    private perlinNoise(x: number): number {
-        return Math.sin(x * 2) * 0.5 + Math.sin(x * 3.7) * 0.3 + Math.sin(x * 7.3) * 0.2;
+    this.ctx.globalCompositeOperation = 'source-over';
+    if(channelsDrawn === 0) { // If MULTI is specified but no known channels
+        this.generateGenericMicroscopy();
     }
+  }
 
-    private generateCellularStructures(params: string) {
-        if(!this.ctx) return;
-        const numCells = 15 + Math.floor(Math.random() * 10);
-        for (let i = 0; i < numCells; i++) {
-            this.generateRealisticCell(
-                Math.random() * this.width,
-                Math.random() * this.height,
-                params
-            );
-        }
-    }
+  private generateFluorescentCells(membraneColor: string, nucleusColor: string) {
+    if (!this.ctx) return;
+    const numCells = 8 + Math.floor(Math.random() * 7);
     
-    private generateTissueSection(params: string) {
-        if(!this.ctx) return;
-        const numCells = 50 + Math.floor(Math.random() * 20);
-        for (let i = 0; i < numCells; i++) {
-            this.generateRealisticCell(
-                Math.random() * this.width,
-                Math.random() * this.height,
-                params,
-                0.7 // smaller cells
-            );
-        }
+    for (let i = 0; i < numCells; i++) {
+      const x = 50 + Math.random() * (this.width - 100);
+      const y = 50 + Math.random() * (this.height - 100);
+      const radius = 25 + Math.random() * 20;
+      
+      const gradient = this.ctx.createRadialGradient(x, y, radius * 0.8, x, y, radius * 1.2);
+      gradient.addColorStop(0, membraneColor + '00');
+      gradient.addColorStop(0.7, membraneColor + '40');
+      gradient.addColorStop(0.9, membraneColor + 'AA');
+      gradient.addColorStop(1, membraneColor + '00');
+      
+      this.ctx.fillStyle = gradient;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, radius * 1.2, 0, Math.PI * 2);
+      this.ctx.fill();
+      
+      this.ctx.strokeStyle = membraneColor;
+      this.ctx.lineWidth = 1.5;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+      this.ctx.stroke();
+      
+      const nucleusGradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius * 0.4);
+      nucleusGradient.addColorStop(0, nucleusColor + 'FF');
+      nucleusGradient.addColorStop(0.7, nucleusColor + '88');
+      nucleusGradient.addColorStop(1, nucleusColor + '44');
+      
+      this.ctx.fillStyle = nucleusGradient;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, radius * 0.35, 0, Math.PI * 2);
+      this.ctx.fill();
     }
+    this.addNoise();
+  }
+  
+  private generateNuclei() {
+    if (!this.ctx) return;
+    const nucleusColor = '#8888FF'; // DAPI-like blue
+    const numNuclei = 15 + Math.random() * 10;
+     for (let i = 0; i < numNuclei; i++) {
+        const x = Math.random() * this.width;
+        const y = Math.random() * this.height;
+        const radius = 8 + Math.random() * 8;
 
-    private generateNeuronalNetwork(params: string) {
-        if(!this.ctx) return;
-        const numNeurons = 5 + Math.floor(Math.random() * 3);
-        const neuronPositions: {x: number, y: number}[] = [];
-        for (let i = 0; i < numNeurons; i++) {
-            const x = Math.random() * this.width;
-            const y = Math.random() * this.height;
-            neuronPositions.push({x, y});
-            this.generateRealisticCell(x, y, params, 0.5); // Soma
-        }
-        
-        this.ctx.strokeStyle = 'rgba(0, 255, 0, 0.4)';
-        this.ctx.lineWidth = 1.5;
-        neuronPositions.forEach(startNeuron => {
-            const endNeuron = neuronPositions[Math.floor(Math.random() * numNeurons)];
-            if(startNeuron === endNeuron) return;
-            
-            this.ctx.beginPath();
-            this.ctx.moveTo(startNeuron.x, startNeuron.y);
-            const cp1x = startNeuron.x + (Math.random() - 0.5) * 400;
-            const cp1y = startNeuron.y + (Math.random() - 0.5) * 400;
-            const cp2x = endNeuron.x + (Math.random() - 0.5) * 400;
-            const cp2y = endNeuron.y + (Math.random() - 0.5) * 400;
-            this.ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endNeuron.x, endNeuron.y);
-            this.ctx.stroke();
-        });
-    }
-
-    private generateRealisticCell(x: number, y: number, params: string, scale: number = 1) {
-        if (!this.ctx) return;
-        const cellRadius = (30 + Math.random() * 20) * scale * (this.width / 512);
-        const channels = this.extractChannels(params);
-
-        this.ctx.save();
-        this.ctx.translate(x, y);
-
-        // Create irregular cell shape using Perlin noise
-        this.ctx.beginPath();
-        for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
-            const noiseRadius = cellRadius * (1 + this.perlinNoise(angle * 2) * 0.2);
-            const px = Math.cos(angle) * noiseRadius;
-            const py = Math.sin(angle) * noiseRadius;
-            
-            if (angle === 0) this.ctx.moveTo(px, py);
-            else this.ctx.lineTo(px, py);
-        }
-        this.ctx.closePath();
-        
-        if (channels.includes('GFP')) {
-            const gradient = this.ctx.createRadialGradient(0, 0, cellRadius * 0.8, 0, 0, cellRadius * 1.2);
-            gradient.addColorStop(0, 'rgba(0, 255, 0, 0)');
-            gradient.addColorStop(0.85, 'rgba(0, 255, 0, 0.3)');
-            gradient.addColorStop(0.95, 'rgba(0, 255, 0, 0.8)');
-            gradient.addColorStop(1, 'rgba(0, 255, 0, 0.2)');
-            this.ctx.fillStyle = gradient;
-            this.ctx.fill();
-            this.ctx.strokeStyle = 'rgba(0, 255, 0, 0.6)';
-            this.ctx.lineWidth = 2;
-            this.ctx.stroke();
-        }
-        
-        if (channels.includes('RFP')) this.generateMitochondria(cellRadius);
-        if (channels.includes('Cy5')) this.generateActinFilaments(cellRadius);
-        if (channels.includes('DAPI')) this.generateNucleus(0, 0, cellRadius * 0.4);
-
-        this.ctx.restore();
-    }
-
-    private generateNucleus(x: number, y: number, radius: number) {
-        if (!this.ctx) return;
-        const nucleusGradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-        nucleusGradient.addColorStop(0, 'rgba(0, 100, 255, 0.9)');
-        nucleusGradient.addColorStop(0.5, 'rgba(0, 80, 255, 0.7)');
-        nucleusGradient.addColorStop(1, 'rgba(0, 50, 255, 0.3)');
-        this.ctx.fillStyle = nucleusGradient;
+        const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, `${nucleusColor}CC`);
+        gradient.addColorStop(1, 'transparent');
+        this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.fill();
+     }
+     this.addNoise();
+  }
 
-        for (let i = 0; i < 5; i++) {
-            const spotX = x + (Math.random() - 0.5) * radius;
-            const spotY = y + (Math.random() - 0.5) * radius;
-            const spotRadius = radius * 0.1;
-            const spotGradient = this.ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotRadius);
-            spotGradient.addColorStop(0, 'rgba(0, 120, 255, 1)');
-            spotGradient.addColorStop(1, 'rgba(0, 100, 255, 0)');
-            this.ctx.fillStyle = spotGradient;
-            this.ctx.beginPath();
-            this.ctx.arc(spotX, spotY, spotRadius, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-    }
+  private drawNeurons() {
+      if (!this.ctx) return;
+      this.ctx.strokeStyle = '#33ff33'; // GCaMP green
+      this.ctx.lineWidth = 1.5;
+      this.ctx.globalAlpha = 0.7;
 
-    private generateMitochondria(cellRadius: number) {
-        if (!this.ctx) return;
-        const numMito = 20 + Math.floor(Math.random() * 15);
-        for (let i = 0; i < numMito; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const distance = Math.random() * cellRadius * 0.7;
-            const x = Math.cos(angle) * distance;
-            const y = Math.sin(angle) * distance;
+      for (let i = 0; i < 3; i++) { 
+          let x = Math.random() * this.width;
+          let y = Math.random() * this.height;
+          const radius = 10 + Math.random() * 5;
 
-            this.ctx.save();
-            this.ctx.translate(x, y);
-            this.ctx.rotate(Math.random() * Math.PI);
-            const mitoLength = 8 + Math.random() * 12;
-            const mitoWidth = 3 + Math.random() * 2;
-            const gradient = this.ctx.createLinearGradient(-mitoLength/2, 0, mitoLength/2, 0);
-            gradient.addColorStop(0, 'rgba(255, 0, 0, 0.2)');
-            gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.8)');
-            gradient.addColorStop(1, 'rgba(255, 0, 0, 0.2)');
-            this.ctx.fillStyle = gradient;
-            this.ctx.beginPath();
-            this.ctx.ellipse(0, 0, mitoLength/2, mitoWidth/2, 0, 0, Math.PI * 2);
-            this.ctx.fill();
-            this.ctx.restore();
-        }
+          this.ctx.beginPath();
+          this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+          const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
+          gradient.addColorStop(0, '#AAFFAA');
+          gradient.addColorStop(1, '#33ff33');
+          this.ctx.fillStyle = gradient;
+          this.ctx.fill();
+
+          for (let j = 0; j < 5; j++) {
+              this.ctx.beginPath();
+              this.ctx.moveTo(x, y);
+              let endX = x + (Math.random() - 0.5) * 150;
+              let endY = y + (Math.random() - 0.5) * 150;
+              this.ctx.lineTo(endX, endY);
+              this.ctx.stroke();
+          }
+      }
+      this.ctx.globalAlpha = 1.0;
+      this.addNoise();
+  }
+
+  private addNoise() {
+    if (!this.ctx) return;
+    const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+    const data = imageData.data;
+    
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * 30;
+      data[i] = Math.max(0, Math.min(255, data[i] + noise));
+      data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+      data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
     }
     
-    private generateActinFilaments(cellRadius: number) {
-        if (!this.ctx) return;
-        this.ctx.strokeStyle = 'rgba(255, 0, 255, 0.3)';
-        this.ctx.lineWidth = 1;
-        for (let i = 0; i < 10; i++) {
-            this.ctx.beginPath();
-            const startAngle = Math.random() * Math.PI * 2;
-            const endAngle = startAngle + (Math.random() - 0.5) * Math.PI;
-            const startDist = cellRadius * (0.3 + Math.random() * 0.4);
-            const endDist = cellRadius * (0.3 + Math.random() * 0.4);
-            const startX = Math.cos(startAngle) * startDist;
-            const startY = Math.sin(startAngle) * startDist;
-            const endX = Math.cos(endAngle) * endDist;
-            const endY = Math.sin(endAngle) * endDist;
-            const controlX = (startX + endX) / 2 + (Math.random() - 0.5) * 20;
-            const controlY = (startY + endY) / 2 + (Math.random() - 0.5) * 20;
-            this.ctx.moveTo(startX, startY);
-            this.ctx.quadraticCurveTo(controlX, controlY, endX, endY);
-            this.ctx.stroke();
-        }
-    }
+    this.ctx.putImageData(imageData, 0, 0);
+  }
 
-    private applyPointSpreadFunction() {
-        if (!this.ctx || !this.canvas) return;
-        this.ctx.save();
-        this.ctx.filter = 'blur(1px)';
-        this.ctx.drawImage(this.canvas, 0, 0);
-        this.ctx.restore();
-    }
-
-    private addPoissonNoise() {
-        if (!this.ctx) return;
-        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            const signal = (data[i] + data[i+1] + data[i+2])/3;
-            if (signal > 0) {
-                const noise = Math.sqrt(signal) * (Math.random() - 0.5) * 2;
-                data[i] = Math.max(0, Math.min(255, data[i] + noise));
-                data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
-                data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
-            }
-        }
-        this.ctx.putImageData(imageData, 0, 0);
-    }
+  private addMetadata(cubeCommand: string) {
+    if (!this.ctx) return;
+    // Scale bar
+    this.ctx.strokeStyle = '#FFFFFF';
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.width - 80, this.height - 30);
+    this.ctx.lineTo(this.width - 30, this.height - 30);
+    this.ctx.stroke();
     
-    private addSystematicNoise() {
-        if (!this.ctx) return;
-        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
-        const data = imageData.data;
-        const readNoise = 2;
-        const darkCurrent = 0.1;
-        for (let i = 0; i < data.length; i += 4) {
-            const noise = (Math.random() - 0.5) * readNoise * 2 + darkCurrent;
-            data[i] = Math.max(0, Math.min(255, data[i] + noise));
-            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
-            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
-        }
-        this.ctx.putImageData(imageData, 0, 0);
-    }
-
-    private applyPhotobleaching() {
-        if (!this.ctx) return;
-        const gradient = this.ctx.createRadialGradient(this.width/2, this.height/2, 0, this.width/2, this.height/2, this.width * 0.7);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(0, 0, this.width, this.height);
-    }
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.font = '12px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('50μm', this.width - 55, this.height - 35);
     
-    private addScientificOverlay(params: string) {
-        if (!this.ctx) return;
-        const scaleBarLength = 100 * (this.width / 512);
-        const scaleBarMicrons = Math.round(scaleBarLength * this.pixelSize);
-        this.ctx.strokeStyle = '#FFFFFF';
-        this.ctx.lineWidth = 4;
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.width - scaleBarLength - 40, this.height - 50);
-        this.ctx.lineTo(this.width - 40, this.height - 50);
-        this.ctx.stroke();
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '24px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(`${scaleBarMicrons} µm`, this.width - scaleBarLength/2 - 40, this.height - 60);
-
-        this.ctx.font = '20px Arial';
-        this.ctx.textAlign = 'left';
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        const metadata = [
-            `Objective: 100x/${this.NA} NA`,
-            `Pixel size: ${this.pixelSize} µm`,
-            `Channels: ${this.extractChannels(params).join(', ')}`,
-            `CUBE Protocol | AI Generated`
-        ];
-        metadata.forEach((line, i) => {
-            this.ctx.fillText(line, 20, 30 + i * 25);
-        });
-        const now = new Date();
-        this.ctx.fillText(now.toISOString(), 20, this.height - 20);
-    }
+    // Attribution
+    this.ctx.font = '10px Arial';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText('AI Preview | CUBE Protocol | Phil Hills', 10, this.height - 10);
+    
+    // Timestamp
+    const now = new Date();
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText(now.toLocaleTimeString(), 10, 20);
+  }
 }

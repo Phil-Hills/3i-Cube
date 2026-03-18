@@ -1,5 +1,5 @@
 {
-  "name": "3i-cube:-intelligent-imaging-control",
+  "name": "copy-of-cube-protocol-for-3i-microscopes",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,9 +13,7 @@
     "react-dom": "^19.1.1",
     "@google/genai": "^1.15.0",
     "react-markdown": "^9.0.1",
-    "remark-gfm": "^4.0.0",
-    "remarkable": "^2.0.1",
-    "@jest/globals": "^30.0.5"
+    "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

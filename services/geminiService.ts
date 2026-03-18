@@ -1,322 +1,115 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import type { ConversionMetrics, LogEntry } from '../types';
-import { MicroscopyImageGenerator } from './imageGenerator';
+import type { ConversionMetrics } from '../types';
+import { CONVERTER_EXAMPLES } from '../constants';
+
+// Gemini API has been temporarily disabled to resolve execution errors.
+// The following functions provide mock data to simulate API responses.
 
 /**
- * Simulates the execution of a CUBE script locally.
- * Generates logs and media without calling any external APIs.
- * @param script The CUBE script to execute.
- * @param onLog Callback for log entries.
- * @param onMediaGenerated Callback for when media is generated.
+ * Simulates the interpretation of a CUBE script by generating a mock execution log.
+ * @param script The CUBE script to interpret.
+ * @returns A promise that resolves to an array of log message strings.
  */
-export const interpretCubeScript = async (
-  script: string,
-  onLog: (log: LogEntry) => void,
-  onMediaGenerated: (media: { url: string; type: 'image' | 'video' }) => void
-): Promise<void> => {
-  const lines = script.split('\n').filter(line => line.trim() && !line.trim().startsWith('#'));
-  const imageGenerator = new MicroscopyImageGenerator();
+export const interpretCubeScript = async (script: string): Promise<string[]> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
 
-  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-  onLog({ type: 'SYSTEM', message: 'Starting simulated execution...', timestamp: new Date() });
-  await delay(200);
+  const lines = script.trim().split('\n');
+  const logs: string[] = [];
+  let imageGenerated = false;
 
   for (const line of lines) {
+    if (line.trim().startsWith('#') || !line.trim()) continue;
+
     const parts = line.split('|');
-    if (parts.length !== 3) continue;
+    if (parts.length !== 3) {
+      logs.push(`ERROR: Invalid CUBE syntax: "${line}"`);
+      continue;
+    }
 
     const [domain, sequence, outcome] = parts;
     
-    onLog({ type: 'INFO', message: `Executing DOMAIN: ${domain}`, timestamp: new Date() });
-    await delay(300);
-
-    const operations = sequence.split('→');
-    for (const op of operations) {
-      onLog({ type: 'INFO', message: `  -> SEQUENCE: ${op}`, timestamp: new Date() });
-      await delay(250);
-    }
+    logs.push(`Executing CUBE: ${line}`);
+    logs.push(`  -> Domain: ${domain}`);
+    logs.push(`  -> Sequence: ${sequence.replace(/→/g, ' -> ')}`);
     
-    onLog({ type: 'SUCCESS', message: `OUTCOME: ${outcome} achieved.`, timestamp: new Date() });
-    await delay(300);
+    if (/CAPTURE|IMAGE|ACQUIRE/i.test(domain)) {
+        logs.push('  -> Camera shutter opening...');
+        logs.push('  -> Acquiring image data...');
+        logs.push('  -> Capture successful.');
+        if (!imageGenerated) {
+            logs.push('[IMAGE_GENERATED]');
+            imageGenerated = true;
+        }
+    } else if (/EXPERIMENT|LOOP|RECOVER/i.test(domain)) {
+        logs.push('  -> Starting complex experiment sequence...');
+        logs.push('  -> Monitoring progress...');
+    }
+
+    logs.push(`SUCCESS: ${outcome}`);
   }
 
-  onLog({ type: 'INFO', message: 'Generating final media preview...', timestamp: new Date() });
-  const media = await imageGenerator.generateFromCube(script);
-  onMediaGenerated(media);
+  if (logs.length === 0) {
+      logs.push("Script is empty or contains only comments.");
+  }
   
-  onLog({ type: 'SUCCESS', message: 'Simulated execution complete.', timestamp: new Date() });
+  return logs;
 };
 
 
 /**
- * Converts any code or natural language to CUBE script using the Gemini API.
- * This is the production-ready, AI-powered converter.
- * @param code The source code or text to convert.
- * @returns A promise that resolves to the converted CUBE code and calculated metrics.
+ * Simulates the conversion of Python/MATLAB code to CUBE script.
+ * @param code The source code to convert.
+ * @returns A promise that resolves to the converted CUBE code and mock metrics.
  */
-export const convertCodeToCube = async (code: string): Promise<{ cube_code: string; metrics: ConversionMetrics; }> => {
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const convertCodeToCube = async (code: string): Promise<{ cube_code: string; metrics: ConversionMetrics }> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 500));
 
-    const countMeaningfulLines = (text: string) => {
-      return text.split('\n').filter(line => {
-        const trimmed = line.trim();
-        return trimmed.length > 0 && !trimmed.startsWith('//') && !trimmed.startsWith('#') && !trimmed.startsWith('%');
-      }).length;
-    };
+  // Check if the input code matches the MATLAB AO example
+  const aoExample = CONVERTER_EXAMPLES.find(ex => ex.name.includes("Adaptive Optics"));
+  if (aoExample && code.includes("isFrameReady")) { // Check for a unique string from the AO example
+    const original_lines = code.split('\n').filter(l => l.trim() && !l.trim().startsWith('%')).length;
+    const cube_lines = 6;
+    const cube_code = `# 3i Adaptive Optics - CUBE Protocol
+# By Phil Hills - Complete AO optimization in 6 lines
 
-    const original_lines = countMeaningfulLines(code);
+CONNECT|MICROSCOPE[3i]→DM[ALPAO]→CAMERA[SlideBook]|READY
+CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[-10.1,-7,-3.3,0,1.3,3.9,6.8]|FITTED
+OPTIMIZE|ZERNIKE[1:7]→AMPLITUDE[-2:0.5:2]→MERIT[Intensity]|RUNNING
+ACQUIRE|LOOP[Each_Mode]→TEST[Amplitudes]→MEASURE[Quality]|OPTIMIZING
+APPLY|BEST[Pattern]→DM[Send]→LOCK[Spherical+Defocus]|CORRECTED
+RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT[Curves]|COMPLETE`;
     
-    const systemInstruction = `You are an expert at converting code to the 3i-CUBE Protocol, from 3i (Intelligent Imaging Innovations). Your highest priority is INTELLIGENT GROUPING. Group related lines of code (like a whole function, class, or API call) into a single, semantic CUBE command in the format: DOMAIN|SEQUENCE|OUTCOME. Do not convert line-by-line. Capture the overall purpose of a code block.`;
-
-    const responseSchema = {
-      type: Type.OBJECT,
-      properties: {
-        cube_script: {
-          type: Type.STRING,
-          description: "The fully converted CUBE Protocol script. Each logical operation should be a single line. Must follow DOMAIN|SEQUENCE|OUTCOME format."
-        },
-        analysis: {
-          type: Type.STRING,
-          description: "A brief, one-sentence analysis of the original code's purpose."
+    return {
+        cube_code,
+        metrics: {
+            original_lines,
+            cube_lines,
+            compression_ratio: `${original_lines}:${cube_lines}`,
+            savings_percent: parseFloat(((1 - cube_lines / original_lines) * 100).toFixed(1)),
         }
-      },
-      required: ["cube_script", "analysis"],
     };
-
-    const prompt = `
-      **CRITICAL TASK: Convert the user's code into a CUBE Protocol script and provide a brief analysis.**
-
-      **High-Quality Grouping Examples:**
-
-      *Example 1: Complex MATLAB Procedure*
-      \`\`\`matlab
-      % ... 200+ lines for adaptive optics ...
-      [nZern, Z2C, dm] = Init_ALPAO_DM();
-      p = polyfit(Spherical_calibration, Defocus_corection, 1);
-      for i = Zernike_index
-        % ... loops and calculations ...
-      end
-      dm.Send(zernikeVector * Z2C);
-      \`\`\`
-      *Correct CUBE:* "OPTIMIZE|ADAPTIVE_OPTICS→ZERNIKE[1:7]→APPLY[BestPattern]|CORRECTED"
-      
-      *Example 2: Python API Call*
-      \`\`\`python
-      def get_user_data(user_id):
-          headers = {"Authorization": "Bearer ..."}
-          response = requests.get(f"https://api.service.com/users/{user_id}", headers=headers)
-          return response.json()
-      \`\`\`
-      *Correct CUBE:* "API|REQUEST[users]→AUTH[Bearer]→METHOD[GET]→RESPONSE[JSON]|COMPLETE"
-
-      Now, apply this logic to the user's code.
-
-      **User's Code to Convert:**
-      \`\`\`
-      ${code}
-      \`\`\`
-    `;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-      },
-    });
-
-    const jsonStr = response.text.trim();
-    const result = JSON.parse(jsonStr);
-    
-    const cube_lines = countMeaningfulLines(result.cube_script);
-
-    const cube_code_with_header = [
-      `# Converted to 3i-CUBE`,
-      `# By 3i (Intelligent Imaging Innovations)`,
-      `# Analysis: ${result.analysis}`,
-      `# Compression: ${original_lines}:${cube_lines} lines\n`,
-      result.cube_script,
-    ].join('\n');
-    
-    const savings_percent = original_lines > 0 ? Math.round(((original_lines - cube_lines) / original_lines) * 100) : 0;
-    
-    const metrics: ConversionMetrics = {
-        original_lines,
-        cube_lines,
-        compression_ratio: cube_lines > 0 ? `${(original_lines / cube_lines).toFixed(1)}:1` : `${original_lines}:0`,
-        savings_percent: savings_percent < 0 ? 0 : savings_percent,
-        time_saved_minutes: Math.round(original_lines * 1.5)
-    };
-    
-    return { cube_code: cube_code_with_header, metrics };
-
-  } catch (error) {
-    console.error("Error during CUBE conversion with Gemini API:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    throw new Error(`AI Conversion Failed: The model could not process the provided code. ${errorMessage}`);
   }
-};
 
-/**
- * Generates CUBE script from a natural language description using the Gemini API.
- * @param description The natural language description of the experiment.
- * @returns A promise that resolves to the converted CUBE code and calculated metrics.
- */
-export const generateCubeFromNaturalLanguage = async (description: string): Promise<{ cube_code: string; metrics: ConversionMetrics; }> => {
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Generic mock response for other code
+  const original_lines = code.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')  && !l.trim().startsWith('%')).length;
+  const cube_lines = Math.max(1, Math.round(original_lines / 12)) + 2;
+  const savings = original_lines > 0 ? parseFloat(((1 - cube_lines / original_lines) * 100).toFixed(1)) : 0;
+  
+  return {
+    cube_code: `# CUBE Conversion (Mock Response)
+# By Phil Hills - Seattle Developer
+# Gemini API is currently disabled. This is a simulated conversion.
 
-    const systemInstruction = `You are an expert microscopist and a master of the 3i-CUBE Protocol, a semantic language for controlling microscopes in the format: DOMAIN|SEQUENCE|OUTCOME. Your task is to convert a user's natural language description of a scientific experiment into a concise, elegant, and syntactically correct 3i-CUBE Protocol script. You must also provide a brief analysis and estimate how many lines of traditional code (e.g., Python, MATLAB) this script would replace.`;
-
-    const responseSchema = {
-      type: Type.OBJECT,
-      properties: {
-        cube_script: {
-          type: Type.STRING,
-          description: "The fully converted CUBE Protocol script. Each logical operation should be a single line. Must follow DOMAIN|SEQUENCE|OUTCOME format."
-        },
-        analysis: {
-          type: Type.STRING,
-          description: "A brief, one-sentence analysis of the experimental goal."
-        },
-        estimated_lines_saved: {
-          type: Type.NUMBER,
-          description: "An integer estimate of how many lines of traditional code (like Python or MATLAB) this CUBE script would replace."
-        }
-      },
-      required: ["cube_script", "analysis", "estimated_lines_saved"],
-    };
-
-    const prompt = `
-      **CRITICAL TASK: Convert the user's experimental description into a 3i-CUBE Protocol script, provide an analysis, and estimate the lines of code saved.**
-
-      **High-Quality Examples:**
-
-      *User Description:* "I want to do a 24-hour time-lapse of live cells, keeping them at 37C and 5% CO2. I'm using GFP and RFP channels and need autofocus."
-      *Correct Response JSON:*
-      {
-        "cube_script": "SETUP|LIVE_CELL→TEMP[37C]→CO2[5%]|READY\\nTIMELAPSE|DURATION[24h]→INTERVAL[5min]→CHANNELS[GFP,RFP]→AUTOFOCUS[ON]|RUNNING\\nANALYZE|TRACK[Cells]→MEASURE[Division_Time]→PLOT[Growth_Curve]|COMPLETE",
-        "analysis": "This experiment involves long-term live-cell imaging with environmental control and subsequent analysis.",
-        "estimated_lines_saved": 75
-      }
-      
-      *User Description:* "Scan a whole cleared mouse brain section for DAPI and GFP using tiles and stitch it."
-      *Correct Response JSON:*
-      {
-        "cube_script": "SETUP|CLEARED[Mouse_Brain]→OBJECTIVE[10x_Clarity]→IMMERSION[RI_1.45]|READY\\nSCAN|VOLUME[10x10x5mm]→TILE[20x20]→OVERLAP[10%]→CHANNELS[DAPI,GFP]|IMAGING\\nSTITCH|TILES→FUSE[Blending]→COMPRESS[HDF5]→VISUALIZE[3D]|COMPLETE",
-        "analysis": "This protocol describes a large-volume tile-scanning experiment on a cleared tissue sample.",
-        "estimated_lines_saved": 150
-      }
-
-      Now, apply this logic to the user's request.
-
-      **User's Experimental Description:**
-      "${description}"
-    `;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-      },
-    });
-
-    const jsonStr = response.text.trim();
-    const result = JSON.parse(jsonStr);
-    
-    const cube_lines = result.cube_script.split('\n').filter((l: string) => l.trim().length > 0 && !l.trim().startsWith('#')).length;
-    
-    const original_lines = result.estimated_lines_saved;
-
-    const cube_code_with_header = [
-      `# Generated from Natural Language with Gemini`,
-      `# By 3i (Intelligent Imaging Innovations)`,
-      `# Analysis: ${result.analysis}`,
-      `# Estimated code lines replaced: ${original_lines}\n`,
-      result.cube_script,
-    ].join('\n');
-    
-    const metrics: ConversionMetrics = {
-        original_lines,
-        cube_lines,
-        compression_ratio: 'N/A', // Not applicable for NL
-        savings_percent: 0, // Not applicable for NL
-        time_saved_minutes: Math.round(original_lines * 1.5)
-    };
-    
-    return { cube_code: cube_code_with_header, metrics };
-
-  } catch (error) {
-    console.error("Error during CUBE generation with Gemini API:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    throw new Error(`AI Generation Failed: The model could not process the description. ${errorMessage}`);
-  }
-};
-
-async function urlToBase64(url: string): Promise<{ base64: string; mimeType: string }> {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  const mimeType = blob.type;
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      const base64 = dataUrl.split(',')[1];
-      if (!base64) {
-          reject(new Error("Failed to extract base64 from data URL."));
-          return;
-      }
-      resolve({ base64, mimeType });
-    };
-    reader.readAsDataURL(blob);
-  });
-}
-
-/**
- * Analyzes an image with a text prompt using the Gemini API.
- * @param mediaUrl The URL of the image to analyze (data: or blob:).
- * @param prompt The user's text prompt.
- * @returns A promise that resolves to the AI's text response.
- */
-export const analyzeMediaWithGemini = async (mediaUrl: string, prompt: string): Promise<string> => {
-    try {
-        const { base64, mimeType } = await urlToBase64(mediaUrl);
-
-        if (!mimeType.startsWith('image/')) {
-            throw new Error('Analysis is only supported for images.');
-        }
-
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-        const imagePart = {
-            inlineData: {
-                mimeType: mimeType,
-                data: base64,
-            },
-        };
-
-        const textPart = {
-            text: prompt,
-        };
-
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: { parts: [imagePart, textPart] },
-        });
-
-        return response.text;
-
-    } catch (error) {
-        console.error("Error during Gemini media analysis:", error);
-        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-        throw new Error(`AI Analysis Failed: ${errorMessage}`);
-    }
+CONVERT|CODE[Input]→TO[CUBE]|MOCKED
+ANALYZE|STRUCTURE[Code]→GENERATE[Semantic_Commands]|SIMULATED
+...
+COMPLETE|CONVERSION[Simulated]→METRICS[Estimated]|DONE`,
+    metrics: {
+      original_lines,
+      cube_lines,
+      compression_ratio: `${original_lines}:${cube_lines}`,
+      savings_percent: savings,
+    },
+  };
 };

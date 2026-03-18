@@ -1,5 +1,5 @@
 {
-  "name": "3i-CUBE: Intelligent Imaging Control",
-  "description": "An AI-powered simulator for 3i-CUBE, an intelligent imaging protocol from 3i (Intelligent Imaging Innovations).",
+  "name": "Copy of CUBE Protocol for 3i Microscopes",
+  "description": "An AI-powered simulator and interpreter for the CUBE protocol, designed to simplify complex microscopy workflows for 3i (Intelligent Imaging Innovations) systems.",
   "requestFramePermissions": []
 }

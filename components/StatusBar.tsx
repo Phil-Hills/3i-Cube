@@ -1,45 +1,38 @@
 import React from 'react';
-import type { MicroscopeStatus, ExecutionMode } from '../types';
+import type { MicroscopeStatus } from '../types';
 
 interface StatusBarProps {
   status: MicroscopeStatus;
-  executionMode: ExecutionMode;
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ status, executionMode }) => {
+export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
   const getStatusIndicator = () => {
     switch (status) {
       case 'CONNECTED':
       case 'IDLE':
-        return { color: 'bg-green-500', text: executionMode === 'live' ? 'Connected & Idle' : 'Idle' };
+        return { color: 'bg-green-500', text: 'Simulated: Connected & Idle' };
       case 'EXECUTING':
-        return { color: 'bg-yellow-500 animate-pulse', text: 'Executing...' };
+        return { color: 'bg-yellow-500 animate-pulse', text: 'Simulated: Executing...' };
       case 'ERROR':
         return { color: 'bg-red-500', text: 'Error' };
       case 'DISCONNECTED':
       default:
-        return { color: 'bg-slate-500', text: 'Disconnected' };
+        return { color: 'bg-gray-500', text: 'Simulated: Disconnected' };
     }
   };
 
   const { color, text } = getStatusIndicator();
-  const label = executionMode === 'simulated' ? 'Simulator Status:' : 'Microscope Status:';
 
   return (
-    <footer className="flex items-center justify-between p-2 px-4 bg-slate-900 border-t-2 border-[var(--cube-blue)] text-sm">
+    <footer className="flex items-center justify-between p-2 px-4 bg-gray-900/80 border-t border-blue-900/50 text-sm">
       <div className="flex items-center">
         <div className={`w-3 h-3 rounded-full mr-2 ${color}`}></div>
-        <span className="text-slate-300">{label}</span>
+        <span className="text-gray-300">Microscope Status:</span>
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
-      <div className="text-slate-400 text-right text-[10px] sm:text-xs max-w-[50%]">
-        <p className="font-semibold text-slate-300">
-            Powered by EasyAI Chatbots
-        </p>
-        <p className="hidden sm:block">
-            3i-CUBE is built on the CUBE Protocol, invented by EasyAI Chatbots.
-            Our promise is simple: secure data, faster development, quicker microscope updates, and AI that improves with every experiment.
-        </p>
+      <div className="text-gray-500 text-right">
+        <div>3i CUBE Protocol v1.0</div>
+        <div className="text-xs">Created by Phil Hills</div>
       </div>
     </footer>
   );
