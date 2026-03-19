@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { convertCodeToCube } from '../services/geminiService';
+import { convertCodeToCube, convertCubeToCode } from '../services/geminiService';
 import { CONVERTER_EXAMPLES } from '../constants';
 import type { ConversionMetrics } from '../types';
 import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ArrowDownTrayIcon } from './icons';
@@ -35,6 +35,7 @@ export const ConverterView: React.FC = () => {
   const [copySuccess, setCopySuccess] = useState('');
   const [selectedExample, setSelectedExample] = useState('');
   const [outputMode, setOutputMode] = useState<'script' | 'file'>('script');
+  const [conversionMode, setConversionMode] = useState<'encode' | 'decode'>('encode');
 
   const generateHex = (str: string) => {
     let hash = 0;
@@ -76,9 +77,15 @@ export const ConverterView: React.FC = () => {
     setOutputCode('');
 
     try {
-      const result = await convertCodeToCube(inputCode);
-      setOutputCode(result.cube_code);
-      setMetrics(result.metrics);
+      if (conversionMode === 'encode') {
+        const result = await convertCodeToCube(inputCode);
+        setOutputCode(result.cube_code);
+        setMetrics(result.metrics);
+      } else {
+        const result = await convertCubeToCode(inputCode);
+        setOutputCode(result.code);
+        // We don't need metrics for decode right now, or we could add them later
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown conversion error occurred.';
       setError(errorMessage);
@@ -140,21 +147,55 @@ ${outputCode}
 
   return (
     <div className="flex flex-col flex-grow pt-4 overflow-hidden gap-4">
+      <div className="flex justify-center mb-2">
+        <div className="bg-gray-800 p-1 rounded-lg flex space-x-1 border border-gray-700">
+          <button
+            onClick={() => {
+              setConversionMode('encode');
+              setInputCode('');
+              setOutputCode('');
+              setMetrics(null);
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              conversionMode === 'encode' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Encode to CUBE
+          </button>
+          <button
+            onClick={() => {
+              setConversionMode('decode');
+              setInputCode('');
+              setOutputCode('');
+              setMetrics(null);
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              conversionMode === 'decode' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Decode from CUBE
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-hidden">
         {/* Input Panel */}
         <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
           <div className="flex items-center mb-4">
             <CodeBracketIcon className="w-6 h-6 text-blue-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-100">Your 3i Microscope Code</h2>
+            <h2 className="text-lg font-semibold text-gray-100">
+              {conversionMode === 'encode' ? 'Your 3i Microscope Code' : 'Your CUBE Protocol Script'}
+            </h2>
           </div>
           <textarea
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
             className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
-            placeholder="Paste your Python or MATLAB microscope code here..."
+            placeholder={conversionMode === 'encode' ? "Paste your Python or MATLAB microscope code here..." : "Paste your CUBE script here..."}
           />
-           <div className="mt-2 flex flex-col sm:flex-row gap-2">
-             <select
+          {conversionMode === 'encode' && (
+            <div className="mt-2 flex flex-col sm:flex-row gap-2">
+              <select
                 value={selectedExample}
                 onChange={(e) => {
                   const selectedName = e.target.value;
@@ -175,11 +216,12 @@ ${outputCode}
                 ))}
               </select>
             </div>
-            {selectedExample && (
-                <p className="text-xs text-gray-400 mt-2 p-2 bg-gray-900/50 rounded-md">
-                    <strong>Description:</strong> {CONVERTER_EXAMPLES.find(ex => ex.name === selectedExample)?.description}
-                </p>
-            )}
+          )}
+          {selectedExample && conversionMode === 'encode' && (
+              <p className="text-xs text-gray-400 mt-2 p-2 bg-gray-900/50 rounded-md">
+                  <strong>Description:</strong> {CONVERTER_EXAMPLES.find(ex => ex.name === selectedExample)?.description}
+              </p>
+          )}
         </div>
         
         {/* Output Panel */}
@@ -188,10 +230,13 @@ ${outputCode}
             <div className="flex items-center">
               <CubeIcon className="w-6 h-6 text-blue-400 mr-2" />
               <h2 className="text-lg font-semibold text-gray-100">
-                {outputMode === 'script' ? 'CUBE Protocol Output' : '.cube File Format ◈ Claims 11-14'}
+                {conversionMode === 'encode' 
+                  ? (outputMode === 'script' ? 'CUBE Protocol Output' : '.cube File Format ◈ Claims 11-14')
+                  : 'Decoded Python/MATLAB Code'}
               </h2>
             </div>
             <div className="flex items-center space-x-3">
+              {conversionMode === 'encode' && (
                 <select 
                   value={outputMode} 
                   onChange={(e) => setOutputMode(e.target.value as 'script' | 'file')}
@@ -200,30 +245,35 @@ ${outputCode}
                   <option value="script">Raw Script</option>
                   <option value="file">.cube File</option>
                 </select>
+              )}
                 <button onClick={handleCopy} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ClipboardIcon className="w-4 h-4 mr-1"/>
                   {copySuccess || 'Copy'}
                 </button>
-                <button onClick={handleDownloadCube} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
-                  {outputMode === 'file' ? '.cube' : '.cuby'}
-                </button>
-                <button onClick={handleDownloadComparison} disabled={!outputCode || !metrics} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
-                  Compare
-                </button>
+                {conversionMode === 'encode' && (
+                  <button onClick={handleDownloadCube} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                    <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
+                    {outputMode === 'file' ? '.cube' : '.cuby'}
+                  </button>
+                )}
+                {conversionMode === 'encode' && (
+                  <button onClick={handleDownloadComparison} disabled={!outputCode || !metrics} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                    <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
+                    Compare
+                  </button>
+                )}
             </div>
           </div>
           <textarea
-            value={getDisplayCode()}
+            value={conversionMode === 'encode' ? getDisplayCode() : outputCode}
             readOnly
             className="flex-grow w-full bg-gray-900/70 text-cyan-300 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
-            placeholder="Converted CUBE script will appear here..."
+            placeholder={conversionMode === 'encode' ? "Converted CUBE script will appear here..." : "Decoded code will appear here..."}
           />
-           {metrics && <MetricsDisplay metrics={metrics} />}
+           {metrics && conversionMode === 'encode' && <MetricsDisplay metrics={metrics} />}
            
            {/* Hex Aliases Panel */}
-           {hexAliases.length > 0 && outputMode === 'script' && (
+           {hexAliases.length > 0 && outputMode === 'script' && conversionMode === 'encode' && (
              <div className="mt-4 bg-gray-900/50 rounded-md p-3 border border-gray-700/50 overflow-y-auto max-h-32">
                <div className="flex justify-between items-center mb-2">
                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hex Alias Promotion ◈ Claims 3, 7</h3>
@@ -254,12 +304,12 @@ ${outputCode}
           {isConverting ? (
             <>
               <LoaderIcon className="animate-spin w-5 h-5 mr-2" />
-              Converting...
+              {conversionMode === 'encode' ? 'Converting...' : 'Decoding...'}
             </>
           ) : (
             <>
               <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
-              Convert to CUBE
+              {conversionMode === 'encode' ? 'Convert to CUBE' : 'Decode to Python/MATLAB'}
             </>
           )}
         </button>

@@ -48,11 +48,11 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries }) => {
     <div className="bg-gray-800/50 rounded-lg flex flex-col h-full border border-gray-700/50 overflow-hidden">
       <div className="flex items-center p-4 border-b border-gray-700/50 flex-shrink-0">
         <TerminalIcon className="w-6 h-6 text-blue-400 mr-2" />
-        <h2 className="text-lg font-semibold text-gray-100">Simulated Microscope Log</h2>
+        <h2 className="text-lg font-semibold text-gray-100">Python Execution Log</h2>
       </div>
       
       <div className="p-3 bg-blue-900/20 border-b border-gray-700/50 text-center text-xs text-blue-200 flex-shrink-0">
-        ⚡️ <strong>Demo Mode:</strong> This log shows the commands that would execute on real 3i hardware.
+        ⚡️ <strong>Synthetic Mode:</strong> Running Python scripts against synthetic data via mock_sb.
       </div>
 
       <div ref={logContainerRef} className="flex-grow p-4 font-mono text-sm space-y-2 overflow-y-auto">

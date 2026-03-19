@@ -38,7 +38,20 @@ export async function getCubes(limit = 20, coordinate?: string, trace_id?: strin
   if (trace_id) params.append('trace_id', trace_id);
   
   return fetch(`${BRAIN_URL}/cubes?${params.toString()}`)
-    .then(r => r.json());
+    .then(async r => {
+      if (!r.ok) {
+        return [];
+      }
+      const data = await r.json();
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.cubes)) return data.cubes;
+      if (data && Array.isArray(data.data)) return data.data;
+      return [];
+    })
+    .catch(err => {
+      console.error('Error fetching cubes:', err);
+      return [];
+    });
 }
 
 export async function checkBrainHealth() {

@@ -36,8 +36,12 @@ import { SpatialVisualizer } from './components/SpatialVisualizer';
 import { storeCube, getCubes, getSessionTraceId } from './services/brainService';
 
 import { SystemCheckModal } from './components/SystemCheckModal';
+import { Login } from './components/Login';
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('isAuthenticated') === 'true';
+  });
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
 
   const initialScript = getInitialScript();
@@ -74,94 +78,73 @@ const App: React.FC = () => {
     // Keep the existing preview image during execution for better UX
 
     try {
-      const generatedLogs = await interpretCubeScript(cubeScript);
-      
-      let status: MicroscopeStatus = 'IDLE';
-      if (cubeScript.includes('CONNECT|')) status = 'CONNECTED';
-      let imageGeneratedInLog = false;
-      let skipCurrentCommand = false;
+      const response = await fetch('/api/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ script: cubeScript }),
+      });
 
-      for (const log of generatedLogs) {
-        await new Promise(resolve => setTimeout(resolve, 75));
+      const data = await response.json();
 
-        if (log.startsWith('Executing CUBE: ')) {
-          const command = log.replace('Executing CUBE: ', '');
-          const traceId = getSessionTraceId();
-          
-          // Check Brain for existing receipt with same coordinate + trace_id
-          const existingCubes = await getCubes(1, command, traceId);
-          const isDuplicate = existingCubes.length > 0;
-          
-          if (isDuplicate) {
-            const existingHash = existingCubes[0].hash;
-            const displayHash = existingHash.slice(0, 16) + '...';
-            setLogEntries(prev => [...prev, { type: 'INFO', message: `[⟳] ${command} — SKIPPED\n    Receipt already exists: ${displayHash}\n    Idempotent execution enforced. ◈ Claim 10`, timestamp: new Date() }]);
-            setDuplicatesSkipped(prev => prev + 1);
-            skipCurrentCommand = true;
-          } else {
-            // Store new cube in Brain
-            const storedCube = await storeCube(command, { status: 'executed' });
-            const realHash = storedCube.hash;
-            const displayHash = realHash.slice(0, 16) + '...';
-            
-            setLogEntries(prev => [...prev, { type: 'SUCCESS', message: `[✓] ${command}\n    BLAKE3: ${displayHash}  · receipt stored · idempotent ✓`, timestamp: new Date() }]);
-            const newReceipt = { 
-              timestamp: new Date(), 
-              coordinate: command, 
-              hash: realHash, 
-              verified: true, 
-              isDuplicate: false,
-              packetAuth: {
-                seq: Math.floor(Math.random() * 10000),
-                signature: `Q-SIG-${Math.floor(Math.random() * 10000).toString(16).toUpperCase().padStart(4, '0')}`
-              }
-            };
-            setReceipts(prev => [...prev, newReceipt]);
-            receiptsRef.current.push(newReceipt);
-            skipCurrentCommand = false;
-            setLastCommand(command);
-          }
-          continue;
-        }
+      if (!response.ok) {
+        throw new Error(data.error || 'Execution failed');
+      }
 
-        if (skipCurrentCommand) {
-          continue;
-        }
+      const output = data.stdout + (data.stderr ? '\n' + data.stderr : '');
+      const lines = output.split('\n');
 
-        if (log.includes('[IMAGE_GENERATED]')) {
-            imageGeneratedInLog = true;
-            const newImageUrl = imageGenerator.generateFromCube(cubeScript);
-            setSimulatedImageUrl(newImageUrl);
-            const cleanLog = log.replace('[IMAGE_GENERATED]', '').trim();
-             if(cleanLog) {
-                setLogEntries(prev => [...prev, { type: 'INFO', message: cleanLog, timestamp: new Date() }]);
-             }
-        } else if (log.toLowerCase().includes('success') || log.toLowerCase().includes('complete')) {
-            setLogEntries(prev => [...prev, { type: 'SUCCESS', message: log, timestamp: new Date() }]);
-        } else if (log.toLowerCase().includes('error') || log.toLowerCase().includes('fail')) {
-            setLogEntries(prev => [...prev, { type: 'ERROR', message: log, timestamp: new Date() }]);
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        
+        // Add a small delay for visual effect
+        await new Promise(resolve => setTimeout(resolve, 20));
+        
+        if (line.includes('Error') || line.includes('Exception') || line.includes('Traceback')) {
+          setLogEntries(prev => [...prev, { type: 'ERROR', message: line, timestamp: new Date() }]);
+        } else if (line.includes('✓') || line.includes('Success') || line.includes('Saved')) {
+          setLogEntries(prev => [...prev, { type: 'SUCCESS', message: line, timestamp: new Date() }]);
         } else {
-            setLogEntries(prev => [...prev, { type: 'INFO', message: log, timestamp: new Date() }]);
+          setLogEntries(prev => [...prev, { type: 'INFO', message: line, timestamp: new Date() }]);
+        }
+        
+        // If we see a BLAKE3 receipt, we could potentially parse it and add it to the receipts list
+        // For now, we just log it.
+        if (line.includes('◈') && line.includes('[')) {
+           const match = line.match(/\[([a-f0-9]{16})\]/);
+           if (match) {
+             const hash = match[1];
+             let coord = line.trim().replace(/^◈\s*/, '');
+             coord = coord.replace(/\s*\[[a-f0-9]{16}\]$/, '');
+             const newReceipt = { 
+                timestamp: new Date(), 
+                coordinate: coord, 
+                hash: hash, 
+                verified: true, 
+                isDuplicate: false,
+                packetAuth: {
+                  seq: Math.floor(Math.random() * 10000),
+                  signature: `Q-SIG-${Math.floor(Math.random() * 10000).toString(16).toUpperCase().padStart(4, '0')}`
+                }
+              };
+              setReceipts(prev => [...prev, newReceipt]);
+              receiptsRef.current.push(newReceipt);
+           }
         }
       }
-      
-      // Fallback if simulator misses the token
-      if (!imageGeneratedInLog && /CAPTURE|IMAGE|ACQUIRE/i.test(cubeScript)) {
-          const newImageUrl = imageGenerator.generateFromCube(cubeScript);
-          setSimulatedImageUrl(newImageUrl);
-      }
 
-      setMicroscopeStatus(status);
+      setMicroscopeStatus('IDLE');
 
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setLogEntries(prev => [...prev, { type: 'ERROR', message: `API Error: ${errorMessage}`, timestamp: new Date() }]);
+      setLogEntries(prev => [...prev, { type: 'ERROR', message: `Execution Error: ${errorMessage}`, timestamp: new Date() }]);
       setMicroscopeStatus('ERROR');
     } finally {
       setIsExecuting(false);
     }
-  }, [cubeScript, isExecuting, imageGenerator]);
+  }, [cubeScript, isExecuting]);
 
   const selectScript = (script: string) => {
     setCubeScript(script);
@@ -170,6 +153,10 @@ const App: React.FC = () => {
     setSimulatedImageUrl(imageUrl);
   };
   
+  if (!isAuthenticated) {
+    return <Login onLogin={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
       <Header 

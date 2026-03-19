@@ -161,3 +161,40 @@ COMPLETE|CONVERSION[Simulated]→METRICS[Estimated]|DONE`,
     },
   };
 };
+
+/**
+ * Simulates the decoding of CUBE script back to Python/MATLAB code.
+ * @param cubeCode The CUBE script to decode.
+ * @returns A promise that resolves to the decoded code.
+ */
+export const convertCubeToCode = async (cubeCode: string): Promise<{ code: string }> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 500));
+
+  // Check if it's the AO example
+  if (cubeCode.includes("3i Adaptive Optics") || cubeCode.includes("CALIBRATE|SPHERICAL")) {
+    const aoExample = CONVERTER_EXAMPLES.find(ex => ex.name.includes("Adaptive Optics"));
+    if (aoExample) {
+      return { code: aoExample.code };
+    }
+  }
+
+  // Generic mock response
+  return {
+    code: `# Decoded Python/MATLAB Code (Mock Response)
+# By Phil Hills - Seattle Developer
+# Gemini API is currently disabled. This is a simulated decoding.
+
+def generated_function():
+    print("This is a simulated decoding of your CUBE script.")
+    print("In a real environment, this would be the expanded Python/MATLAB code.")
+    
+    # Simulated logic based on CUBE commands
+    for i in range(10):
+        acquire_image()
+        process_data()
+        
+    return "Success"
+`
+  };
+};
