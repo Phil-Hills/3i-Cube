@@ -7,18 +7,19 @@
     "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node dist/server.cjs",
+    "start": "node server.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.15.0",
     "@noble/hashes": "^2.0.1",
+    "@tailwindcss/typography": "^0.5.19",
     "d3": "^7.9.0",
     "express": "^5.2.1",
     "firebase-admin": "^13.7.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-markdown": "^9.0.1",
+    "react-markdown": "^9.1.0",
     "remark-gfm": "^4.0.0",
     "tsx": "^4.21.0"
   },

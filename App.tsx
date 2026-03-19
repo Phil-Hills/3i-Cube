@@ -30,7 +30,7 @@ const getInitialScript = (): string => {
 
 
 import { LiveMetricsPanel } from './components/LiveMetricsPanel';
-import { AgentBuilder } from './components/AgentBuilder';
+import { AIChat } from './components/AIChat';
 import { MemoryGraph } from './components/MemoryGraph';
 import { SpatialVisualizer } from './components/SpatialVisualizer';
 import { storeCube, getCubes, getSessionTraceId } from './services/brainService';
@@ -60,7 +60,7 @@ const App: React.FC = () => {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isSystemCheckModalOpen, setIsSystemCheckModalOpen] = useState(false);
-  const [view, setView] = useState<'executor' | 'converter' | 'memory' | 'builder'>('executor');
+  const [view, setView] = useState<'executor' | 'converter' | 'memory' | 'chat'>('executor');
   
   const [lastCommand, setLastCommand] = useState<string>('');
 
@@ -209,8 +209,10 @@ const App: React.FC = () => {
           </div>
         ) : view === 'converter' ? (
           <ConverterView />
-        ) : view === 'builder' ? (
-          <AgentBuilder />
+        ) : view === 'chat' ? (
+          <div className="flex-grow pt-4 overflow-hidden">
+            <AIChat />
+          </div>
         ) : (
           <div className="flex-grow pt-4 overflow-hidden">
             <MemoryGraph refreshTrigger={receipts.length} />

@@ -1,5 +1,49 @@
+import { GoogleGenAI, Type } from '@google/genai';
 import type { ConversionMetrics } from '../types';
 import { CONVERTER_EXAMPLES } from '../constants';
+
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '' });
+
+export async function chatWithOrchestrator(message: string, context: string, history: any[]) {
+  const systemInstruction = `You are the 3iΛ Orchestrator, powered by Q Protocol. You help microscopy researchers design acquisition workflows, analyze results, and manage their instruments. You have access to 4 specialist agents on the Brain: Analyst (patterns), Memory (context), Sentinel (verification), and Registrar (spatial alignment). Every action you take is receipted with BLAKE3 cryptographic verification. You follow the Sense → Propose → Verify → Commit protocol for every response.
+
+Current Session Context:
+${context}
+`;
+
+  const responseSchema = {
+    type: Type.OBJECT,
+    properties: {
+      thinking: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.STRING
+        },
+        description: "The step-by-step reasoning chain of the Orchestrator, showing consultation with Analyst, Memory, Sentinel, and Registrar."
+      },
+      response: {
+        type: Type.STRING,
+        description: "The final markdown-formatted response to the user."
+      }
+    },
+    required: ["thinking", "response"]
+  };
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3.1-pro-preview',
+    contents: [
+      ...history.filter(msg => msg.role !== 'system').map(msg => ({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.content }] })),
+      { role: 'user', parts: [{ text: message }] }
+    ],
+    config: {
+      systemInstruction,
+      responseMimeType: 'application/json',
+      responseSchema
+    }
+  });
+
+  return JSON.parse(response.text || '{}');
+}
 
 // Gemini API has been temporarily disabled to resolve execution errors.
 // The following functions provide mock data to simulate API responses.
