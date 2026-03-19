@@ -21,6 +21,18 @@ export interface ExampleScriptCategory {
     scripts: ExampleScript[];
 }
 
+export interface Receipt {
+  timestamp: Date;
+  coordinate: string;
+  hash: string;
+  verified: boolean;
+  isDuplicate: boolean;
+  packetAuth?: {
+    seq: number;
+    signature: string;
+  };
+}
+
 export interface ConversionMetrics {
     original_lines: number;
     cube_lines: number;

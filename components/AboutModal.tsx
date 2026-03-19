@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CubeIcon, XMarkIcon } from './icons';
 
 export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'claims'>('overview');
+
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -26,7 +28,7 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <CubeIcon className="w-7 h-7 text-blue-400 mr-3" />
             <div>
               <h2 className="text-xl font-bold text-white">CUBE Protocol for 3i Microscopes</h2>
-              <p className="text-sm text-gray-400">Created by Phil Hills - Seattle Developer</p>
+              <p className="text-sm text-gray-400">Powered by Q Protocol · A2AC LLC</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-gray-700/50 transition-colors" aria-label="Close modal">
@@ -34,8 +36,36 @@ export const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </button>
         </div>
 
+        <div className="flex border-b border-gray-700/50 bg-gray-900/30">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'overview'
+                ? 'text-blue-400 border-b-2 border-blue-400 bg-gray-800/50'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('claims')}
+            className={`px-6 py-3 text-sm font-medium transition-colors flex items-center ${
+              activeTab === 'claims'
+                ? 'text-blue-400 border-b-2 border-blue-400 bg-gray-800/50'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
+            }`}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            IP & Claims
+          </button>
+        </div>
+
         <div className="p-6 overflow-y-auto text-gray-300 space-y-6">
-          <h3 className="text-lg font-semibold text-center text-gray-100 mb-2">Transform Complex Microscopy into Simple Commands</h3>
+          {activeTab === 'overview' ? (
+            <>
+              <h3 className="text-lg font-semibold text-center text-gray-100 mb-2">Transform Complex Microscopy into Simple Commands</h3>
 
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4">
@@ -80,7 +110,7 @@ end`}</code></pre>
                   </div>
                    <div>
                       <h5 className="font-semibold text-green-300 mb-2">After (CUBE Protocol)</h5>
-                      <pre className="bg-gray-800 p-2 rounded text-xs font-mono text-green-200/80 h-full"><code>{`# 3i Adaptive Optics - By Phil Hills
+                      <pre className="bg-gray-800 p-2 rounded text-xs font-mono text-green-200/80 h-full"><code>{`# 3i Adaptive Optics - By A2AC LLC
 CONNECT|MICROSCOPE[3i]→DM[ALPAO]→CAMERA|READY
 CALIBRATE|SPHERICAL[-3:1:3]→DEFOCUS[...]|FITTED
 OPTIMIZE|ZERNIKE[1:7]→AMPLITUDE[-2:0.5:2]|RUNNING
@@ -131,11 +161,124 @@ RESULTS|ENHANCEMENT[2.5x]→SAVE[Data]→PLOT|COMPLETE`}</code></pre>
           </div>
 
            <div>
-              <h4 className="text-lg font-semibold text-gray-100 mb-2 mt-4">About the Creator</h4>
+              <h4 className="text-lg font-semibold text-gray-100 mb-2 mt-4">About A2AC LLC</h4>
               <p className="text-sm leading-relaxed">
-                  <strong>Phil Hills</strong> is a Seattle-based developer who created the CUBE Protocol to make complex systems simple. The protocol compresses traditional code by 100:1 while maintaining perfect clarity and functionality. CUBE was designed to help people spend less time coding and more time on what matters.
+                  <strong>A2AC LLC</strong> created the Q Protocol to make complex systems simple. The protocol compresses traditional code by 100:1 while maintaining perfect clarity and functionality. CUBE was designed to help people spend less time coding and more time on what matters.
               </p>
            </div>
+            </>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-bold text-blue-300 mb-2 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Patent Evidence Exhibit
+                </h3>
+                <p className="text-sm text-blue-200/80">
+                  This application serves as a working demonstration and evidence exhibit for the 35 claims of the pending patent application. The features implemented throughout this application directly map to the claims listed below.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Core Protocol (Claims 1-4)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 1: Action-Object-State structure</li>
+                    <li>Claim 2: BLAKE3 cryptographic receipts</li>
+                    <li>Claim 3: Hex alias promotion</li>
+                    <li>Claim 4: Hardware abstraction layer</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Convergence (Claims 5-9)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 5: Cross-model convergence (K→0)</li>
+                    <li>Claim 6: Semantic equivalence mapping</li>
+                    <li>Claim 7: Alias resolution</li>
+                    <li>Claim 8: State validation</li>
+                    <li>Claim 9: Live convergence metering</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Idempotency (Claim 10)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 10: Duplicate execution prevention via receipt hashing</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">File Format (Claims 11-14)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 11: .cube file structure</li>
+                    <li>Claim 12: Embedded metadata</li>
+                    <li>Claim 13: Cryptographic signatures</li>
+                    <li>Claim 14: Executable packaging</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Semantic Compression (Claim 15)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 15: K* semantic compression ratio measurement</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Spatial Coordinates (Claims 16-19)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 16: Hierarchical coordinate mapping</li>
+                    <li>Claim 17: Multi-dimensional state tracking</li>
+                    <li>Claim 18: Coordinate resolution</li>
+                    <li>Claim 19: Visual representation</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Packet Auth (Claims 20-23)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 20: Packet-level authentication</li>
+                    <li>Claim 21: Sequence verification</li>
+                    <li>Claim 22: Tamper detection</li>
+                    <li>Claim 23: Chain of custody</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Memory Graph (Claims 24-27)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 24: Node-based execution history</li>
+                    <li>Claim 25: Bidirectional relationship mapping</li>
+                    <li>Claim 26: State traversal</li>
+                    <li>Claim 27: Visual graph rendering</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Recursive Delegation (Claims 28-30)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 28: Agent-to-agent task delegation</li>
+                    <li>Claim 29: Hierarchical execution</li>
+                    <li>Claim 30: Result aggregation</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-bold text-gray-100 mb-2">Agent Builder (Claims 31-35)</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
+                    <li>Claim 31: Goal vs capability mapping</li>
+                    <li>Claim 32: Pre-deployment validation</li>
+                    <li>Claim 33: Security boundary verification</li>
+                    <li>Claim 34: Capability constraints</li>
+                    <li>Claim 35: Automated deployment readiness</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

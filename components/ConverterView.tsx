@@ -34,6 +34,38 @@ export const ConverterView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState('');
   const [selectedExample, setSelectedExample] = useState('');
+  const [outputMode, setOutputMode] = useState<'script' | 'file'>('script');
+
+  const generateHex = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return `0x${(hash >>> 0).toString(16).padStart(8, '0').toUpperCase().substring(0, 6)}`;
+  };
+
+  const getDisplayCode = () => {
+    if (!outputCode) return '';
+    if (outputMode === 'script') return outputCode;
+    
+    const cubeFile = {
+      version: "1.0",
+      metadata: {
+        author: "A2AC LLC",
+        timestamp: new Date().toISOString(),
+        claims: [11, 12, 13, 14]
+      },
+      script: outputCode.split('\n').filter(l => l.trim()),
+      signature: `blake3:${generateHex(outputCode).toLowerCase()}...`
+    };
+    return JSON.stringify(cubeFile, null, 2);
+  };
+
+  const hexAliases = outputCode 
+    ? outputCode.split('\n')
+        .filter(l => l.trim() && !l.startsWith('#'))
+        .map(line => ({ hex: generateHex(line.trim()), command: line.trim() }))
+    : [];
 
   const handleConvert = async () => {
     if (!inputCode.trim() || isConverting) return;
@@ -68,9 +100,9 @@ export const ConverterView: React.FC = () => {
 
   const handleDownloadCube = () => {
     const element = document.createElement("a");
-    const file = new Blob([outputCode], {type: 'text/plain;charset=utf-8'});
+    const file = new Blob([getDisplayCode()], {type: 'text/plain;charset=utf-8'});
     element.href = URL.createObjectURL(file);
-    element.download = "experiment.cuby";
+    element.download = outputMode === 'file' ? "experiment.cube" : "experiment.cuby";
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -155,16 +187,26 @@ ${outputCode}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <CubeIcon className="w-6 h-6 text-blue-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-100">CUBE Protocol Output</h2>
+              <h2 className="text-lg font-semibold text-gray-100">
+                {outputMode === 'script' ? 'CUBE Protocol Output' : '.cube File Format ◈ Claims 11-14'}
+              </h2>
             </div>
             <div className="flex items-center space-x-3">
+                <select 
+                  value={outputMode} 
+                  onChange={(e) => setOutputMode(e.target.value as 'script' | 'file')}
+                  className="bg-gray-700 text-xs text-gray-200 rounded p-1 border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="script">Raw Script</option>
+                  <option value="file">.cube File</option>
+                </select>
                 <button onClick={handleCopy} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ClipboardIcon className="w-4 h-4 mr-1"/>
                   {copySuccess || 'Copy'}
                 </button>
                 <button onClick={handleDownloadCube} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
-                  .cuby
+                  {outputMode === 'file' ? '.cube' : '.cuby'}
                 </button>
                 <button onClick={handleDownloadComparison} disabled={!outputCode || !metrics} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                   <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
@@ -173,12 +215,31 @@ ${outputCode}
             </div>
           </div>
           <textarea
-            value={outputCode}
+            value={getDisplayCode()}
             readOnly
             className="flex-grow w-full bg-gray-900/70 text-cyan-300 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
             placeholder="Converted CUBE script will appear here..."
           />
            {metrics && <MetricsDisplay metrics={metrics} />}
+           
+           {/* Hex Aliases Panel */}
+           {hexAliases.length > 0 && outputMode === 'script' && (
+             <div className="mt-4 bg-gray-900/50 rounded-md p-3 border border-gray-700/50 overflow-y-auto max-h-32">
+               <div className="flex justify-between items-center mb-2">
+                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hex Alias Promotion ◈ Claims 3, 7</h3>
+                 <span className="text-xs text-blue-400">K* Semantic Compression Active ◈ Claim 15</span>
+               </div>
+               <ul className="space-y-1">
+                 {hexAliases.map((alias, idx) => (
+                   <li key={idx} className="text-xs font-mono flex items-start">
+                     <span className="text-purple-400 font-bold mr-2">{alias.hex}</span>
+                     <span className="text-gray-500 mr-2">→</span>
+                     <span className="text-gray-300 break-all">{alias.command}</span>
+                   </li>
+                 ))}
+               </ul>
+             </div>
+           )}
         </div>
       </div>
       

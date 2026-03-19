@@ -2,6 +2,19 @@ import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
   {
+    category: "Agent Delegation",
+    description: "Demonstrates agent-to-agent task delegation (Claims 28-30).",
+    scripts: [
+      {
+        name: "Recursive Delegation Demo",
+        description: "A master agent delegates a task to a specialized agent.",
+        script: `DELEGATE|TASK[FindCells]→AGENT[CellFinder]|DISPATCHED
+ACQUIRE|ZSTACK[50]→CHANNELS[DAPI]|CAPTURED
+RETURN|DATA[CellLocations]→AGENT[Master]|RECEIVED`
+      }
+    ]
+  },
+  {
     category: "Live Cell Imaging",
     description: "Long-term imaging of living cells with minimal photodamage.",
     scripts: [
