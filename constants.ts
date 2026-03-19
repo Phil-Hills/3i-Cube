@@ -85,45 +85,76 @@ ANALYZE|RATIO[FRET/CFP]→NORMALIZE→PLOT[Time-Course]→STATISTICS|PROCESSED`
     scripts: [
       {
         name: "3D Fiducial Registration",
-        description: "Automated spatial alignment — replaces 288 lines of Python",
-        script: `# 3D Fiducial Point Registration
-# Kabsch SVD alignment via Brain Registrar agent
-REGISTER|FIDUCIAL[ref=REF1.mlt.prefs,target=3Montage.mlt.prefs]→LOAD|READY
-ALIGN|3D→POINTS[auto_detect]→TRANSFORM[rigid:SVD]→ERROR[threshold=0.5um]|ALIGNED
-VERIFY|REGISTRATION→RECEIPT[BLAKE3]→EXPORT[registered.mlt.prefs]|COMPLETE`
+        description: "Automated spatial alignment using Kabsch SVD",
+        script: `# 3D Fiducial Registration — receipted alignment
+# Source: Colin's fiducial_comparison.py + Registrar Agent
+sb.Open("REF1.sldy")                           → receipt[BLAKE3]
+ref_points = []
+for pos in range(sb.GetNumPositions(0)):
+  x = sb.GetXPosition(0, pos)                  → receipt
+  y = sb.GetYPosition(0, pos)                   → receipt
+  z = sb.GetZPosition(0, pos, 0)                → receipt
+  ref_points.append([x, y, z])
+sb.Open("3Montage.sldy")                        → receipt
+target_points = [same extraction]               → receipt
+POST /agent/register {ref_points, target_points} → receipt[SVD+BLAKE3]
+# Returns: rotation_matrix, translation, RMSE, aligned_points`
       },
       {
         name: "SlideBook Acquisition Pipeline",
-        description: "Full acquisition → analysis pipeline with receipts",
-        script: `# SlideBook Acquisition Pipeline
-# Connects via SBAccess socket protocol
-CONNECT|SLIDEBOOK[socket:localhost:5000]→STATUS|READY
-ACQUIRE|CAPTURE[channels=3,z_planes=50,timepoints=1]→STORE|RECORDING
-CUBIFY|VOLUME[128x128x128]→SPLIT[auto_pad]→CUBES|READY
-ANALYZE|CUBES→SEGMENT[StarDist3D:threshold=0.4]→RESULTS|STORED
-VERIFY|PIPELINE→RECEIPT[BLAKE3]→EXPORT[results.sld]|COMPLETE`
+        description: "Full acquisition → analysis with real SDK calls",
+        script: `# SlideBook Pipeline — every call receipted
+# Official API: 3i-microscopes/SBReadFile22-Python
+socket.connect(("localhost", 2076))
+sb = SBAccess(socket)
+slide_id = sb.Open("experiment.sldy")           → receipt
+n_captures = sb.GetNumCaptures()                → receipt
+for cap in range(n_captures):
+  nx = sb.GetNumXColumns(cap)                   → receipt
+  ny = sb.GetNumYRows(cap)                      → receipt
+  nz = sb.GetNumZPlanes(cap)                    → receipt
+  vx, vy, vz = sb.GetVoxelSize(cap)             → receipt
+  for z in range(nz):
+    for ch in range(sb.GetNumChannels(cap)):
+      plane = sb.ReadImagePlaneBuf(cap,0,0,z,ch) → receipt[BLAKE3]
+POST /agent/analyze {cube_data}                 → receipt[patterns]
+POST /agent/verify {trace_id}                   → receipt[integrity]`
       },
       {
-        name: "Oil Immersion Automation",
-        description: "Automated objective switch with OilBoy — BLE hardware control",
-        script: `# Oil Immersion Objective Switch
-# OilBoy BLE + SlideBook stage control
-CONNECT|OILBOY[BLE:serial=OB001]→STATUS|READY
-ACQUIRE|LOW_POWER[20x_air]→IMAGE[preview]|CAPTURED
-SWITCH|OBJECTIVE[oilboy_position]→PUMP[oil_amount=50]→STAGE[raise:offset]|OILING
-STAGE[lower]→SWITCH|OBJECTIVE[100x_oil]→ACQUIRE[100x]|CAPTURED
-VERIFY|ACQUISITION→RECEIPT[BLAKE3]|COMPLETE`
+        name: "Hardware State Capture",
+        description: "Record full microscope state with receipts",
+        script: `# Microscope State Snapshot — all hardware positions
+# Uses MicroscopeHardwareComponent enum (46 components)
+sb.GetMicroscopeState(MicroscopeStates.CurrentObjective)    → receipt
+sb.GetMicroscopeState(MicroscopeStates.CurrentFilter)       → receipt
+sb.GetMicroscopeState(MicroscopeStates.CurrentLaserPower)   → receipt
+sb.GetMicroscopeState(MicroscopeStates.CurrentXYstagePosition) → receipt
+sb.GetMicroscopeState(MicroscopeStates.CurrentZstagePosition)  → receipt
+sb.GetMagnification(capture_index)                          → receipt
+sb.GetLensName(capture_index)                               → receipt
+sb.GetExposureTime(capture_index, channel)                  → receipt
+POST /agent/remember {state_snapshot}                       → receipt[Λ]
+# Full hardware state stored as cube in Brain`
       },
       {
         name: "Deep Learning Inference",
-        description: "Run trained UNET/StarDist on cubified volumes",
-        script: `# Deep Learning Inference Pipeline
-# prediction_cubes.py cubify → model → uncubify
-LOAD|VOLUME[capture_index=0]→READ[all_planes]|LOADED
-CUBIFY|3D[shape=128x128x128]→PAD[auto]→CUBES[n=auto]|READY
-PREDICT|MODEL[StarDist3D]→CUBES[batch]→MASKS|SEGMENTED
-UNCUBIFY|MASKS→REASSEMBLE[original_shape]→VOLUME|RECONSTRUCTED
-VERIFY|PREDICTIONS→RECEIPT[BLAKE3]→WRITE[SlideBook]|COMPLETE`
+        description: "Cubify volumes → StarDist3D → write back to SlideBook",
+        script: `# DL Pipeline with SlideBook I/O
+# prediction_cubes.py cubify → model → uncubify → sb.WriteImagePlaneBuf
+slide_id = sb.Open("sample.sldy")               → receipt
+volume = []
+for z in range(sb.GetNumZPlanes(0)):
+  plane = sb.ReadImagePlaneBuf(0,0,0,z,0)        → receipt
+  volume.append(plane)
+cubes = cubify(np.stack(volume), (128,128,128))  → receipt[n_cubes]
+masks = StarDist3D.predict(cubes)                → receipt[BLAKE3]
+result = uncubify(masks, original_shape)         → receipt
+new_cap = sb.CreateImageGroup("StarDist_Result",
+  1, nz, ny, nx, 1)                              → receipt
+for z in range(nz):
+  sb.WriteImagePlaneBuf(new_cap, 0, z, 0, result[z]) → receipt[BLAKE3]
+sb.SaveSlide(slide_id)                           → receipt
+POST /agent/verify {trace_id}                    → receipt[integrity]`
       }
     ]
   },
