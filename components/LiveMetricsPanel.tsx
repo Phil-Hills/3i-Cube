@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getCubes } from '../services/brainService';
+import { getSwarmStatus, SwarmStatus, analyzeSession } from '../services/swarmService';
 
 interface LiveMetricsPanelProps {
   duplicatesSkipped?: number;
@@ -15,6 +16,8 @@ export const LiveMetricsPanel: React.FC<LiveMetricsPanelProps> = ({ duplicatesSk
     receipts: 0,
     duplicates: duplicatesSkipped,
   });
+  const [swarmStatus, setSwarmStatus] = useState<SwarmStatus | null>(null);
+  const [insights, setInsights] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -30,7 +33,28 @@ export const LiveMetricsPanel: React.FC<LiveMetricsPanelProps> = ({ duplicatesSk
       }
     };
 
+    const fetchSwarm = async () => {
+      try {
+        const status = await getSwarmStatus();
+        setSwarmStatus(status);
+      } catch (e) {
+        console.error('Failed to fetch swarm status:', e);
+      }
+    };
+
+    const fetchInsights = async () => {
+      try {
+        const res = await analyzeSession();
+        setInsights(res.insights);
+      } catch (e) {
+        console.error('Failed to fetch insights:', e);
+      }
+    };
+
     fetchMetrics();
+    fetchSwarm();
+    fetchInsights();
+    
     const interval = setInterval(() => {
       fetchMetrics();
       setMetrics(prev => ({
@@ -41,10 +65,24 @@ export const LiveMetricsPanel: React.FC<LiveMetricsPanelProps> = ({ duplicatesSk
         claudeGpt4: Math.max(0.1, prev.claudeGpt4 + (Math.random() * 0.2 - 0.1)),
       }));
     }, 5000);
-    return () => clearInterval(interval);
+
+    const swarmInterval = setInterval(fetchSwarm, 10000);
+    const insightsInterval = setInterval(fetchInsights, 15000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(swarmInterval);
+      clearInterval(insightsInterval);
+    };
   }, [duplicatesSkipped, refreshTrigger]);
 
   const reduction = ((1 - metrics.kStar / metrics.nlTokens) * 100).toFixed(1);
+
+  const formatTime = (isoString?: string) => {
+    if (!isoString) return 'Never';
+    const d = new Date(isoString);
+    return d.toLocaleTimeString([], { hour12: false });
+  };
 
   return (
     <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col border border-gray-700/50 text-xs font-mono">
@@ -63,6 +101,37 @@ export const LiveMetricsPanel: React.FC<LiveMetricsPanelProps> = ({ duplicatesSk
           <div className="flex justify-between"><span>Reduction:</span> <span className="text-emerald-400">{reduction}% ↓</span></div>
           <div className="flex justify-between"><span>K* trend:</span> <span className="text-emerald-400">↓ decreasing</span></div>
         </div>
+
+        <div>
+          <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">SWARM ACTIVITY</div>
+          <div className="flex justify-between">
+            <span>Analyst:</span> 
+            <span>{swarmStatus?.analyst.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.analyst.last_active)})</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Memory:</span> 
+            <span>{swarmStatus?.memory.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.memory.last_active)})</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Sentinel:</span> 
+            <span>{swarmStatus?.sentinel.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.sentinel.last_active)})</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Registrar:</span> 
+            <span>{swarmStatus?.registrar.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.registrar.last_active)})</span>
+          </div>
+        </div>
+
+        {insights.length > 0 && (
+          <div>
+            <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">ANALYST INSIGHTS</div>
+            <ul className="list-disc pl-4 text-gray-400 space-y-1">
+              {insights.map((insight, idx) => (
+                <li key={idx}>{insight}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div>
           <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">SEMANTIC CONVERGENCE</div>

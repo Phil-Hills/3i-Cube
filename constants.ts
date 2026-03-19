@@ -80,6 +80,54 @@ ANALYZE|RATIO[FRET/CFP]→NORMALIZE→PLOT[Time-Course]→STATISTICS|PROCESSED`
     ]
   },
   {
+    category: "3i Workflows",
+    description: "Automated workflows specific to 3i systems.",
+    scripts: [
+      {
+        name: "3D Fiducial Registration",
+        description: "Automated spatial alignment — replaces 288 lines of Python",
+        script: `# 3D Fiducial Point Registration
+# Kabsch SVD alignment via Brain Registrar agent
+REGISTER|FIDUCIAL[ref=REF1.mlt.prefs,target=3Montage.mlt.prefs]→LOAD|READY
+ALIGN|3D→POINTS[auto_detect]→TRANSFORM[rigid:SVD]→ERROR[threshold=0.5um]|ALIGNED
+VERIFY|REGISTRATION→RECEIPT[BLAKE3]→EXPORT[registered.mlt.prefs]|COMPLETE`
+      },
+      {
+        name: "SlideBook Acquisition Pipeline",
+        description: "Full acquisition → analysis pipeline with receipts",
+        script: `# SlideBook Acquisition Pipeline
+# Connects via SBAccess socket protocol
+CONNECT|SLIDEBOOK[socket:localhost:5000]→STATUS|READY
+ACQUIRE|CAPTURE[channels=3,z_planes=50,timepoints=1]→STORE|RECORDING
+CUBIFY|VOLUME[128x128x128]→SPLIT[auto_pad]→CUBES|READY
+ANALYZE|CUBES→SEGMENT[StarDist3D:threshold=0.4]→RESULTS|STORED
+VERIFY|PIPELINE→RECEIPT[BLAKE3]→EXPORT[results.sld]|COMPLETE`
+      },
+      {
+        name: "Oil Immersion Automation",
+        description: "Automated objective switch with OilBoy — BLE hardware control",
+        script: `# Oil Immersion Objective Switch
+# OilBoy BLE + SlideBook stage control
+CONNECT|OILBOY[BLE:serial=OB001]→STATUS|READY
+ACQUIRE|LOW_POWER[20x_air]→IMAGE[preview]|CAPTURED
+SWITCH|OBJECTIVE[oilboy_position]→PUMP[oil_amount=50]→STAGE[raise:offset]|OILING
+STAGE[lower]→SWITCH|OBJECTIVE[100x_oil]→ACQUIRE[100x]|CAPTURED
+VERIFY|ACQUISITION→RECEIPT[BLAKE3]|COMPLETE`
+      },
+      {
+        name: "Deep Learning Inference",
+        description: "Run trained UNET/StarDist on cubified volumes",
+        script: `# Deep Learning Inference Pipeline
+# prediction_cubes.py cubify → model → uncubify
+LOAD|VOLUME[capture_index=0]→READ[all_planes]|LOADED
+CUBIFY|3D[shape=128x128x128]→PAD[auto]→CUBES[n=auto]|READY
+PREDICT|MODEL[StarDist3D]→CUBES[batch]→MASKS|SEGMENTED
+UNCUBIFY|MASKS→REASSEMBLE[original_shape]→VOLUME|RECONSTRUCTED
+VERIFY|PREDICTIONS→RECEIPT[BLAKE3]→WRITE[SlideBook]|COMPLETE`
+      }
+    ]
+  },
+  {
     category: "Neuroscience",
     description: "Applications for brain slice and in vivo imaging.",
     scripts: [

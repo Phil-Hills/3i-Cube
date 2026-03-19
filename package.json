@@ -7,7 +7,8 @@
     "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node dist/server.cjs"
+    "start": "node dist/server.cjs",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.15.0",
@@ -25,7 +26,12 @@
     "@types/d3": "^7.4.3",
     "@types/express": "^5.0.6",
     "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
     "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

@@ -1,7 +1,7 @@
 import { blake3 } from '@noble/hashes/blake3.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 
-const BRAIN_URL = import.meta.env.VITE_BRAIN_URL || '/api';
+const BRAIN_URL = import.meta.env.VITE_BRAIN_URL || 'https://service-3i-brain-235894147478.us-west1.run.app';
 
 export function getSessionTraceId() {
   let traceId = sessionStorage.getItem('trace_id');
@@ -18,7 +18,7 @@ export async function storeCube(coordinate: string, result: any) {
     coordinate,
     result,
     timestamp: new Date().toISOString(),
-    hash: bytesToHex(blake3(JSON.stringify({coordinate, result}))),
+    hash: bytesToHex(blake3(new TextEncoder().encode(JSON.stringify({coordinate, result})))),
     trace_id: getSessionTraceId(),
     source: '3i-cube-app',
     tags: ['3i', 'microscopy', 'receipt']
@@ -39,4 +39,13 @@ export async function getCubes(limit = 20, coordinate?: string, trace_id?: strin
   
   return fetch(`${BRAIN_URL}/cubes?${params.toString()}`)
     .then(r => r.json());
+}
+
+export async function checkBrainHealth() {
+  try {
+    const res = await fetch(`${BRAIN_URL}/health`);
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { getCubes, getSessionTraceId } from '../services/brainService';
+import { getMemorySummary } from '../services/swarmService';
 
 export interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
@@ -23,6 +24,7 @@ export const MemoryGraph: React.FC<MemoryGraphProps> = ({ refreshTrigger = 0 }) 
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [links, setLinks] = useState<GraphLink[]>([]);
+  const [memorySummary, setMemorySummary] = useState<string>('');
 
   useEffect(() => {
     const fetchAndBuildGraph = async () => {
@@ -63,8 +65,23 @@ export const MemoryGraph: React.FC<MemoryGraphProps> = ({ refreshTrigger = 0 }) 
       }
     };
 
+    const fetchSummary = async () => {
+      try {
+        const res = await getMemorySummary();
+        setMemorySummary(res.summary);
+      } catch (e) {
+        console.error('Failed to fetch memory summary:', e);
+      }
+    };
+
     fetchAndBuildGraph();
-    const interval = setInterval(fetchAndBuildGraph, 10000);
+    fetchSummary();
+    
+    const interval = setInterval(() => {
+      fetchAndBuildGraph();
+      fetchSummary();
+    }, 10000);
+    
     return () => clearInterval(interval);
   }, [refreshTrigger]);
 
@@ -208,6 +225,12 @@ export const MemoryGraph: React.FC<MemoryGraphProps> = ({ refreshTrigger = 0 }) 
           <div>◈ Claim 25: Decision nodes record routing choices</div>
           <div>◈ Claim 27: Graph visualization interface</div>
         </div>
+        {memorySummary && (
+          <div className="mt-3 text-xs text-blue-400 space-y-1 border-t border-gray-700 pt-2 max-w-[200px]">
+            <div className="font-bold text-blue-300 mb-1">Memory Agent Summary:</div>
+            <div className="leading-relaxed">{memorySummary}</div>
+          </div>
+        )}
       </div>
 
       <svg ref={svgRef} className="w-full h-full cursor-move" />

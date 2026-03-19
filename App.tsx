@@ -31,20 +31,11 @@ const getInitialScript = (): string => {
 
 import { LiveMetricsPanel } from './components/LiveMetricsPanel';
 import { AgentBuilder } from './components/AgentBuilder';
-import { MemoryGraph, GraphNode, GraphLink } from './components/MemoryGraph';
+import { MemoryGraph } from './components/MemoryGraph';
 import { SpatialVisualizer } from './components/SpatialVisualizer';
 import { storeCube, getCubes, getSessionTraceId } from './services/brainService';
 
-const generateBlake3Hash = (str: string) => {
-  let hash = 5381;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) + hash) + str.charCodeAt(i);
-  }
-  const hex = (hash >>> 0).toString(16).padStart(8, '0');
-  // Create a pseudo-random looking 16 char hex string based on the hash
-  const hex2 = ((hash * 31) >>> 0).toString(16).padStart(8, '0');
-  return (hex + hex2).substring(0, 16);
-};
+import { SystemCheckModal } from './components/SystemCheckModal';
 
 const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
@@ -68,10 +59,9 @@ const App: React.FC = () => {
   });
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
+  const [isSystemCheckModalOpen, setIsSystemCheckModalOpen] = useState(false);
   const [view, setView] = useState<'executor' | 'converter' | 'memory' | 'builder'>('executor');
   
-  const [graphNodes, setGraphNodes] = useState<GraphNode[]>([]);
-  const [graphLinks, setGraphLinks] = useState<GraphLink[]>([]);
   const [lastCommand, setLastCommand] = useState<string>('');
 
 
@@ -122,31 +112,14 @@ const App: React.FC = () => {
               verified: true, 
               isDuplicate: false,
               packetAuth: {
-                seq: `Q-SIG-${Math.floor(Math.random() * 10000).toString(16).toUpperCase().padStart(4, '0')}`
+                seq: Math.floor(Math.random() * 10000),
+                signature: `Q-SIG-${Math.floor(Math.random() * 10000).toString(16).toUpperCase().padStart(4, '0')}`
               }
             };
             setReceipts(prev => [...prev, newReceipt]);
             receiptsRef.current.push(newReceipt);
             skipCurrentCommand = false;
             setLastCommand(command);
-
-            // Add to Memory Graph
-            const baseId = `cmd-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            const promptNode: GraphNode = { id: `${baseId}-prompt`, type: 'PROMPT', content: `User requested: ${command}`, hash: generateBlake3Hash(`prompt-${command}`) };
-            const decisionNode: GraphNode = { id: `${baseId}-decision`, type: 'DECISION', content: `Routed to ${command.split('|')[0]} agent`, hash: generateBlake3Hash(`decision-${command}`) };
-            const responseNode: GraphNode = { id: `${baseId}-response`, type: 'RESPONSE', content: `Generated CUBE: ${command}`, hash: generateBlake3Hash(`response-${command}`) };
-            const receiptNode: GraphNode = { id: `${baseId}-receipt`, type: 'RECEIPT', content: `Receipt for ${command}`, hash: realHash };
-
-            setGraphNodes(prev => [...prev, promptNode, decisionNode, responseNode, receiptNode]);
-            setGraphLinks(prev => [
-              ...prev,
-              { source: promptNode.id, target: decisionNode.id },
-              { source: decisionNode.id, target: promptNode.id }, // Bidirectional
-              { source: decisionNode.id, target: responseNode.id },
-              { source: responseNode.id, target: decisionNode.id }, // Bidirectional
-              { source: responseNode.id, target: receiptNode.id },
-              { source: receiptNode.id, target: responseNode.id } // Bidirectional
-            ]);
           }
           continue;
         }
@@ -202,6 +175,7 @@ const App: React.FC = () => {
       <Header 
         onAboutClick={() => setIsAboutModalOpen(true)}
         onDocsClick={() => setIsDocsModalOpen(true)}
+        onSystemCheckClick={() => setIsSystemCheckModalOpen(true)}
       />
       
       <main className="flex-grow flex flex-col p-4 overflow-hidden">
@@ -247,6 +221,7 @@ const App: React.FC = () => {
       <StatusBar status={microscopeStatus} />
       {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
       {isDocsModalOpen && <DocsModal onClose={() => setIsDocsModalOpen(false)} />}
+      {isSystemCheckModalOpen && <SystemCheckModal onClose={() => setIsSystemCheckModalOpen(false)} />}
     </div>
   );
 };
