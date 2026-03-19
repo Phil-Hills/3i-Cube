@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { chatWithOrchestrator } from '../services/geminiService';
 import { getMemorySummary, verifyIntegrity } from '../services/swarmService';
-import { storeCube } from '../services/brainService';
+import { storeQ } from '../services/brainService';
 import Markdown from 'react-markdown';
 
 interface Message {
@@ -19,7 +19,7 @@ export const AIChat: React.FC = () => {
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'Welcome to 3iΛ. I am the Orchestrator. How can I assist with your imaging workflow today?',
+      content: 'Welcome to Q Protocol. I am the Orchestrator. How can I assist with your imaging workflow today?',
       status: 'complete'
     }
   ]);
@@ -86,7 +86,7 @@ export const AIChat: React.FC = () => {
       ));
 
       // 4. COMMIT
-      const receipt = await storeCube(`CHAT|${userMessage.id}`, {
+      const receipt = await storeQ(`CHAT|${userMessage.id}`, {
         user: userMessage.content,
         assistant: response.response,
         thinking: response.thinking
@@ -124,7 +124,7 @@ export const AIChat: React.FC = () => {
             <div className={`max-w-[80%] ${msg.role === 'user' ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100' : 'bg-gray-800 border border-gray-700 text-gray-200'} rounded-xl p-4 shadow-sm`}>
               {msg.role === 'assistant' && (
                 <div className="flex items-center gap-2 mb-2 border-b border-gray-700/50 pb-2">
-                  <span className="text-blue-400 font-bold">3iΛ Orchestrator</span>
+                  <span className="text-blue-400 font-bold">Q Protocol Orchestrator</span>
                 </div>
               )}
               

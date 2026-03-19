@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCubes } from '../services/brainService';
+import { getQs } from '../services/brainService';
 import { getSwarmStatus, SwarmStatus, analyzeSession } from '../services/swarmService';
 
 interface LiveMetricsPanelProps {
@@ -22,14 +22,14 @@ export const LiveMetricsPanel: React.FC<LiveMetricsPanelProps> = ({ duplicatesSk
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const cubes = await getCubes(1000);
+        const qs = await getQs(1000);
         setMetrics(prev => ({
           ...prev,
-          receipts: cubes.length,
+          receipts: qs.length,
           duplicates: duplicatesSkipped,
         }));
       } catch (e) {
-        console.error('Failed to fetch cubes for metrics:', e);
+        console.error('Failed to fetch qs for metrics:', e);
       }
     };
 

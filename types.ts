@@ -35,7 +35,7 @@ export interface Receipt {
 
 export interface ConversionMetrics {
     original_lines: number;
-    cube_lines: number;
+    q_lines: number;
     compression_ratio: string;
     savings_percent: number;
 }

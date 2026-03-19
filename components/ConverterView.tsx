@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { convertCodeToCube, convertCubeToCode } from '../services/geminiService';
+import { convertCodeToQ, convertQToCode } from '../services/geminiService';
 import { CONVERTER_EXAMPLES } from '../constants';
 import type { ConversionMetrics } from '../types';
-import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, CubeIcon, ClipboardIcon, ArrowDownTrayIcon } from './icons';
+import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, QIcon, ClipboardIcon, ArrowDownTrayIcon } from './icons';
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) => (
   <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
@@ -12,8 +12,8 @@ const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) =
       <p className="text-lg font-bold text-blue-300">{metrics.original_lines}</p>
     </div>
     <div className="bg-gray-900/50 p-2 rounded-md">
-      <p className="text-xs text-gray-400">CUBE Lines</p>
-      <p className="text-lg font-bold text-green-300">{metrics.cube_lines}</p>
+      <p className="text-xs text-gray-400">Q Protocol Lines</p>
+      <p className="text-lg font-bold text-green-300">{metrics.q_lines}</p>
     </div>
     <div className="bg-gray-900/50 p-2 rounded-md">
       <p className="text-xs text-gray-400">Compression</p>
@@ -49,7 +49,7 @@ export const ConverterView: React.FC = () => {
     if (!outputCode) return '';
     if (outputMode === 'script') return outputCode;
     
-    const cubeFile = {
+    const qFile = {
       version: "1.0",
       metadata: {
         author: "A2AC LLC",
@@ -59,7 +59,7 @@ export const ConverterView: React.FC = () => {
       script: outputCode.split('\n').filter(l => l.trim()),
       signature: `blake3:${generateHex(outputCode).toLowerCase()}...`
     };
-    return JSON.stringify(cubeFile, null, 2);
+    return JSON.stringify(qFile, null, 2);
   };
 
   const hexAliases = outputCode 
@@ -78,11 +78,11 @@ export const ConverterView: React.FC = () => {
 
     try {
       if (conversionMode === 'encode') {
-        const result = await convertCodeToCube(inputCode);
-        setOutputCode(result.cube_code);
+        const result = await convertCodeToQ(inputCode);
+        setOutputCode(result.q_code);
         setMetrics(result.metrics);
       } else {
-        const result = await convertCubeToCode(inputCode);
+        const result = await convertQToCode(inputCode);
         setOutputCode(result.code);
         // We don't need metrics for decode right now, or we could add them later
       }
@@ -105,11 +105,11 @@ export const ConverterView: React.FC = () => {
     });
   };
 
-  const handleDownloadCube = () => {
+  const handleDownloadQ = () => {
     const element = document.createElement("a");
     const file = new Blob([getDisplayCode()], {type: 'text/plain;charset=utf-8'});
     element.href = URL.createObjectURL(file);
-    element.download = outputMode === 'file' ? "experiment.cube" : "experiment.cuby";
+    element.download = outputMode === 'file' ? "experiment.q" : "experiment.qpy";
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -124,7 +124,7 @@ export const ConverterView: React.FC = () => {
 ${inputCode}
 
 # ==================================================
-# CUBE Protocol Version (${metrics.cube_lines} lines)
+# Q Protocol Version (${metrics.q_lines} lines)
 # Converted by Phil Hills - Seattle Developer
 # ==================================================
 ${outputCode}
@@ -160,7 +160,7 @@ ${outputCode}
               conversionMode === 'encode' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
-            Encode to CUBE
+            Encode to Q Protocol
           </button>
           <button
             onClick={() => {
@@ -173,7 +173,7 @@ ${outputCode}
               conversionMode === 'decode' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
-            Decode from CUBE
+            Decode from Q Protocol
           </button>
         </div>
       </div>
@@ -184,14 +184,14 @@ ${outputCode}
           <div className="flex items-center mb-4">
             <CodeBracketIcon className="w-6 h-6 text-blue-400 mr-2" />
             <h2 className="text-lg font-semibold text-gray-100">
-              {conversionMode === 'encode' ? 'Your 3i Microscope Code' : 'Your CUBE Protocol Script'}
+              {conversionMode === 'encode' ? 'Your Microscope Code' : 'Your Q Protocol Script'}
             </h2>
           </div>
           <textarea
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
             className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
-            placeholder={conversionMode === 'encode' ? "Paste your Python or MATLAB microscope code here..." : "Paste your CUBE script here..."}
+            placeholder={conversionMode === 'encode' ? "Paste your Python or MATLAB microscope code here..." : "Paste your Q Protocol script here..."}
           />
           {conversionMode === 'encode' && (
             <div className="mt-2 flex flex-col sm:flex-row gap-2">
@@ -228,10 +228,10 @@ ${outputCode}
         <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <CubeIcon className="w-6 h-6 text-blue-400 mr-2" />
+              <QIcon className="w-6 h-6 text-blue-400 mr-2" />
               <h2 className="text-lg font-semibold text-gray-100">
                 {conversionMode === 'encode' 
-                  ? (outputMode === 'script' ? 'CUBE Protocol Output' : '.cube File Format ◈ Claims 11-14')
+                  ? (outputMode === 'script' ? 'Q Protocol Output' : '.q File Format ◈ Claims 11-14')
                   : 'Decoded Python/MATLAB Code'}
               </h2>
             </div>
@@ -243,7 +243,7 @@ ${outputCode}
                   className="bg-gray-700 text-xs text-gray-200 rounded p-1 border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="script">Raw Script</option>
-                  <option value="file">.cube File</option>
+                  <option value="file">.q File</option>
                 </select>
               )}
                 <button onClick={handleCopy} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
@@ -251,9 +251,9 @@ ${outputCode}
                   {copySuccess || 'Copy'}
                 </button>
                 {conversionMode === 'encode' && (
-                  <button onClick={handleDownloadCube} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
+                  <button onClick={handleDownloadQ} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
                     <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
-                    {outputMode === 'file' ? '.cube' : '.cuby'}
+                    {outputMode === 'file' ? '.q' : '.qpy'}
                   </button>
                 )}
                 {conversionMode === 'encode' && (
@@ -268,7 +268,7 @@ ${outputCode}
             value={conversionMode === 'encode' ? getDisplayCode() : outputCode}
             readOnly
             className="flex-grow w-full bg-gray-900/70 text-cyan-300 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
-            placeholder={conversionMode === 'encode' ? "Converted CUBE script will appear here..." : "Decoded code will appear here..."}
+            placeholder={conversionMode === 'encode' ? "Converted Q Protocol script will appear here..." : "Decoded code will appear here..."}
           />
            {metrics && conversionMode === 'encode' && <MetricsDisplay metrics={metrics} />}
            
@@ -309,7 +309,7 @@ ${outputCode}
           ) : (
             <>
               <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
-              {conversionMode === 'encode' ? 'Convert to CUBE' : 'Decode to Python/MATLAB'}
+              {conversionMode === 'encode' ? 'Convert to Q Protocol' : 'Decode to Python/MATLAB'}
             </>
           )}
         </button>

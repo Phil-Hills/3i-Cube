@@ -1,7 +1,7 @@
 """
 mock_sb.py — Mock SBAccess
 ===========================
-Drop-in replacement for the real 3i SlideBook SBAccess SDK.
+Drop-in replacement for the real SlideBook SBAccess SDK.
 
 ANY script written for the real microscope runs unchanged.
 Instead of talking to hardware via socket, it loads synthetic

@@ -80,7 +80,7 @@ ANALYZE|RATIO[FRET/CFP]→NORMALIZE→PLOT[Time-Course]→STATISTICS|PROCESSED`
     ]
   },
   {
-    category: "3i Workflows (Python SDK)",
+    category: "Q Protocol Workflows (Python SDK)",
     description: "Real Python scripts using the SlideBook SDK (mocked via mock_sb).",
     scripts: [
       {
@@ -265,8 +265,8 @@ STIMULUS|PRESENT[Visual-Grating]→REPEAT[20x]→RANDOMIZE[Orientation]|EXPERIME
 
 export const CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
   {
-    name: "3i Adaptive Optics (MATLAB)",
-    description: "Convert a real, 200+ line AO script from MATLAB to CUBE.",
+    name: "Q Protocol Adaptive Optics (MATLAB)",
+    description: "Convert a real, 200+ line AO script from MATLAB to Q Protocol.",
     code: `%% This script performs indirect, image-based adaptive optics
 % ... (200+ lines of MATLAB code)
 % Complex initialization
@@ -317,7 +317,7 @@ tifffile.imwrite("output.tif", image)`
   {
     name: "Multi-Channel Z-Stack (Python)",
     description: "Acquire a 3D stack across multiple fluorescent channels.",
-    code: `# 3i Multi-channel Z-stack
+    code: `# Q Protocol Multi-channel Z-stack
 import numpy
 from pycromanager import Core
 import tifffile
@@ -337,7 +337,7 @@ for channel in channels:
   {
     name: "Time-lapse Experiment (Python)",
     description: "Run a long-term time-lapse acquisition over 24 hours.",
-    code: `# 3i Time-lapse
+    code: `# Q Protocol Time-lapse
 import time
 from pycromanager import Core
 import tifffile

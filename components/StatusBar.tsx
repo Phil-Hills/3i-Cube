@@ -31,8 +31,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
         <span className="font-semibold text-white ml-1.5">{text}</span>
       </div>
       <div className="text-gray-500 text-right">
-        <div>3i CUBE Protocol v1.0</div>
-        <div className="text-xs">Powered by Q Protocol · A2AC LLC · a2ac.ai · Patent Pending</div>
+        <div>Q Protocol v1.0</div>
+        <div className="text-xs">A2AC LLC · a2ac.ai · Patent Pending</div>
         <div className="text-xs">© 2026 A2AC LLC</div>
       </div>
     </footer>

@@ -5,7 +5,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { Editor } from './components/Editor';
 import { OutputLog } from './components/OutputLog';
 import { StatusBar } from './components/StatusBar';
-import { interpretCubeScript } from './services/geminiService';
+import { interpretQScript } from './services/geminiService';
 import { ReceiptChain } from './components/ReceiptChain';
 import type { LogEntry, MicroscopeStatus, Receipt } from './types';
 import { METHOD_SCRIPTS } from './constants';
@@ -33,7 +33,7 @@ import { LiveMetricsPanel } from './components/LiveMetricsPanel';
 import { AIChat } from './components/AIChat';
 import { MemoryGraph } from './components/MemoryGraph';
 import { SpatialVisualizer } from './components/SpatialVisualizer';
-import { storeCube, getCubes, getSessionTraceId } from './services/brainService';
+import { storeQ, getQs, getSessionTraceId } from './services/brainService';
 
 import { SystemCheckModal } from './components/SystemCheckModal';
 import { Login } from './components/Login';
@@ -45,22 +45,14 @@ const App: React.FC = () => {
   const imageGenerator = useMemo(() => new MicroscopyImageGenerator(), []);
 
   const initialScript = getInitialScript();
-  const [cubeScript, setCubeScript] = useState<string>(initialScript);
+  const [qScript, setQScript] = useState<string>(initialScript);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [duplicatesSkipped, setDuplicatesSkipped] = useState(0);
   const receiptsRef = useRef<Receipt[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [microscopeStatus, setMicroscopeStatus] = useState<MicroscopeStatus>('DISCONNECTED');
-  const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(() => {
-    if (!initialScript) return null;
-    try {
-      return imageGenerator.generateFromCube(initialScript);
-    } catch (e) {
-      console.error("Failed to generate initial image:", e);
-      return null;
-    }
-  });
+  const [simulatedImageUrl, setSimulatedImageUrl] = useState<string | null>(null);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isSystemCheckModalOpen, setIsSystemCheckModalOpen] = useState(false);
@@ -70,12 +62,12 @@ const App: React.FC = () => {
 
 
   const handleExecute = useCallback(async () => {
-    if (isExecuting || !cubeScript.trim()) return;
+    if (isExecuting || !qScript.trim()) return;
 
     setIsExecuting(true);
     setMicroscopeStatus('EXECUTING');
     setLogEntries([]);
-    // Keep the existing preview image during execution for better UX
+    setSimulatedImageUrl(null); // Clear image before execution
 
     try {
       const response = await fetch('/api/execute', {
@@ -83,7 +75,7 @@ const App: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ script: cubeScript }),
+        body: JSON.stringify({ script: qScript }),
       });
 
       const data = await response.json();
@@ -135,6 +127,8 @@ const App: React.FC = () => {
       }
 
       setMicroscopeStatus('IDLE');
+      const imageUrl = imageGenerator.generateFromQ(qScript);
+      setSimulatedImageUrl(imageUrl);
 
     } catch (error) {
       console.error(error);
@@ -144,13 +138,12 @@ const App: React.FC = () => {
     } finally {
       setIsExecuting(false);
     }
-  }, [cubeScript, isExecuting]);
+  }, [qScript, isExecuting]);
 
   const selectScript = (script: string) => {
-    setCubeScript(script);
+    setQScript(script);
     setLogEntries([]);
-    const imageUrl = imageGenerator.generateFromCube(script);
-    setSimulatedImageUrl(imageUrl);
+    setSimulatedImageUrl(null);
   };
   
   if (!isAuthenticated) {
@@ -176,15 +169,15 @@ const App: React.FC = () => {
             </div>
             <div className="md:col-span-5 flex flex-col gap-4 overflow-hidden">
               <Editor
-                script={cubeScript}
-                onScriptChange={setCubeScript}
+                script={qScript}
+                onScriptChange={setQScript}
                 onExecute={handleExecute}
                 isExecuting={isExecuting}
               />
             </div>
             <div className="md:col-span-4 grid grid-rows-3 gap-4 overflow-hidden">
               <div className="row-span-1 overflow-hidden">
-                <ImagePreview imageUrl={simulatedImageUrl} />
+                <ImagePreview imageUrl={simulatedImageUrl} isExecuting={isExecuting} />
               </div>
               <div className="row-span-1 overflow-hidden">
                 <OutputLog logEntries={logEntries} />

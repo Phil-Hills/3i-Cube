@@ -4,9 +4,10 @@ import { PhotoIcon } from './icons';
 
 interface ImagePreviewProps {
   imageUrl: string | null;
+  isExecuting?: boolean;
 }
 
-export const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl }) => {
+export const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl, isExecuting }) => {
   return (
     <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col border border-gray-700/50 h-full">
       <div className="flex items-center mb-3 flex-shrink-0">
@@ -14,7 +15,12 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl }) => {
         <h2 className="text-lg font-semibold text-gray-100">AI-Generated Preview</h2>
       </div>
       <div className="relative flex-grow flex items-center justify-center bg-gray-900/50 rounded-md min-h-0">
-        {imageUrl ? (
+        {isExecuting ? (
+          <div className="text-blue-400 text-center p-4 flex flex-col items-center">
+             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+             <p className="animate-pulse">Generating preview...</p>
+          </div>
+        ) : imageUrl ? (
             <img 
               src={imageUrl} 
               alt="AI-generated microscopy preview" 

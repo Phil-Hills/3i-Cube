@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { getCubes, getSessionTraceId } from '../services/brainService';
+import { getQs, getSessionTraceId } from '../services/brainService';
 import { getMemorySummary } from '../services/swarmService';
 
 export interface GraphNode extends d3.SimulationNodeDatum {
@@ -30,19 +30,19 @@ export const MemoryGraph: React.FC<MemoryGraphProps> = ({ refreshTrigger = 0 }) 
     const fetchAndBuildGraph = async () => {
       try {
         const traceId = getSessionTraceId();
-        const cubes = await getCubes(50, undefined, traceId);
+        const qs = await getQs(50, undefined, traceId);
         
         const newNodes: GraphNode[] = [];
         const newLinks: GraphLink[] = [];
         
-        cubes.forEach((cube: any) => {
-          const baseId = `cmd-${cube.hash}`;
-          const command = cube.coordinate;
-          const hash = cube.hash;
+        qs.forEach((q: any) => {
+          const baseId = `cmd-${q.hash}`;
+          const command = q.coordinate;
+          const hash = q.hash;
           
           const promptNode: GraphNode = { id: `${baseId}-prompt`, type: 'PROMPT', content: `User requested: ${command}`, hash: `prompt-${hash}` };
           const decisionNode: GraphNode = { id: `${baseId}-decision`, type: 'DECISION', content: `Routed to ${command.split('|')[0]} agent`, hash: `decision-${hash}` };
-          const responseNode: GraphNode = { id: `${baseId}-response`, type: 'RESPONSE', content: `Generated CUBE: ${command}`, hash: `response-${hash}` };
+          const responseNode: GraphNode = { id: `${baseId}-response`, type: 'RESPONSE', content: `Generated Q Protocol: ${command}`, hash: `response-${hash}` };
           const receiptNode: GraphNode = { id: `${baseId}-receipt`, type: 'RECEIPT', content: `Receipt for ${command}`, hash };
 
           newNodes.push(promptNode, decisionNode, responseNode, receiptNode);
@@ -61,7 +61,7 @@ export const MemoryGraph: React.FC<MemoryGraphProps> = ({ refreshTrigger = 0 }) 
           setLinks(newLinks);
         }
       } catch (err) {
-        console.error('Failed to fetch cubes for Memory Graph:', err);
+        console.error('Failed to fetch qs for Memory Graph:', err);
       }
     };
 

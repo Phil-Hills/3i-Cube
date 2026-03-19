@@ -29,9 +29,8 @@ export const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
     <div className="min-h-screen bg-gray-950 flex flex-col justify-center items-center p-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <img src="/assets/logo_3i_lambda.png" alt="3iΛ Logo" className="mx-auto h-24 w-auto mb-4" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-          <h2 className="mt-6 text-3xl font-extrabold text-white tracking-tight">3iΛ</h2>
-          <p className="mt-2 text-sm text-blue-400 font-medium tracking-wide uppercase">Powered by Q Protocol</p>
+          <img src="/assets/logo_3i_lambda.png" alt="Q Protocol Logo" className="mx-auto h-24 w-auto mb-4" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+          <h2 className="mt-6 text-3xl font-extrabold text-white tracking-tight">Q Protocol</h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className={`rounded-md shadow-sm -space-y-px transition-transform ${error ? 'animate-shake' : ''}`}>

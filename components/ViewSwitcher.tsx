@@ -27,7 +27,7 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
           className={`${baseClasses} ${currentView === 'converter' ? activeClasses : inactiveClasses}`}
         >
           <SwitchHorizontalIcon className="w-5 h-5 mr-2" />
-          Code to CUBE Converter
+          Code to Q Protocol Converter
         </button>
         <button
           onClick={() => onViewChange('memory')}

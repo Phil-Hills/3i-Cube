@@ -12,44 +12,44 @@ export function getSessionTraceId() {
   return traceId;
 }
 
-export async function storeCube(coordinate: string, result: any) {
+export async function storeQ(coordinate: string, result: any) {
   const payload = {
-    cube_type: 'execution_receipt',
+    q_type: 'execution_receipt',
     coordinate,
     result,
     timestamp: new Date().toISOString(),
     hash: bytesToHex(blake3(new TextEncoder().encode(JSON.stringify({coordinate, result})))),
     trace_id: getSessionTraceId(),
-    source: '3i-cube-app',
-    tags: ['3i', 'microscopy', 'receipt']
+    source: 'q-protocol-app',
+    tags: ['q-protocol', 'microscopy', 'receipt']
   };
   
-  return fetch(`${BRAIN_URL}/cube`, {
+  return fetch(`${BRAIN_URL}/q`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(payload)
   }).then(r => r.json());
 }
 
-export async function getCubes(limit = 20, coordinate?: string, trace_id?: string) {
+export async function getQs(limit = 20, coordinate?: string, trace_id?: string) {
   const params = new URLSearchParams();
   params.append('limit', limit.toString());
   if (coordinate) params.append('coordinate', coordinate);
   if (trace_id) params.append('trace_id', trace_id);
   
-  return fetch(`${BRAIN_URL}/cubes?${params.toString()}`)
+  return fetch(`${BRAIN_URL}/qs?${params.toString()}`)
     .then(async r => {
       if (!r.ok) {
         return [];
       }
       const data = await r.json();
       if (Array.isArray(data)) return data;
-      if (data && Array.isArray(data.cubes)) return data.cubes;
+      if (data && Array.isArray(data.qs)) return data.qs;
       if (data && Array.isArray(data.data)) return data.data;
       return [];
     })
     .catch(err => {
-      console.error('Error fetching cubes:', err);
+      console.error('Error fetching qs:', err);
       return [];
     });
 }

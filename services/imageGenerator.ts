@@ -26,7 +26,7 @@ export class MicroscopyImageGenerator {
     return '';
   }
 
-  public generateFromCube(cubeCommand: string): string {
+  public generateFromQ(qCommand: string): string {
     if (!this.ctx || !this.canvas) {
       console.error("Canvas context is not available for image generation.");
       return this.getErrorPlaceholder();
@@ -36,7 +36,7 @@ export class MicroscopyImageGenerator {
       this.ctx.fillStyle = '#000000';
       this.ctx.fillRect(0, 0, this.width, this.height);
       
-      const commands = cubeCommand.toUpperCase();
+      const commands = qCommand.toUpperCase();
       let hasDrawn = false;
       
       if (commands.includes('MULTI')) {
@@ -65,7 +65,7 @@ export class MicroscopyImageGenerator {
         this.generateGenericMicroscopy();
       }
 
-      this.addMetadata(cubeCommand);
+      this.addMetadata(qCommand);
 
       return this.canvas.toDataURL('image/png');
 
@@ -210,7 +210,7 @@ export class MicroscopyImageGenerator {
     this.ctx.putImageData(imageData, 0, 0);
   }
 
-  private addMetadata(cubeCommand: string) {
+  private addMetadata(qCommand: string) {
     if (!this.ctx) return;
     // Scale bar
     this.ctx.strokeStyle = '#FFFFFF';
@@ -228,7 +228,7 @@ export class MicroscopyImageGenerator {
     // Attribution
     this.ctx.font = '10px Arial';
     this.ctx.textAlign = 'left';
-    this.ctx.fillText('AI Preview | CUBE Protocol | Phil Hills', 10, this.height - 10);
+    this.ctx.fillText('AI Preview | Q Protocol | A2AC LLC', 10, this.height - 10);
     
     // Timestamp
     const now = new Date();

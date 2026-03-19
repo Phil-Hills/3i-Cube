@@ -22,24 +22,76 @@ async function startServer() {
       return res.status(400).json({ error: "No script provided" });
     }
 
-    // Write the script to a temporary file
-    const tempScriptPath = path.join(process.cwd(), "temp_script.py");
-    
-    fs.writeFileSync(tempScriptPath, script);
-
-    exec(`python3 ${tempScriptPath}`, (error, stdout, stderr) => {
-      // Clean up temp file
-      if (fs.existsSync(tempScriptPath)) {
-        fs.unlinkSync(tempScriptPath);
-      }
-
-      if (error) {
-        console.error(`exec error: ${error}`);
-        return res.status(500).json({ error: error.message, stderr, stdout });
-      }
-      
-      res.json({ stdout, stderr });
+    const isQScript = script.split('\n').some((line: string) => {
+      const trimmed = line.trim();
+      return !trimmed.startsWith('#') && trimmed.includes('|');
     });
+
+    if (isQScript) {
+      // Simulate Q Protocol script execution
+      const lines = script.trim().split('\n');
+      const logs: string[] = [];
+      let imageGenerated = false;
+
+      for (const line of lines) {
+        if (line.trim().startsWith('#') || !line.trim()) continue;
+
+        const parts = line.split('|');
+        if (parts.length !== 3) {
+          logs.push(`ERROR: Invalid Q Protocol syntax: "${line}"`);
+          continue;
+        }
+
+        const [domain, sequence, outcome] = parts;
+        
+        logs.push(`Executing Q Protocol: ${line}`);
+        logs.push(`  -> Domain: ${domain}`);
+        logs.push(`  -> Sequence: ${sequence.replace(/→/g, ' -> ')}`);
+        
+        if (/CAPTURE|IMAGE|ACQUIRE/i.test(domain)) {
+            logs.push('  -> Camera shutter opening...');
+            logs.push('  -> Acquiring image data...');
+            logs.push('  -> Capture successful.');
+            if (!imageGenerated) {
+                logs.push('[IMAGE_GENERATED]');
+                imageGenerated = true;
+            }
+        } else if (/EXPERIMENT|LOOP|RECOVER/i.test(domain)) {
+            logs.push('  -> Starting complex experiment sequence...');
+            logs.push('  -> Monitoring progress...');
+        }
+
+        logs.push(`SUCCESS: ${outcome}`);
+      }
+
+      if (logs.length === 0) {
+          logs.push("Script is empty or contains only comments.");
+      }
+
+      // Simulate network delay
+      setTimeout(() => {
+        res.json({ stdout: logs.join('\n'), stderr: '' });
+      }, 500);
+    } else {
+      // Write the script to a temporary file
+      const tempScriptPath = path.join(process.cwd(), "temp_script.py");
+      
+      fs.writeFileSync(tempScriptPath, script);
+
+      exec(`python3 ${tempScriptPath}`, (error, stdout, stderr) => {
+        // Clean up temp file
+        if (fs.existsSync(tempScriptPath)) {
+          fs.unlinkSync(tempScriptPath);
+        }
+
+        if (error) {
+          console.error(`exec error: ${error}`);
+          return res.status(500).json({ error: error.message, stderr, stdout });
+        }
+        
+        res.json({ stdout, stderr });
+      });
+    }
   });
 
   // Vite middleware for development
@@ -52,7 +104,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

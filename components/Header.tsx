@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { CubeIcon, QuestionMarkCircleIcon, BookOpenIcon } from './icons';
+import { QIcon, QuestionMarkCircleIcon, BookOpenIcon } from './icons';
 import { checkBrainHealth } from '../services/brainService';
 import { getSwarmStatus, SwarmStatus } from '../services/swarmService';
 
@@ -33,11 +33,10 @@ export const Header: React.FC<HeaderProps> = ({ onAboutClick, onDocsClick, onSys
 
   return (
     <header className="flex items-center p-4 bg-gray-900/80 border-b border-blue-900/50 backdrop-blur-sm">
-      <CubeIcon className="w-8 h-8 text-blue-400 mr-3" />
+      <QIcon className="w-8 h-8 text-blue-400 mr-3" />
       <h1 className="text-2xl font-bold text-gray-100 tracking-wider">
-        3iΛ
+        Q Protocol
       </h1>
-      <span className="text-sm font-light text-gray-400 ml-2 mt-1.5">Powered by Q Protocol</span>
       
       <div className="ml-8 flex items-center space-x-4 text-xs font-mono">
         <div className="flex items-center" title="Brain">
@@ -79,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ onAboutClick, onDocsClick, onSys
         <button
           onClick={onAboutClick}
           className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors"
-          aria-label="About 3iΛ"
+          aria-label="About Q Protocol"
         >
           <QuestionMarkCircleIcon className="w-7 h-7" />
         </button>

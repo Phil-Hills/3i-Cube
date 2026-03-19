@@ -78,7 +78,7 @@ export const DocsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <div className="flex items-center">
             <BookOpenIcon className="w-7 h-7 text-blue-400 mr-3" />
             <div>
-              <h2 className="text-xl font-bold text-white">3i CUBE Protocol Documentation</h2>
+              <h2 className="text-xl font-bold text-white">Q Protocol Documentation</h2>
                <p className="text-sm text-gray-400">README</p>
             </div>
           </div>
