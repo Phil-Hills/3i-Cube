@@ -85,68 +85,68 @@ export const LiveMetricsPanel: React.FC<LiveMetricsPanelProps> = ({ duplicatesSk
   };
 
   return (
-    <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col border border-gray-700/50 text-xs font-mono">
-      <h2 className="text-sm font-semibold text-gray-100 mb-2 flex items-center">
-        <svg className="w-4 h-4 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="bg-[#0a0a0a] rounded-lg p-4 flex flex-col border border-white/10 text-xs font-mono shadow-lg">
+      <h2 className="text-sm font-semibold text-zinc-100 mb-3 flex items-center">
+        <svg className="w-4 h-4 text-sky-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
-        Live Metrics Dashboard
+        SlideBook™ Live Metrics
       </h2>
       
-      <div className="space-y-4 text-gray-300">
+      <div className="space-y-5 text-zinc-400">
         <div>
-          <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">K* CONVERGENCE METER</div>
-          <div className="flex justify-between"><span>Current K*:</span> <span>{metrics.kStar} tokens/msg</span></div>
-          <div className="flex justify-between"><span>Natural language:</span> <span>{metrics.nlTokens} tokens/msg</span></div>
-          <div className="flex justify-between"><span>Reduction:</span> <span className="text-emerald-400">{reduction}% ↓</span></div>
-          <div className="flex justify-between"><span>K* trend:</span> <span className="text-emerald-400">↓ decreasing</span></div>
+          <div className="text-sky-400/90 font-bold border-b border-white/10 pb-1 mb-2 tracking-wider text-[10px] uppercase">K* CONVERGENCE METER</div>
+          <div className="flex justify-between py-0.5"><span>Current K*:</span> <span className="text-zinc-300">{metrics.kStar} tokens/msg</span></div>
+          <div className="flex justify-between py-0.5"><span>Natural language:</span> <span className="text-zinc-300">{metrics.nlTokens} tokens/msg</span></div>
+          <div className="flex justify-between py-0.5"><span>Reduction:</span> <span className="text-emerald-400">{reduction}% ↓</span></div>
+          <div className="flex justify-between py-0.5"><span>K* trend:</span> <span className="text-emerald-400">↓ decreasing</span></div>
         </div>
 
         <div>
-          <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">SWARM ACTIVITY</div>
-          <div className="flex justify-between">
+          <div className="text-sky-400/90 font-bold border-b border-white/10 pb-1 mb-2 tracking-wider text-[10px] uppercase">SWARM ACTIVITY</div>
+          <div className="flex justify-between py-0.5">
             <span>Analyst:</span> 
-            <span>{swarmStatus?.analyst.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.analyst.last_active)})</span>
+            <span className="text-zinc-300">{swarmStatus?.analyst.tasks_completed || 0} tasks <span className="text-zinc-500">(Last: {formatTime(swarmStatus?.analyst.last_active)})</span></span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between py-0.5">
             <span>Memory:</span> 
-            <span>{swarmStatus?.memory.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.memory.last_active)})</span>
+            <span className="text-zinc-300">{swarmStatus?.memory.tasks_completed || 0} tasks <span className="text-zinc-500">(Last: {formatTime(swarmStatus?.memory.last_active)})</span></span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between py-0.5">
             <span>Sentinel:</span> 
-            <span>{swarmStatus?.sentinel.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.sentinel.last_active)})</span>
+            <span className="text-zinc-300">{swarmStatus?.sentinel.tasks_completed || 0} tasks <span className="text-zinc-500">(Last: {formatTime(swarmStatus?.sentinel.last_active)})</span></span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between py-0.5">
             <span>Registrar:</span> 
-            <span>{swarmStatus?.registrar.tasks_completed || 0} tasks (Last: {formatTime(swarmStatus?.registrar.last_active)})</span>
+            <span className="text-zinc-300">{swarmStatus?.registrar.tasks_completed || 0} tasks <span className="text-zinc-500">(Last: {formatTime(swarmStatus?.registrar.last_active)})</span></span>
           </div>
         </div>
 
         {insights.length > 0 && (
           <div>
-            <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">ANALYST INSIGHTS</div>
-            <ul className="list-disc pl-4 text-gray-400 space-y-1">
+            <div className="text-sky-400/90 font-bold border-b border-white/10 pb-1 mb-2 tracking-wider text-[10px] uppercase">ANALYST INSIGHTS</div>
+            <ul className="list-disc pl-4 text-zinc-400 space-y-1">
               {insights.map((insight, idx) => (
-                <li key={idx}>{insight}</li>
+                <li key={idx} className="py-0.5">{insight}</li>
               ))}
             </ul>
           </div>
         )}
 
         <div>
-          <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">SEMANTIC CONVERGENCE</div>
-          <div className="flex justify-between"><span>Claude ↔ Gemini:</span> <span>{metrics.claudeGemini.toFixed(1)}% variance</span></div>
-          <div className="flex justify-between"><span>Claude ↔ GPT-4:</span> <span>{metrics.claudeGpt4.toFixed(1)}% variance</span></div>
+          <div className="text-sky-400/90 font-bold border-b border-white/10 pb-1 mb-2 tracking-wider text-[10px] uppercase">SEMANTIC CONVERGENCE</div>
+          <div className="flex justify-between py-0.5"><span>Claude ↔ Gemini:</span> <span className="text-zinc-300">{metrics.claudeGemini.toFixed(1)}% variance</span></div>
+          <div className="flex justify-between py-0.5"><span>Claude ↔ GPT-4:</span> <span className="text-zinc-300">{metrics.claudeGpt4.toFixed(1)}% variance</span></div>
           <div className="flex justify-between mt-1"><span className="text-emerald-400">Status: ✓ Converged (&lt; 2%)</span></div>
-          <div className="text-gray-500 mt-1" title="Claim 5">◈ Claim 5: Cross-model convergence</div>
+          <div className="text-zinc-500 mt-1 text-[10px]" title="Claim 5">◈ Claim 5: Cross-model convergence</div>
         </div>
 
         <div>
-          <div className="text-blue-300 font-bold border-b border-gray-700/50 pb-1 mb-1">SYSTEM HEALTH</div>
-          <div className="flex justify-between"><span>Receipts stored:</span> <span>{metrics.receipts}</span></div>
-          <div className="flex justify-between"><span>Duplicates skipped:</span> <span>{metrics.duplicates} (idempotent ✓)</span></div>
-          <div className="flex justify-between"><span>Hallucination rate:</span> <span className="text-emerald-400">0%</span></div>
-          <div className="flex justify-between"><span>Amnesia incidents:</span> <span className="text-emerald-400">0</span></div>
+          <div className="text-sky-400/90 font-bold border-b border-white/10 pb-1 mb-2 tracking-wider text-[10px] uppercase">SYSTEM HEALTH</div>
+          <div className="flex justify-between py-0.5"><span>Receipts stored:</span> <span className="text-zinc-300">{metrics.receipts}</span></div>
+          <div className="flex justify-between py-0.5"><span>Duplicates skipped:</span> <span className="text-zinc-300">{metrics.duplicates} <span className="text-emerald-400/80">(idempotent ✓)</span></span></div>
+          <div className="flex justify-between py-0.5"><span>Hallucination rate:</span> <span className="text-emerald-400">0%</span></div>
+          <div className="flex justify-between py-0.5"><span>Amnesia incidents:</span> <span className="text-emerald-400">0</span></div>
         </div>
       </div>
     </div>

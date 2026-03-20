@@ -11,11 +11,11 @@ const LogMessage: React.FC<{ entry: LogEntry }> = ({ entry }) => {
   const getIconAndColor = () => {
     switch (entry.type) {
       case 'SUCCESS':
-        return 'text-green-400';
+        return 'text-emerald-400';
       case 'ERROR':
         return 'text-red-400';
       default:
-        return 'text-gray-400';
+        return 'text-zinc-400';
     }
   };
 
@@ -28,9 +28,9 @@ const LogMessage: React.FC<{ entry: LogEntry }> = ({ entry }) => {
   }
 
   return (
-    <div className="flex text-sm">
+    <div className="flex text-[13px] leading-relaxed">
       <span className={`mr-2 font-bold ${getIconAndColor()}`}>{getPrefix()}</span>
-      <span className={entry.type === 'INFO' ? 'text-gray-300' : getIconAndColor()}>{entry.message}</span>
+      <span className={entry.type === 'INFO' ? 'text-zinc-300' : getIconAndColor()}>{entry.message}</span>
     </div>
   );
 };
@@ -45,19 +45,25 @@ export const OutputLog: React.FC<OutputLogProps> = ({ logEntries }) => {
   }, [logEntries]);
   
   return (
-    <div className="bg-gray-800/50 rounded-lg flex flex-col h-full border border-gray-700/50 overflow-hidden">
-      <div className="flex items-center p-4 border-b border-gray-700/50 flex-shrink-0">
-        <TerminalIcon className="w-6 h-6 text-blue-400 mr-2" />
-        <h2 className="text-lg font-semibold text-gray-100">Python Execution Log</h2>
+    <div className="bg-[#0a0a0a] rounded-xl flex flex-col h-full border border-white/10 shadow-2xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/20 to-emerald-500/0"></div>
+      <div className="flex items-center justify-between p-4 border-b border-white/5 flex-shrink-0">
+        <div className="flex items-center">
+          <TerminalIcon className="w-5 h-5 text-emerald-400 mr-2" />
+          <h2 className="text-sm font-mono tracking-widest text-zinc-300 uppercase">SlideBook™ Execution Log</h2>
+        </div>
+        <div className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono">
+          System Output
+        </div>
       </div>
       
-      <div className="p-3 bg-blue-900/20 border-b border-gray-700/50 text-center text-xs text-blue-200 flex-shrink-0">
+      <div className="p-3 bg-emerald-900/10 border-b border-emerald-500/10 text-center text-[11px] text-emerald-400/80 font-mono uppercase tracking-wider flex-shrink-0">
         ⚡️ <strong>Synthetic Mode:</strong> Running Python scripts against synthetic data via mock_sb.
       </div>
 
-      <div ref={logContainerRef} className="flex-grow p-4 font-mono text-sm space-y-2 overflow-y-auto">
+      <div ref={logContainerRef} className="flex-grow p-4 font-mono text-[13px] space-y-2 overflow-y-auto bg-[#050505] shadow-inner">
         {logEntries.length === 0 ? (
-            <div className="text-gray-500">Awaiting execution...</div>
+            <div className="text-zinc-600 italic">Awaiting execution...</div>
         ) : (
             logEntries.map((entry, index) => (
               <LogMessage key={index} entry={entry} />

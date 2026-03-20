@@ -7,21 +7,21 @@ import { CodeBracketIcon, LoaderIcon, SwitchHorizontalIcon, QIcon, ClipboardIcon
 
 const MetricsDisplay: React.FC<{ metrics: ConversionMetrics }> = ({ metrics }) => (
   <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-    <div className="bg-gray-900/50 p-2 rounded-md">
-      <p className="text-xs text-gray-400">Original Lines</p>
-      <p className="text-lg font-bold text-blue-300">{metrics.original_lines}</p>
+    <div className="bg-[#050505] p-2.5 rounded-lg border border-white/5 shadow-inner">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Original Lines</p>
+      <p className="text-lg font-mono text-sky-400">{metrics.original_lines}</p>
     </div>
-    <div className="bg-gray-900/50 p-2 rounded-md">
-      <p className="text-xs text-gray-400">Q Protocol Lines</p>
-      <p className="text-lg font-bold text-green-300">{metrics.q_lines}</p>
+    <div className="bg-[#050505] p-2.5 rounded-lg border border-white/5 shadow-inner">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Q Protocol Lines</p>
+      <p className="text-lg font-mono text-emerald-400">{metrics.q_lines}</p>
     </div>
-    <div className="bg-gray-900/50 p-2 rounded-md">
-      <p className="text-xs text-gray-400">Compression</p>
-      <p className="text-lg font-bold text-gray-100">{metrics.compression_ratio}</p>
+    <div className="bg-[#050505] p-2.5 rounded-lg border border-white/5 shadow-inner">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Compression</p>
+      <p className="text-lg font-mono text-zinc-300">{metrics.compression_ratio}</p>
     </div>
-    <div className="bg-green-900/20 p-2 rounded-md border border-green-800/50">
-      <p className="text-xs text-green-300">Code Reduction</p>
-      <p className="text-lg font-bold text-green-300">{metrics.savings_percent}%</p>
+    <div className="bg-emerald-900/10 p-2.5 rounded-lg border border-emerald-500/20 shadow-inner">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-emerald-500/80">Code Reduction</p>
+      <p className="text-lg font-mono text-emerald-400">{metrics.savings_percent}%</p>
     </div>
   </div>
 );
@@ -148,7 +148,7 @@ ${outputCode}
   return (
     <div className="flex flex-col flex-grow pt-4 overflow-hidden gap-4">
       <div className="flex justify-center mb-2">
-        <div className="bg-gray-800 p-1 rounded-lg flex space-x-1 border border-gray-700">
+        <div className="bg-[#0a0a0a] p-1.5 rounded-xl flex space-x-1 border border-white/10 shadow-lg">
           <button
             onClick={() => {
               setConversionMode('encode');
@@ -156,8 +156,8 @@ ${outputCode}
               setOutputCode('');
               setMetrics(null);
             }}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              conversionMode === 'encode' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+            className={`px-5 py-2.5 rounded-lg text-[13px] font-mono uppercase tracking-wider transition-all duration-200 border ${
+              conversionMode === 'encode' ? 'bg-sky-600/20 text-sky-400 border-sky-500/50 shadow-[0_0_15px_rgba(14,165,233,0.15)]' : 'bg-[#050505] text-zinc-500 border-white/5 hover:border-white/10 hover:text-zinc-300 hover:bg-white/5'
             }`}
           >
             Encode to Q Protocol
@@ -169,8 +169,8 @@ ${outputCode}
               setOutputCode('');
               setMetrics(null);
             }}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              conversionMode === 'decode' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+            className={`px-5 py-2.5 rounded-lg text-[13px] font-mono uppercase tracking-wider transition-all duration-200 border ${
+              conversionMode === 'decode' ? 'bg-sky-600/20 text-sky-400 border-sky-500/50 shadow-[0_0_15px_rgba(14,165,233,0.15)]' : 'bg-[#050505] text-zinc-500 border-white/5 hover:border-white/10 hover:text-zinc-300 hover:bg-white/5'
             }`}
           >
             Decode from Q Protocol
@@ -180,21 +180,23 @@ ${outputCode}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-hidden">
         {/* Input Panel */}
-        <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
+        <div className="bg-[#0a0a0a] rounded-xl p-4 flex flex-col h-full border border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500/0 via-sky-500/20 to-sky-500/0"></div>
           <div className="flex items-center mb-4">
-            <CodeBracketIcon className="w-6 h-6 text-blue-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-100">
+            <CodeBracketIcon className="w-5 h-5 text-sky-400 mr-2" />
+            <h2 className="text-sm font-mono tracking-widest text-zinc-300 uppercase">
               {conversionMode === 'encode' ? 'Your Microscope Code' : 'Your Q Protocol Script'}
             </h2>
           </div>
           <textarea
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
-            className="flex-grow w-full bg-gray-900/70 text-gray-200 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
+            className="flex-grow w-full bg-[#050505] text-sky-100/90 font-mono p-4 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500/50 resize-none border border-white/5 text-[13px] leading-relaxed shadow-inner"
             placeholder={conversionMode === 'encode' ? "Paste your Python or MATLAB microscope code here..." : "Paste your Q Protocol script here..."}
+            spellCheck={false}
           />
           {conversionMode === 'encode' && (
-            <div className="mt-2 flex flex-col sm:flex-row gap-2">
+            <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <select
                 value={selectedExample}
                 onChange={(e) => {
@@ -208,7 +210,7 @@ ${outputCode}
                     setError(null);
                   }
                 }}
-                className="bg-gray-700 text-sm text-gray-200 rounded-md p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:flex-grow"
+                className="bg-[#050505] text-[13px] font-mono text-zinc-300 rounded-lg p-3 border border-white/10 focus:outline-none focus:ring-1 focus:ring-sky-500/50 w-full sm:flex-grow shadow-inner"
               >
                 <option value="" disabled>Load Example Snippet...</option>
                 {CONVERTER_EXAMPLES.map(example => (
@@ -218,18 +220,19 @@ ${outputCode}
             </div>
           )}
           {selectedExample && conversionMode === 'encode' && (
-              <p className="text-xs text-gray-400 mt-2 p-2 bg-gray-900/50 rounded-md">
-                  <strong>Description:</strong> {CONVERTER_EXAMPLES.find(ex => ex.name === selectedExample)?.description}
+              <p className="text-[11px] font-mono text-zinc-500 mt-3 p-3 bg-[#050505] rounded-lg border border-white/5 shadow-inner leading-relaxed">
+                  <strong className="text-sky-400/80 uppercase tracking-wider">Description:</strong> {CONVERTER_EXAMPLES.find(ex => ex.name === selectedExample)?.description}
               </p>
           )}
         </div>
         
         {/* Output Panel */}
-        <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col h-full border border-gray-700/50">
+        <div className="bg-[#0a0a0a] rounded-xl p-4 flex flex-col h-full border border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/20 to-emerald-500/0"></div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <QIcon className="w-6 h-6 text-blue-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-100">
+              <QIcon className="w-5 h-5 text-emerald-400 mr-2" />
+              <h2 className="text-sm font-mono tracking-widest text-zinc-300 uppercase">
                 {conversionMode === 'encode' 
                   ? (outputMode === 'script' ? 'Q Protocol Output' : '.q File Format ◈ Claims 11-14')
                   : 'Decoded Python/MATLAB Code'}
@@ -240,25 +243,25 @@ ${outputCode}
                 <select 
                   value={outputMode} 
                   onChange={(e) => setOutputMode(e.target.value as 'script' | 'file')}
-                  className="bg-gray-700 text-xs text-gray-200 rounded p-1 border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="bg-[#050505] text-[11px] font-mono uppercase tracking-wider text-zinc-300 rounded-md p-1.5 border border-white/10 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
                 >
                   <option value="script">Raw Script</option>
                   <option value="file">.q File</option>
                 </select>
               )}
-                <button onClick={handleCopy} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
-                  <ClipboardIcon className="w-4 h-4 mr-1"/>
+                <button onClick={handleCopy} disabled={!outputCode} className="text-zinc-500 hover:text-zinc-300 disabled:text-zinc-700 disabled:cursor-not-allowed transition-colors text-[11px] font-mono uppercase tracking-wider flex items-center">
+                  <ClipboardIcon className="w-4 h-4 mr-1.5"/>
                   {copySuccess || 'Copy'}
                 </button>
                 {conversionMode === 'encode' && (
-                  <button onClick={handleDownloadQ} disabled={!outputCode} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
-                    <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
+                  <button onClick={handleDownloadQ} disabled={!outputCode} className="text-zinc-500 hover:text-zinc-300 disabled:text-zinc-700 disabled:cursor-not-allowed transition-colors text-[11px] font-mono uppercase tracking-wider flex items-center">
+                    <ArrowDownTrayIcon className="w-4 h-4 mr-1.5"/>
                     {outputMode === 'file' ? '.q' : '.qpy'}
                   </button>
                 )}
                 {conversionMode === 'encode' && (
-                  <button onClick={handleDownloadComparison} disabled={!outputCode || !metrics} className="text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors text-sm flex items-center">
-                    <ArrowDownTrayIcon className="w-4 h-4 mr-1"/>
+                  <button onClick={handleDownloadComparison} disabled={!outputCode || !metrics} className="text-zinc-500 hover:text-zinc-300 disabled:text-zinc-700 disabled:cursor-not-allowed transition-colors text-[11px] font-mono uppercase tracking-wider flex items-center">
+                    <ArrowDownTrayIcon className="w-4 h-4 mr-1.5"/>
                     Compare
                   </button>
                 )}
@@ -267,24 +270,25 @@ ${outputCode}
           <textarea
             value={conversionMode === 'encode' ? getDisplayCode() : outputCode}
             readOnly
-            className="flex-grow w-full bg-gray-900/70 text-cyan-300 font-mono p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none border border-gray-700 text-sm"
+            className="flex-grow w-full bg-[#050505] text-emerald-400/90 font-mono p-4 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/50 resize-none border border-white/5 text-[13px] leading-relaxed shadow-inner"
             placeholder={conversionMode === 'encode' ? "Converted Q Protocol script will appear here..." : "Decoded code will appear here..."}
+            spellCheck={false}
           />
            {metrics && conversionMode === 'encode' && <MetricsDisplay metrics={metrics} />}
            
            {/* Hex Aliases Panel */}
            {hexAliases.length > 0 && outputMode === 'script' && conversionMode === 'encode' && (
-             <div className="mt-4 bg-gray-900/50 rounded-md p-3 border border-gray-700/50 overflow-y-auto max-h-32">
-               <div className="flex justify-between items-center mb-2">
-                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hex Alias Promotion ◈ Claims 3, 7</h3>
-                 <span className="text-xs text-blue-400">K* Semantic Compression Active ◈ Claim 15</span>
+             <div className="mt-4 bg-[#050505] rounded-lg p-3.5 border border-white/5 overflow-y-auto max-h-32 shadow-inner custom-scrollbar">
+               <div className="flex justify-between items-center mb-3">
+                 <h3 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Hex Alias Promotion ◈ Claims 3, 7</h3>
+                 <span className="text-[10px] font-mono text-sky-500/80 uppercase tracking-widest">K* Semantic Compression Active ◈ Claim 15</span>
                </div>
-               <ul className="space-y-1">
+               <ul className="space-y-1.5">
                  {hexAliases.map((alias, idx) => (
-                   <li key={idx} className="text-xs font-mono flex items-start">
-                     <span className="text-purple-400 font-bold mr-2">{alias.hex}</span>
-                     <span className="text-gray-500 mr-2">→</span>
-                     <span className="text-gray-300 break-all">{alias.command}</span>
+                   <li key={idx} className="text-[11px] font-mono flex items-start">
+                     <span className="text-indigo-400 font-bold mr-3">{alias.hex}</span>
+                     <span className="text-zinc-600 mr-3">→</span>
+                     <span className="text-zinc-400 break-all">{alias.command}</span>
                    </li>
                  ))}
                </ul>
@@ -295,11 +299,11 @@ ${outputCode}
       
       {/* Action Bar */}
       <div className="flex-shrink-0">
-         {error && <div className="text-center text-red-400 mb-2 text-sm">{error}</div>}
+         {error && <div className="text-center text-red-400/90 font-mono text-[13px] mb-3">{error}</div>}
          <button
           onClick={handleConvert}
           disabled={isConverting || !inputCode.trim()}
-          className="w-full flex items-center justify-center p-3 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+          className="w-full flex items-center justify-center p-3.5 bg-sky-600 text-white font-mono text-sm uppercase tracking-wider rounded-lg hover:bg-sky-500 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500/50 shadow-[0_0_15px_rgba(14,165,233,0.15)] hover:shadow-[0_0_20px_rgba(14,165,233,0.3)] disabled:shadow-none"
         >
           {isConverting ? (
             <>

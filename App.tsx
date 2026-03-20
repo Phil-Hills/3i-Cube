@@ -59,6 +59,14 @@ const App: React.FC = () => {
   const [view, setView] = useState<'executor' | 'converter' | 'memory' | 'chat'>('executor');
   
   const [lastCommand, setLastCommand] = useState<string>('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const handleToggleAdvanced = () => {
+    if (showAdvanced && view === 'memory') {
+      setView('executor');
+    }
+    setShowAdvanced(!showAdvanced);
+  };
 
 
   const handleExecute = useCallback(async () => {
@@ -109,6 +117,7 @@ const App: React.FC = () => {
              const hash = match[1];
              let coord = line.trim().replace(/^◈\s*/, '');
              coord = coord.replace(/\s*\[[a-f0-9]{16}\]$/, '');
+             setLastCommand(coord);
              const newReceipt = { 
                 timestamp: new Date(), 
                 coordinate: coord, 
@@ -145,46 +154,74 @@ const App: React.FC = () => {
     setLogEntries([]);
     setSimulatedImageUrl(null);
   };
+
+  const handleExportToSlideBook = useCallback(() => {
+    setLogEntries(prev => [...prev, { type: 'INFO', message: 'Exporting image data to SlideBook™ workspace...', timestamp: new Date() }]);
+    setTimeout(() => {
+      setLogEntries(prev => [...prev, { type: 'SUCCESS', message: 'Successfully exported to SlideBook™.', timestamp: new Date() }]);
+    }, 800);
+  }, []);
   
   if (!isAuthenticated) {
     return <Login onLogin={() => setIsAuthenticated(true)} />;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
+    <div className="flex flex-col h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-blue-500/30">
       <Header 
         onAboutClick={() => setIsAboutModalOpen(true)}
         onDocsClick={() => setIsDocsModalOpen(true)}
         onSystemCheckClick={() => setIsSystemCheckModalOpen(true)}
+        showAdvanced={showAdvanced}
+        onToggleAdvanced={handleToggleAdvanced}
       />
       
       <main className="flex-grow flex flex-col p-4 overflow-hidden">
-        <ViewSwitcher currentView={view} onViewChange={setView} />
+        <ViewSwitcher currentView={view} onViewChange={setView} showAdvanced={showAdvanced} />
         {view === 'executor' ? (
-           <div className="flex-grow grid grid-cols-1 md:grid-cols-12 gap-4 pt-4 overflow-hidden">
-            <div className="md:col-span-3 flex flex-col gap-4 overflow-y-auto">
-              <CommandPalette onSelectScript={selectScript} />
-              <LiveMetricsPanel duplicatesSkipped={duplicatesSkipped} refreshTrigger={receipts.length} />
-              {lastCommand && <SpatialVisualizer command={lastCommand} />}
-            </div>
-            <div className="md:col-span-5 flex flex-col gap-4 overflow-hidden">
-              <Editor
-                script={qScript}
-                onScriptChange={setQScript}
-                onExecute={handleExecute}
-                isExecuting={isExecuting}
-              />
-            </div>
-            <div className="md:col-span-4 grid grid-rows-3 gap-4 overflow-hidden">
-              <div className="row-span-1 overflow-hidden">
-                <ImagePreview imageUrl={simulatedImageUrl} isExecuting={isExecuting} />
+           <div className="flex-grow flex flex-col lg:flex-row gap-4 pt-4 overflow-hidden">
+            {showAdvanced && (
+              <div className="w-full lg:w-72 flex flex-col gap-4 overflow-hidden flex-shrink-0">
+                <div className={`${lastCommand ? 'h-[40%]' : 'h-1/2'} overflow-hidden`}>
+                  <CommandPalette onSelectScript={selectScript} />
+                </div>
+                <div className="flex-shrink-0">
+                  <LiveMetricsPanel duplicatesSkipped={duplicatesSkipped} refreshTrigger={receipts.length} />
+                </div>
+                {lastCommand && (
+                  <div className="flex-grow overflow-hidden">
+                    <SpatialVisualizer command={lastCommand} />
+                  </div>
+                )}
               </div>
-              <div className="row-span-1 overflow-hidden">
+            )}
+            <div className={`w-full ${showAdvanced ? 'lg:w-[450px]' : 'lg:w-[350px]'} flex flex-col gap-4 overflow-hidden flex-shrink-0`}>
+              {!showAdvanced && (
+                <div className="h-1/3 overflow-hidden flex-shrink-0">
+                  <CommandPalette onSelectScript={selectScript} />
+                </div>
+              )}
+              <div className="flex-grow overflow-hidden">
+                <Editor
+                  script={qScript}
+                  onScriptChange={setQScript}
+                  onExecute={handleExecute}
+                  isExecuting={isExecuting}
+                />
+              </div>
+              <div className={`${showAdvanced ? 'h-48' : 'h-32'} overflow-hidden flex-shrink-0`}>
                 <OutputLog logEntries={logEntries} />
               </div>
-              <div className="row-span-1 overflow-hidden">
-                <ReceiptChain receipts={receipts} duplicatesSkipped={duplicatesSkipped} />
+            </div>
+            <div className="flex-grow flex flex-col gap-4 overflow-hidden min-w-0">
+              <div className="flex-grow overflow-hidden">
+                <ImagePreview imageUrl={simulatedImageUrl} isExecuting={isExecuting} qScript={qScript} onExport={handleExportToSlideBook} />
               </div>
+              {showAdvanced && (
+                <div className="h-48 overflow-hidden flex-shrink-0">
+                  <ReceiptChain receipts={receipts} duplicatesSkipped={duplicatesSkipped} />
+                </div>
+              )}
             </div>
           </div>
         ) : view === 'converter' ? (

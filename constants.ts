@@ -2,6 +2,51 @@ import type { ExampleScriptCategory, ConverterExample } from './types';
 
 export const METHOD_SCRIPTS: ExampleScriptCategory[] = [
   {
+    category: "Tissue Imaging",
+    description: "Imaging of thick, scattering, or calcified tissues.",
+    scripts: [
+      {
+        name: "Bone Tissue Z-Stack",
+        description: "Z-stack acquisition loop with depth-dependent laser power scaling to compensate for signal loss deep within the bone matrix.",
+        script: `# Q Protocol: Bone Tissue Z-Stack Acquisition Script
+# Optimize for high light scattering and refractive index mismatch
+SETUP|TISSUE[Bone]→OBJECTIVE[20x-Multi-Immersion]→MOUNTING[Clearing-Agent]|READY
+CALIBRATE|REFRACTIVE_INDEX[1.52]→SPHERICAL_ABERRATION[Correct]|OPTIMIZED
+ACQUIRE|Z_STACK[200um:2um]→LASER[Ramp:10%-100%]→CHANNELS[SHG,GFP]|PENETRATING
+PROCESS|ALIGN[Thick-Tissue]→DECONVOLUTION[3D]→RECONSTRUCT[Volume]|MAPPED`
+      }
+    ]
+  },
+  {
+    category: "Lattice Light Sheet",
+    description: "High-resolution, gentle volumetric imaging of live cells and small organisms.",
+    scripts: [
+      {
+        name: "Live Cell Volume (Square Lattice)",
+        description: "Fast volumetric imaging of a single cell using a standard square lattice.",
+        script: `SETUP|LATTICE[Square]→OBJECTIVE[1.1NA-Water]→CHAMBER[37C,5%CO2]|READY
+CALIBRATE|SLM[Pattern]→ANNULUS[Inner:0.4,Outer:0.55]→ALIGN[Galvos]|OPTIMIZED
+ACQUIRE|VOLUME[20um:0.5um]→RATE[1-Vol/sec]→DURATION[10min]→CHANNELS[GFP]|IMAGING
+PROCESS|DESKEW[Angle:31.5]→DECONVOLUTION[Richardson-Lucy:10-iters]|RECONSTRUCTED`
+      },
+      {
+        name: "Structured Illumination (SIM)",
+        description: "Super-resolution lattice light sheet imaging using optical grating.",
+        script: `SETUP|LATTICE[Square]→MODE[SIM]→PHASES[5]→OBJECTIVE[1.1NA-Water]|READY
+ACQUIRE|VOLUME[15um:0.2um]→EXPOSURE[20ms]→CHANNELS[488,561]|STRUCTURED
+PROCESS|DESKEW→SIM_RECONSTRUCT[Wiener-Filter]→RESOLUTION[1.5x-Improvement]|SUPER_RES`
+      },
+      {
+        name: "Multi-Point Cell Interaction",
+        description: "Imaging multiple fields of view to capture cell-cell interactions (e.g., T-cell/Target).",
+        script: `SETUP|LATTICE[Hex-Rect]→MOUNTING[Poly-L-Lysine]→CHAMBER[37C]|READY
+DEFINE|POSITIONS[P1,P2,P3,P4]→VOLUME[30um:0.5um]|MAPPED
+ACQUIRE|MULTI_POINT→RATE[1-Vol/min]→DURATION[1h]→CHANNELS[GFP,RFP]|MONITORING
+PROCESS|DESKEW→STITCH[Optional]→TRACK[Interactions]|ANALYZED`
+      }
+    ]
+  },
+  {
     category: "Agent Delegation",
     description: "Demonstrates agent-to-agent task delegation (Claims 28-30).",
     scripts: [
@@ -80,8 +125,8 @@ ANALYZE|RATIO[FRET/CFP]→NORMALIZE→PLOT[Time-Course]→STATISTICS|PROCESSED`
     ]
   },
   {
-    category: "Q Protocol Workflows (Python SDK)",
-    description: "Real Python scripts using the SlideBook SDK (mocked via mock_sb).",
+    category: "SlideBook™ Workflows (Python SDK)",
+    description: "Real Python scripts using the 3i SlideBook™ SDK (mocked via mock_sb).",
     scripts: [
       {
         name: "Full Stack Pipeline",
@@ -259,11 +304,126 @@ IMAGE|NEURONS[GCaMP6]→DEPTH[150um]→RATE[30Hz]→DURATION[Trial]|RECORDING
 STIMULUS|PRESENT[Visual-Grating]→REPEAT[20x]→RANDOMIZE[Orientation]|EXPERIMENTAL`
         }
     ]
+  },
+  {
+    category: "Light Sheet / SPIM",
+    description: "Fast, gentle volumetric imaging of large cleared or live samples.",
+    scripts: [
+      {
+        name: "Whole Brain Cleared Tissue",
+        description: "Tile scan of an iDISCO cleared mouse brain with light sheet.",
+        script: `SETUP|LIGHTSHEET[Dual-Sided]→OBJECTIVE[20x-Clearing]→CHAMBER[RI-1.56]|ALIGNED
+ACQUIRE|TILE_SCAN[10x10]→Z_STACK[5000um:5um]→CHANNELS[488,647]|VOLUMETRIC
+PROCESS|STITCH[Terastitcher]→FUSION[Multiview]→DECONVOLUTION[Richardson-Lucy]|RECONSTRUCTED`
+      },
+      {
+        name: "Fast Embryo Development",
+        description: "High-speed 4D imaging of Drosophila embryogenesis.",
+        script: `SETUP|LIGHTSHEET[Single]→ENVIRONMENT[25C]→MOUNTING[Agarose-Capillary]|READY
+ACQUIRE|VOLUME[100um:1um]→RATE[1-Vol/sec]→DURATION[24h]→CHANNELS[GFP]|4D_IMAGING
+ANALYZE|TRACK[Nuclei]→LINEAGE[Tracing]→MORPHOGENESIS[Quantify]|MAPPED`
+      }
+    ]
+  },
+  {
+    category: "Optogenetics & Photomanipulation",
+    description: "Targeted light delivery for activation, ablation, or uncaging.",
+    scripts: [
+      {
+        name: "ChR2 Neural Stimulation",
+        description: "Targeted optogenetic stimulation with simultaneous calcium imaging.",
+        script: `DEFINE|ROI[Soma-Target]→LASER[470nm:100%]→PULSE[10ms:10Hz]|STIMULUS
+IMAGE|CALCIUM[GCaMP]→RATE[20Hz]→BASELINE[10s]|RECORDING
+TRIGGER|STIMULATION[ROI]→SYNC[Camera-Exposure]→DURATION[5s]|ACTIVATED
+ANALYZE|RESPONSE[DeltaF/F]→LATENCY[Measure]→SPIKES[Count]|QUANTIFIED`
+      },
+      {
+        name: "Laser Ablation",
+        description: "Sub-cellular laser ablation to study cytoskeletal tension.",
+        script: `IMAGE|MICROTUBULES[GFP]→Z_STACK[Single-Plane]→RATE[10Hz]|MONITORING
+DEFINE|CUT_LINE[2um]→LASER[800nm:Multiphoton:100%]→DWELL[10us]|TARGETED
+FIRE|ABLATION_PULSE→SYNC[Blanking]→VERIFY[Plasma-Spark]|SEVERED
+RECOVER|TRACK[Retraction]→VELOCITY[Measure]→TENSION[Calculate]|ANALYZED`
+      }
+    ]
+  },
+  {
+    category: "High-Content Screening (HCS)",
+    description: "Automated multi-well plate imaging for assays and screening.",
+    scripts: [
+      {
+        name: "96-Well Drug Screen",
+        description: "Automated scanning of a 96-well plate with autofocus.",
+        script: `SETUP|PLATE[96-Well]→MAP[A1:H12]→OBJECTIVE[20x-Air]|INITIALIZED
+CALIBRATE|AUTOFOCUS[Hardware-PFS]→OFFSET[Find-Cells]→REFERENCE[Well-A1]|LOCKED
+ACQUIRE|MULTI_WELL→SITES[4-Per-Well]→CHANNELS[Hoechst,CellMask,EdU]|SCREENING
+ANALYZE|SEGMENT[Nuclei]→CLASSIFY[Proliferating]→DOSE_RESPONSE[Curve]|ASSAYED`
+      }
+    ]
+  },
+  {
+    category: "TIRF Microscopy",
+    description: "Total Internal Reflection Fluorescence for membrane dynamics.",
+    scripts: [
+      {
+        name: "Single Molecule Tracking",
+        description: "High-speed TIRF imaging for single-molecule localization and tracking.",
+        script: `SETUP|TIRF_ANGLE[Critical+0.5deg]→LASER[561nm]→CAMERA[EMCCD:Max-Gain]|EVANESCENT
+ACQUIRE|STREAM→RATE[100Hz]→FRAMES[1000]→CHANNELS[mCherry]|CAPTURING
+ANALYZE|LOCALIZE[Sub-pixel]→TRACK[uTrack]→DIFFUSION[Calculate-MSD]|TRACKED`
+      }
+    ]
   }
 ];
 
 
 export const CONVERTER_EXAMPLES: { name: string, description: string, code: string }[] = [
+  {
+    name: "Bone Tissue Z-Stack (Python)",
+    description: "Z-stack acquisition loop with depth-dependent laser power scaling.",
+    code: `# Q Protocol: Bone Tissue Z-Stack Acquisition Script
+import time
+import numpy as np
+from pycromanager import Core
+
+core = Core()
+
+# Parameters
+z_start = 0.0
+z_end = 200.0
+z_step = 2.0
+laser_power_start = 10.0
+laser_power_end = 100.0
+
+z_positions = np.arange(z_start, z_end + z_step, z_step)
+num_slices = len(z_positions)
+
+# Depth-dependent laser power scaling
+laser_powers = np.linspace(laser_power_start, laser_power_end, num_slices)
+
+print("Starting Bone Tissue Z-Stack Acquisition...")
+for i, z in enumerate(z_positions):
+    power = laser_powers[i]
+    print(f"Acquiring slice {i+1}/{num_slices} at Z={z:.1f}um with Laser Power={power:.1f}%")
+    
+    # Move Z stage
+    core.setPosition(z)
+    
+    # Adjust laser power
+    core.setProperty('Laser', 'Power', str(power))
+    
+    # Wait for stage and laser to settle
+    core.waitForSystem()
+    
+    # Snap image
+    core.snapImage()
+    image = core.getImage()
+    
+    # Save image (simulated)
+    # tifffile.imwrite(f'bone_slice_{i:03d}.tif', image)
+
+print("Acquisition complete.")`
+  },
   {
     name: "Q Protocol Adaptive Optics (MATLAB)",
     description: "Convert a real, 200+ line AO script from MATLAB to Q Protocol.",

@@ -4,6 +4,7 @@ import { CONVERTER_EXAMPLES } from '../constants';
 
 export async function chatWithOrchestrator(message: string, context: string, history: any[]) {
   const systemInstruction = `You are the Q Protocol Orchestrator. You help microscopy researchers design acquisition workflows, analyze results, and manage their instruments. You have access to 4 specialist agents on the Brain: Analyst (patterns), Memory (context), Sentinel (verification), and Registrar (spatial alignment). Every action you take is receipted with BLAKE3 cryptographic verification. You follow the Sense → Propose → Verify → Commit protocol for every response.
+You need to know that the hardware is 3i geesh; SlideBook™ Orchestrator.
 
 Current Session Context:
 ${context}

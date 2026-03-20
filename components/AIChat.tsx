@@ -117,24 +117,25 @@ export const AIChat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+    <div className="flex flex-col h-full bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/0 via-indigo-500/20 to-indigo-500/0"></div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-[#050505] shadow-inner">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] ${msg.role === 'user' ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100' : 'bg-gray-800 border border-gray-700 text-gray-200'} rounded-xl p-4 shadow-sm`}>
+            <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-indigo-600/10 border border-indigo-500/20 text-indigo-100' : 'bg-[#0a0a0a] border border-white/5 text-zinc-300'} rounded-xl p-4 shadow-md`}>
               {msg.role === 'assistant' && (
-                <div className="flex items-center gap-2 mb-2 border-b border-gray-700/50 pb-2">
-                  <span className="text-blue-400 font-bold">Q Protocol Orchestrator</span>
+                <div className="flex items-center gap-2 mb-3 border-b border-white/5 pb-2">
+                  <span className="text-indigo-400 font-mono text-xs uppercase tracking-widest">SlideBook™ Orchestrator</span>
                 </div>
               )}
               
               {msg.role === 'assistant' && msg.thinking && msg.thinking.length > 0 && (
                 <details className="mb-4 group" open={msg.status === 'thinking'}>
-                  <summary className="cursor-pointer text-xs font-mono text-gray-400 hover:text-gray-300 select-none flex items-center gap-1 mb-2">
+                  <summary className="cursor-pointer text-[11px] font-mono text-zinc-500 hover:text-zinc-400 select-none flex items-center gap-1.5 mb-2 uppercase tracking-wider">
                     <span className="group-open:rotate-90 transition-transform">▶</span>
-                    {msg.status === 'thinking' ? '💭 Thinking...' : '💭 View Reasoning Chain'}
+                    {msg.status === 'thinking' ? 'Processing...' : 'View Reasoning Chain'}
                   </summary>
-                  <div className="bg-gradient-to-b from-gray-900 to-gray-950 rounded p-3 text-xs font-mono text-gray-500 space-y-1 border border-gray-800">
+                  <div className="bg-[#050505] rounded-lg p-3 text-[11px] font-mono text-zinc-500 space-y-1.5 border border-white/5 shadow-inner">
                     {msg.thinking.map((step, i) => (
                       <div key={i} className="animate-pulse-fast">{step}</div>
                     ))}
@@ -142,9 +143,9 @@ export const AIChat: React.FC = () => {
                 </details>
               )}
 
-              <div className="prose prose-invert prose-sm max-w-none">
+              <div className="prose prose-invert prose-sm max-w-none text-[13px] leading-relaxed">
                 {msg.status === 'thinking' ? (
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-indigo-500/50">
                     <span className="animate-bounce">●</span>
                     <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>●</span>
                     <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>●</span>
@@ -155,7 +156,7 @@ export const AIChat: React.FC = () => {
               </div>
 
               {msg.role === 'assistant' && msg.status === 'complete' && (
-                <div className="mt-4 pt-3 border-t border-gray-700/50 text-[10px] font-mono text-gray-500 flex flex-col gap-1">
+                <div className="mt-4 pt-3 border-t border-white/5 text-[10px] font-mono text-zinc-600 flex flex-col gap-1.5 uppercase tracking-wider">
                   {msg.agentsConsulted && (
                     <div className="flex items-center gap-2">
                       <span>🔬 Analyst</span>
@@ -166,7 +167,7 @@ export const AIChat: React.FC = () => {
                     </div>
                   )}
                   {msg.receiptHash && (
-                    <div className="text-blue-500/50 truncate">
+                    <div className="text-indigo-500/40 truncate">
                       Receipt: {msg.receiptHash}
                     </div>
                   )}
@@ -178,20 +179,20 @@ export const AIChat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-gray-800/50 border-t border-gray-800">
+      <div className="p-4 bg-[#0a0a0a] border-t border-white/5">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask the Orchestrator..."
-            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+            className="flex-1 bg-[#050505] border border-white/10 rounded-lg px-4 py-2.5 text-[13px] text-zinc-200 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner placeholder-zinc-600"
             disabled={isProcessing}
           />
           <button
             type="submit"
             disabled={!input.trim() || isProcessing}
-            className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+            className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white px-5 py-2.5 rounded-lg text-[13px] font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(79,70,229,0.15)] hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] disabled:shadow-none"
           >
             <span>Send</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

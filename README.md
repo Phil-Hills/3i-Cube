@@ -96,6 +96,20 @@ runtime.execute("CAPTURE|IMAGE→CHANNEL[GFP]→SAVE[cell.tif]|DONE")
 | Z-Stack | `CAPTURE\|ZSTACK[-50:50:0.5]→SAVE\|COMPLETE` | 80+ |
 | Adaptive Optics | `OPTIMIZE\|AO→ZERNIKE[1:7]→APPLY\|CORRECTED` | 200+ |
 
+### 3i SlideBook™ Integration
+
+Q Protocol is fully compatible with **Intelligent Imaging Innovations (3i)** hardware and software. It acts as a semantic extension for **SlideBook™**, allowing researchers to orchestrate complex acquisitions on:
+- Marianas™ LightSheet
+- Lattice LightSheet
+- Vector™ Photomanipulation
+
+**Example SlideBook™ Workflow:**
+```qprotocol
+CONNECT|SLIDEBOOK→MICROSCOPE[LatticeLightSheet]|READY
+ACQUIRE|ZSTACK[-10:10:0.5]→CHANNEL[488nm,561nm]→CAMERA[Dual]|ACQUIRING
+EXPORT|SLIDEBOOK_WORKSPACE→RENDER[3D]|COMPLETE
+```
+
 ### API Reference
 
 #### Convert Code

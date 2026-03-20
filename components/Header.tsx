@@ -8,9 +8,11 @@ interface HeaderProps {
   onAboutClick: () => void;
   onDocsClick: () => void;
   onSystemCheckClick: () => void;
+  showAdvanced: boolean;
+  onToggleAdvanced: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onAboutClick, onDocsClick, onSystemCheckClick }) => {
+export const Header: React.FC<HeaderProps> = ({ onAboutClick, onDocsClick, onSystemCheckClick, showAdvanced, onToggleAdvanced }) => {
   const [brainHealthy, setBrainHealthy] = useState(false);
   const [swarmStatus, setSwarmStatus] = useState<SwarmStatus | null>(null);
 
@@ -28,59 +30,69 @@ export const Header: React.FC<HeaderProps> = ({ onAboutClick, onDocsClick, onSys
   }, []);
 
   const getStatusColor = (status?: string) => {
-    return status === 'ready' || status === 'busy' ? 'bg-green-500' : 'bg-gray-500';
+    return status === 'ready' || status === 'busy' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-600';
   };
 
   return (
-    <header className="flex items-center p-4 bg-gray-900/80 border-b border-blue-900/50 backdrop-blur-sm">
-      <QIcon className="w-8 h-8 text-blue-400 mr-3" />
-      <h1 className="text-2xl font-bold text-gray-100 tracking-wider">
-        Q Protocol
+    <header className="flex items-center p-4 bg-[#0a0a0a] border-b border-white/10 backdrop-blur-md">
+      <QIcon className="w-8 h-8 text-sky-400 mr-3" />
+      <h1 className="text-2xl font-bold text-zinc-100 tracking-wider flex items-baseline">
+        Q Protocol <span className="text-sm font-normal text-sky-400/80 ml-3 tracking-normal hidden sm:inline">SlideBook™ Integration</span>
       </h1>
       
-      <div className="ml-8 flex items-center space-x-4 text-xs font-mono">
-        <div className="flex items-center" title="Brain">
-          <div className={`w-2.5 h-2.5 rounded-full mr-1.5 ${brainHealthy ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-          <span className="text-gray-400">Brain</span>
+      {showAdvanced && (
+        <div className="ml-8 hidden lg:flex items-center space-x-5 text-[10px] font-mono uppercase tracking-wider">
+          <div className="flex items-center" title="Brain">
+            <div className={`w-2 h-2 rounded-full mr-2 ${brainHealthy ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-600'}`}></div>
+            <span className="text-zinc-500">Brain</span>
+          </div>
+          <div className="flex items-center" title="Analyst Agent">
+            <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(swarmStatus?.analyst.status)}`}></div>
+            <span className="text-zinc-500">Analyst</span>
+          </div>
+          <div className="flex items-center" title="Memory Agent">
+            <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(swarmStatus?.memory.status)}`}></div>
+            <span className="text-zinc-500">Memory</span>
+          </div>
+          <div className="flex items-center" title="Sentinel Agent">
+            <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(swarmStatus?.sentinel.status)}`}></div>
+            <span className="text-zinc-500">Sentinel</span>
+          </div>
+          <div className="flex items-center" title="Registrar Agent">
+            <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(swarmStatus?.registrar.status)}`}></div>
+            <span className="text-zinc-500">Registrar</span>
+          </div>
         </div>
-        <div className="flex items-center" title="Analyst Agent">
-          <div className={`w-2.5 h-2.5 rounded-full mr-1.5 ${getStatusColor(swarmStatus?.analyst.status)}`}></div>
-          <span className="text-gray-400">Analyst</span>
-        </div>
-        <div className="flex items-center" title="Memory Agent">
-          <div className={`w-2.5 h-2.5 rounded-full mr-1.5 ${getStatusColor(swarmStatus?.memory.status)}`}></div>
-          <span className="text-gray-400">Memory</span>
-        </div>
-        <div className="flex items-center" title="Sentinel Agent">
-          <div className={`w-2.5 h-2.5 rounded-full mr-1.5 ${getStatusColor(swarmStatus?.sentinel.status)}`}></div>
-          <span className="text-gray-400">Sentinel</span>
-        </div>
-        <div className="flex items-center" title="Registrar Agent">
-          <div className={`w-2.5 h-2.5 rounded-full mr-1.5 ${getStatusColor(swarmStatus?.registrar.status)}`}></div>
-          <span className="text-gray-400">Registrar</span>
-        </div>
-      </div>
+      )}
 
       <div className="ml-auto flex items-center space-x-3">
         <button
-          onClick={onSystemCheckClick}
-          className="px-3 py-1.5 bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/50 rounded text-blue-300 text-xs font-semibold transition-colors"
+          onClick={onToggleAdvanced}
+          className={`px-3 py-1.5 rounded text-[10px] font-mono uppercase tracking-wider transition-colors border ${showAdvanced ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-[#050505] text-zinc-500 border-white/10 hover:text-zinc-300 hover:bg-white/5'}`}
         >
-          System Check
+          {showAdvanced ? 'Advanced: ON' : 'Advanced: OFF'}
         </button>
+        {showAdvanced && (
+          <button
+            onClick={onSystemCheckClick}
+            className="px-3 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded text-sky-400 text-[10px] font-mono uppercase tracking-wider transition-colors"
+          >
+            System Check
+          </button>
+        )}
         <button
             onClick={onDocsClick}
-            className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors"
+            className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-white/5 transition-colors"
             aria-label="Documentation"
           >
-          <BookOpenIcon className="w-7 h-7" />
+          <BookOpenIcon className="w-5 h-5" />
         </button>
         <button
           onClick={onAboutClick}
-          className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors"
+          className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-white/5 transition-colors"
           aria-label="About Q Protocol"
         >
-          <QuestionMarkCircleIcon className="w-7 h-7" />
+          <QuestionMarkCircleIcon className="w-5 h-5" />
         </button>
       </div>
     </header>

@@ -211,41 +211,42 @@ export const MemoryGraph: React.FC<MemoryGraphProps> = ({ refreshTrigger = 0 }) 
   }, [nodes, links]);
 
   return (
-    <div className="flex flex-col h-full relative bg-gray-900 rounded-lg border border-gray-700/50 overflow-hidden">
-      <div className="absolute top-4 left-4 z-10 bg-gray-800/80 p-3 rounded border border-gray-700/50 backdrop-blur-sm">
-        <h3 className="text-sm font-bold text-gray-100 mb-2">Memory Graph</h3>
-        <div className="text-xs text-gray-400 space-y-1">
-          <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-cyan-500 mr-2"></div> PROMPT</div>
-          <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div> DECISION</div>
-          <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-emerald-500 mr-2"></div> RESPONSE</div>
-          <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-white mr-2"></div> RECEIPT</div>
+    <div className="flex flex-col h-full relative bg-[#0a0a0a] rounded-xl border border-white/10 overflow-hidden shadow-2xl">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500/0 via-purple-500/20 to-purple-500/0"></div>
+      <div className="absolute top-4 left-4 z-10 bg-[#050505]/90 p-4 rounded-lg border border-white/5 backdrop-blur-md shadow-lg">
+        <h3 className="text-[11px] font-mono uppercase tracking-widest text-purple-400 mb-3">Memory Graph</h3>
+        <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 space-y-2">
+          <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-cyan-500 mr-3 shadow-[0_0_8px_rgba(6,182,212,0.5)]"></div> PROMPT</div>
+          <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-amber-500 mr-3 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div> DECISION</div>
+          <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-emerald-500 mr-3 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div> RESPONSE</div>
+          <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-white mr-3 shadow-[0_0_8px_rgba(255,255,255,0.5)]"></div> RECEIPT</div>
         </div>
-        <div className="mt-3 text-xs text-gray-500 space-y-1 border-t border-gray-700 pt-2">
+        <div className="mt-4 text-[10px] font-mono uppercase tracking-widest text-zinc-600 space-y-1.5 border-t border-white/5 pt-3">
           <div>◈ Claim 24: Bidirectional Memory Graph</div>
           <div>◈ Claim 25: Decision nodes record routing choices</div>
           <div>◈ Claim 27: Graph visualization interface</div>
         </div>
         {memorySummary && (
-          <div className="mt-3 text-xs text-blue-400 space-y-1 border-t border-gray-700 pt-2 max-w-[200px]">
-            <div className="font-bold text-blue-300 mb-1">Memory Agent Summary:</div>
+          <div className="mt-4 text-[11px] font-mono text-purple-400/80 space-y-2 border-t border-white/5 pt-3 max-w-[220px]">
+            <div className="font-bold text-purple-400 uppercase tracking-widest">Memory Agent Summary:</div>
             <div className="leading-relaxed">{memorySummary}</div>
           </div>
         )}
       </div>
 
-      <svg ref={svgRef} className="w-full h-full cursor-move" />
+      <svg ref={svgRef} className="w-full h-full cursor-move bg-[#050505] shadow-inner" />
 
       {selectedNode && (
-        <div className="absolute bottom-4 right-4 z-10 bg-gray-800/90 p-4 rounded-lg border border-gray-600 shadow-xl max-w-sm backdrop-blur-md">
-          <h4 className="text-sm font-bold text-white mb-1">{selectedNode.type} Node</h4>
-          <div className="text-xs text-gray-300 font-mono break-all bg-gray-900/50 p-2 rounded mb-2">
+        <div className="absolute bottom-4 right-4 z-10 bg-[#050505]/95 p-5 rounded-xl border border-white/10 shadow-2xl max-w-sm backdrop-blur-xl">
+          <h4 className="text-[11px] font-mono uppercase tracking-widest text-zinc-300 mb-2">{selectedNode.type} Node</h4>
+          <div className="text-[13px] text-purple-300/90 font-mono break-all bg-[#0a0a0a] p-3 rounded-lg border border-white/5 mb-3 shadow-inner leading-relaxed">
             {selectedNode.content}
           </div>
-          <div className="text-xs text-gray-500">
-            <strong>BLAKE3:</strong> {selectedNode.hash.slice(0, 16)}...
+          <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+            <strong className="text-zinc-400">BLAKE3:</strong> {selectedNode.hash.slice(0, 16)}...
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            <strong>Connected to:</strong> {
+          <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mt-1.5">
+            <strong className="text-zinc-400">Connected to:</strong> {
               links.filter(l => (l.source as GraphNode).id === selectedNode.id || (l.target as GraphNode).id === selectedNode.id).length
             } nodes
           </div>
